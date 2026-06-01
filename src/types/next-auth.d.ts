@@ -1,12 +1,12 @@
-import 'next-auth'
-import 'next-auth/jwt'
+import type { DefaultSession } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 
 declare module 'next-auth' {
   interface Session {
     user: {
       id: string
       workspaceId?: string
-    } & import('next-auth').DefaultSession['user']
+    } & DefaultSession['user']
   }
 }
 

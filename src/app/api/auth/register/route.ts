@@ -44,10 +44,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const existing = await db.user.findUnique({ where: { email } })
+    const existing = await db.user.findUnique({
+      where:  { email },
+      select: { id: true },
+    })
 
-    // ── Existing account with a password → reject ────────────────────────
-    if (existing?.password) {
+    if (existing) {
       return NextResponse.json(
         { error: 'An account with this email already exists. Please sign in instead.' },
         { status: 409 },
@@ -55,19 +57,6 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
-
-    // ── Legacy account (no password) → set password on existing record ───
-    if (existing) {
-      await db.user.update({
-        where: { id: existing.id },
-        data: {
-          password: passwordHash,
-          name:     name ?? existing.name,
-          updatedAt: new Date(),
-        },
-      })
-      return NextResponse.json({ ok: true, upgraded: true })
-    }
 
     // ── Fresh account → create user + workspace + membership ─────────────
     const user = await db.user.create({

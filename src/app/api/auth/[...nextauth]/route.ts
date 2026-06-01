@@ -31,31 +31,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email    = (credentials?.email    as string | undefined)?.trim().toLowerCase()
         const password = (credentials?.password as string | undefined) ?? ''
 
-        if (!email) return null
+        if (!email || !password) return null
 
         try {
-          const user = await db.user.findUnique({ where: { email } })
+          const user = await db.user.findUnique({
+            where:  { email },
+            select: { id: true, email: true, name: true, password: true },
+          })
 
-          // Path 1: unknown user → must sign up first.
-          if (!user) {
-            console.log(`[auth] sign-in rejected: no account for ${email}`)
-            return null
-          }
+          if (!user?.password) return null
 
-          // Path 2: account has a password → verify it.
-          if (user.password) {
-            if (!password) {
-              console.log(`[auth] sign-in rejected: password required for ${email}`)
-              return null
-            }
-            const ok = await bcrypt.compare(password, user.password)
-            if (!ok) {
-              console.log(`[auth] sign-in rejected: invalid password for ${email}`)
-              return null
-            }
-          }
-          // Path 3: legacy account (no password) → email-only sign-in allowed
-          // for backward compatibility. No-op; fall through to success.
+          const ok = await bcrypt.compare(password, user.password)
+          if (!ok) return null
 
           await db.user.update({
             where: { id: user.id },
