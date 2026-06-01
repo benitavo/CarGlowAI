@@ -1,0 +1,20 @@
+{
+  "nav": {
+    "pricing": "Pricing",
+    "about": "About",
+    "signIn": "Sign in",
+    "startFree": "Start free trial"
+  },
+  "footer": {
+    "ctaTitle": "Ready to ship better listings?",
+    "ctaBody": "3 free photos. No card required. Cancel anytime.",
+    "ctaButton": "Start free trial",
+    "ctaSecondary": "Talk to sales",
+    "tagline": "AI photography for the automotive industry. Built in Europe.",
+    "copyright": "All rights reserved.",
+    "builtInEurope": "Built in Europe · GDPR compliant"
+  },
+  "home": {},
+  "pricing": {},
+  "common": {}
+}

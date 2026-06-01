@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "pricing": "Pricing",
+    "about": "About",
+    "signIn": "Sign in",
+    "startFree": "Start free trial"
+  },
+  "footer": {
+    "ctaTitle": "Ready to ship better listings?",
+    "ctaBody": "3 free photos. No card required. Cancel anytime.",
+    "ctaButton": "Start free trial",
+    "ctaSecondary": "Talk to sales",
+    "tagline": "AI photography for the automotive industry. Built in Europe.",
+    "copyright": "All rights reserved.",
+    "builtInEurope": "Built in Europe · GDPR compliant"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "AI photography for car dealers",
+      "headline1": "Studio-grade car photos.",
+      "headline2": "In seconds.",
+      "subhead": "Upload phone photos. Get back showroom-quality listings — backgrounds replaced, plates masked, brand watermarked. Trusted by 312+ dealerships across Europe.",
+      "ctaPrimary": "Start free — 3 photos",
+      "ctaSecondary": "Book a demo",
+      "noCard": "No credit card · 30-day money-back"
+    },
+    "social": {
+      "trustedBy": "Trusted by inventory teams at",
+      "stats": {
+        "dealers": "dealerships",
+        "photos": "photos enhanced",
+        "uptime": "uptime",
+        "countries": "countries"
+      }
+    },
+    "sections": {
+      "features": "Built for dealers, by people who've sold cars",
+      "howItWorks": "From phone to showroom in 4 steps",
+      "solutions": "However you sell cars",
+      "demo": "See it in action",
+      "pricing": "Simple, credit-based pricing",
+      "finalCtaHeadline": "Sell your inventory faster.",
+      "finalCtaSubhead": "Join 312+ dealerships who've cut days-to-sale by 40%.",
+      "viewAll": "View all features",
+      "comparePricing": "Compare all plans"
+    }
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "headline1": "Simple,",
+    "headline2": "credit-based pricing.",
+    "subhead": "No per-seat tax. No locked-in contracts. One credit = one enhanced photo. Unused credits roll over.",
+    "ctaStarter": "Start free",
+    "ctaGrowth": "Start 14-day trial",
+    "ctaPro": "Start 14-day trial",
+    "ctaEnterprise": "Contact sales",
+    "perMonth": "/ mo",
+    "popularBadge": "Most popular",
+    "freeTrialNote": "All plans include a 14-day free trial. No card required.",
+    "compareAll": "Compare plan details",
+    "questionsTitle": "Questions?",
+    "questionsBody": "We're happy to walk you through which plan fits your inventory.",
+    "talkToUs": "Talk to us"
+  },
+  "common": {
+    "startFree": "Start free trial",
+    "bookDemo": "Book a demo",
+    "learnMore": "Learn more",
+    "contactSales": "Contact sales",
+    "viewPricing": "View pricing",
+    "getStarted": "Get started",
+    "tryItFree": "Try it free"
+  }
+}

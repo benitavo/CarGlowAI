@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 8%;
+    --foreground: 40 20% 96%;
+    --card: 222 40% 10%;
+    --card-foreground: 40 20% 96%;
+    --primary: 26 100% 61%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 222 35% 14%;
+    --secondary-foreground: 40 20% 96%;
+    --muted: 222 35% 14%;
+    --muted-foreground: 40 10% 65%;
+    --accent: 26 100% 61%;
+    --accent-foreground: 222 47% 8%;
+    --border: 222 30% 18%;
+    --input: 222 30% 15%;
+    --ring: 26 100% 61%;
+    --radius: 0.75rem;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: #0B1220;
+    color: #F7F5F1;
+    font-family: var(--font-inter), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  }
+
+  ::selection {
+    background-color: rgba(255, 138, 61, 0.3);
+    color: #F7F5F1;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0B1220; }
+  ::-webkit-scrollbar-thumb { background: #1E3055; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #FF8A3D; }
+}
+
+@layer components {
+  /* Grain overlay */
+  .grain {
+    position: relative;
+  }
+  .grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px;
+  }
+
+  /* Glow border */
+  .glow-border {
+    border: 1px solid rgba(255, 138, 61, 0.25);
+    box-shadow: 0 0 20px -5px rgba(255, 138, 61, 0.15);
+  }
+
+  /* Glass card */
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    background: linear-gradient(135deg, #FF8A3D 0%, #FFB87D 50%, #FF8A3D 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-white {
+    background: linear-gradient(135deg, #F7F5F1 0%, rgba(247,245,241,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Section spacing */
+  .section-pad { padding: clamp(64px, 10vw, 128px) 0; }
+  .section-pad-sm { padding: clamp(40px, 6vw, 80px) 0; }
+
+  /* Container */
+  .page-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 4vw, 48px);
+  }
+
+  /* Eyebrow label */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #FF8A3D;
+    font-family: var(--font-inter), monospace;
+  }
+
+  /* Noise bg for cards */
+  .card-noise {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 32px -8px rgba(0,0,0,0.5);
+  }
+  .card-noise:hover {
+    border-color: rgba(255, 138, 61, 0.2);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 16px 48px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,138,61,0.1);
+    transition: all 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .animation-delay-100 { animation-delay: 100ms; }
+  .animation-delay-200 { animation-delay: 200ms; }
+  .animation-delay-300 { animation-delay: 300ms; }
+  .animation-delay-400 { animation-delay: 400ms; }
+  .animation-delay-500 { animation-delay: 500ms; }
+
+  /* Fill utilities for SVG icons */
+  .fill-glow-300 { fill: #FFBC8C; }
+  .fill-glow-400 { fill: #FFA666; }
+  .fill-glow-500 { fill: #FF8A3D; }
+  .fill-offwhite { fill: #F7F5F1; }
+}
