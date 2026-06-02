@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { Menu, X, Zap } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { Menu, X, Zap, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Link } from '@/i18n/routing'
 
 export function Nav() {
   const t = useTranslations('nav')
+  const { data: session, status } = useSession()
+  const isAuthenticated = status === 'authenticated' && !!session?.user
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -59,18 +62,30 @@ export function Nav() {
 
         {/* Right actions */}
         <div className="hidden lg:flex items-center gap-3">
-          <Link
-            href="/signin"
-            className="px-4 py-2 text-sm font-medium text-offwhite/70 hover:text-offwhite rounded-xl border border-white/[0.1] hover:border-white/[0.2] hover:bg-white/[0.04] transition-all"
-          >
-            {t('signIn')}
-          </Link>
-          <Link
-            href="/signup"
-            className="px-4 py-2 text-sm font-semibold text-midnight bg-glow-500 hover:bg-glow-400 rounded-xl shadow-glow-sm hover:shadow-glow-md transition-all"
-          >
-            {t('startFree')}
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href="/app"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-midnight bg-glow-500 hover:bg-glow-400 rounded-xl shadow-glow-sm hover:shadow-glow-md transition-all"
+            >
+              <LayoutDashboard className="w-4 h-4" strokeWidth={2} />
+              Go to app
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/signin"
+                className="px-4 py-2 text-sm font-medium text-offwhite/70 hover:text-offwhite rounded-xl border border-white/[0.1] hover:border-white/[0.2] hover:bg-white/[0.04] transition-all"
+              >
+                {t('signIn')}
+              </Link>
+              <Link
+                href="/signup"
+                className="px-4 py-2 text-sm font-semibold text-midnight bg-glow-500 hover:bg-glow-400 rounded-xl shadow-glow-sm hover:shadow-glow-md transition-all"
+              >
+                {t('startFree')}
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -100,14 +115,24 @@ export function Nav() {
               {t('about')}
             </Link>
             <div className="mt-4 pt-4 border-t border-white/[0.06] flex flex-col gap-3">
-              <Link href="/signin" onClick={() => setMobileOpen(false)}
-                className="text-center py-3 rounded-xl border border-white/[0.1] text-sm font-medium text-offwhite/70">
-                {t('signIn')}
-              </Link>
-              <Link href="/signup" onClick={() => setMobileOpen(false)}
-                className="text-center py-3 rounded-xl bg-glow-500 text-sm font-semibold text-midnight">
-                {t('startFree')}
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/app" onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center gap-2 text-center py-3 rounded-xl bg-glow-500 text-sm font-semibold text-midnight">
+                  <LayoutDashboard className="w-4 h-4" strokeWidth={2} />
+                  Go to app
+                </Link>
+              ) : (
+                <>
+                  <Link href="/signin" onClick={() => setMobileOpen(false)}
+                    className="text-center py-3 rounded-xl border border-white/[0.1] text-sm font-medium text-offwhite/70">
+                    {t('signIn')}
+                  </Link>
+                  <Link href="/signup" onClick={() => setMobileOpen(false)}
+                    className="text-center py-3 rounded-xl bg-glow-500 text-sm font-semibold text-midnight">
+                    {t('startFree')}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

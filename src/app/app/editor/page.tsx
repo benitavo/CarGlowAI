@@ -25,12 +25,6 @@ interface StyleOption {
 
 const STYLES: StyleOption[] = [
   {
-    slug:        'white-studio',
-    name:        'White Studio',
-    description: 'Clean white seamless studio · reflective floor',
-    thumbnail:   '/backgrounds/white-studio.jpg',
-  },
-  {
     slug:        'dealership',
     name:        'Dealership',
     description: 'Blurred premium showroom backdrop',
@@ -41,24 +35,6 @@ const STYLES: StyleOption[] = [
     name:        'Showroom Floor',
     description: 'Wood floor with showroom behind',
     thumbnail:   '/backgrounds/wood-floor.jpg',
-  },
-  {
-    slug:        'wood-corner',
-    name:        'Branded Corner',
-    description: 'Wood-panel corner with logo wall',
-    thumbnail:   '/backgrounds/wood-corner.webp',
-  },
-  {
-    slug:        'podium',
-    name:        'Podium',
-    description: 'White round podium · concrete architecture',
-    thumbnail:   '/backgrounds/podium.webp',
-  },
-  {
-    slug:        'dark-garage',
-    name:        'Dark Garage',
-    description: 'Moody neon-lit industrial garage',
-    thumbnail:   '/backgrounds/dark-garage.jpg',
   },
 ]
 
