@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Download, ImageIcon, ArrowRight, X, ExternalLink } from 'lucide-react'
+import { Download, ImageIcon, ArrowRight, X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface Photo {
   id:           string
@@ -43,10 +41,34 @@ function timeAgo(iso: string) {
   return d === 1 ? 'yesterday' : `${d}d ago`
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function PhotoGrid({ photos }: { photos: Photo[] }) {
-  const [preview, setPreview] = useState<Photo | null>(null)
+  const [previewIdx, setPreviewIdx] = useState<number | null>(null)
+
+  const preview   = previewIdx !== null ? photos[previewIdx] : null
+  const hasPrev   = previewIdx !== null && previewIdx > 0
+  const hasNext   = previewIdx !== null && previewIdx < photos.length - 1
+
+  const goPrev = useCallback(() => {
+    setPreviewIdx(i => (i !== null && i > 0 ? i - 1 : i))
+  }, [])
+
+  const goNext = useCallback(() => {
+    setPreviewIdx(i => (i !== null && i < photos.length - 1 ? i + 1 : i))
+  }, [photos.length])
+
+  const close = useCallback(() => setPreviewIdx(null), [])
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (previewIdx === null) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft')  goPrev()
+      if (e.key === 'ArrowRight') goNext()
+      if (e.key === 'Escape')     close()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [previewIdx, goPrev, goNext, close])
 
   if (photos.length === 0) {
     return (
@@ -73,13 +95,12 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       {/* Grid */}
       <div className="px-6 lg:px-10 py-8 max-w-[1480px]">
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-          {photos.map(p => (
+          {photos.map((p, idx) => (
             <button
               key={p.id}
-              onClick={() => setPreview(p)}
+              onClick={() => setPreviewIdx(idx)}
               className="group relative aspect-[4/3] rounded-xl overflow-hidden ring-2 ring-transparent hover:ring-white/20 transition-all text-left"
             >
-              {/* Thumbnail */}
               {p.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -95,7 +116,6 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
               <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/90 via-midnight-900/10 to-midnight-900/30" />
 
-              {/* Status badge */}
               <div className={cn(
                 'absolute top-2 right-2 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border backdrop-blur-md',
                 STATUS_CLS[p.status] ?? STATUS_CLS.UPLOADED
@@ -103,12 +123,9 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 {STATUS_LABEL[p.status] ?? p.status}
               </div>
 
-              {/* Info footer */}
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 {p.vehicleName && (
-                  <div className="text-[13px] font-medium text-offwhite truncate">
-                    {p.vehicleName}
-                  </div>
+                  <div className="text-[13px] font-medium text-offwhite truncate">{p.vehicleName}</div>
                 )}
                 <div className="text-[11px] text-offwhite/50 mt-0.5 flex items-center gap-1.5">
                   <span>{p.styleUsed ?? 'Custom'}</span>
@@ -122,10 +139,10 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       </div>
 
       {/* Preview modal */}
-      {preview && (
+      {preview && previewIdx !== null && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-midnight-900/85 backdrop-blur-sm"
-          onClick={() => setPreview(null)}
+          onClick={close}
         >
           <div
             className="relative max-w-5xl w-full max-h-full flex flex-col"
@@ -141,6 +158,8 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   <span>{preview.styleUsed ?? 'Custom'}</span>
                   <span>·</span>
                   <span>{timeAgo(preview.createdAt)}</span>
+                  <span>·</span>
+                  <span className="tabular-nums">{previewIdx + 1} / {photos.length}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -156,7 +175,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   </a>
                 )}
                 <button
-                  onClick={() => setPreview(null)}
+                  onClick={close}
                   className="w-9 h-9 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] flex items-center justify-center text-offwhite/70 hover:text-offwhite transition-colors"
                   aria-label="Close"
                 >
@@ -165,20 +184,56 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
               </div>
             </div>
 
-            {/* Large image */}
-            <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-midnight-900 flex items-center justify-center">
-              {preview.fullUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview.fullUrl}
-                  alt={preview.vehicleName ?? 'Enhanced photo'}
-                  className="max-h-[75vh] w-auto object-contain"
-                />
-              ) : (
-                <div className="h-64 flex items-center justify-center">
-                  <ImageIcon className="w-10 h-10 text-offwhite/20" strokeWidth={1.5} />
-                </div>
-              )}
+            {/* Image + side arrows */}
+            <div className="relative flex items-center">
+              {/* Left arrow */}
+              <button
+                onClick={goPrev}
+                disabled={!hasPrev}
+                className={cn(
+                  'absolute left-0 z-10 -translate-x-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all',
+                  'bg-midnight-800/90 border border-white/[0.12] backdrop-blur',
+                  hasPrev
+                    ? 'text-offwhite hover:bg-white/[0.12] hover:border-white/[0.25] cursor-pointer'
+                    : 'text-offwhite/20 cursor-not-allowed'
+                )}
+                aria-label="Previous photo"
+              >
+                <ChevronLeft className="w-5 h-5" strokeWidth={2} />
+              </button>
+
+              {/* Image */}
+              <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-midnight-900 flex items-center justify-center w-full">
+                {preview.fullUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={preview.id}
+                    src={preview.fullUrl}
+                    alt={preview.vehicleName ?? 'Enhanced photo'}
+                    className="max-h-[75vh] w-auto object-contain"
+                  />
+                ) : (
+                  <div className="h-64 flex items-center justify-center">
+                    <ImageIcon className="w-10 h-10 text-offwhite/20" strokeWidth={1.5} />
+                  </div>
+                )}
+              </div>
+
+              {/* Right arrow */}
+              <button
+                onClick={goNext}
+                disabled={!hasNext}
+                className={cn(
+                  'absolute right-0 z-10 translate-x-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all',
+                  'bg-midnight-800/90 border border-white/[0.12] backdrop-blur',
+                  hasNext
+                    ? 'text-offwhite hover:bg-white/[0.12] hover:border-white/[0.25] cursor-pointer'
+                    : 'text-offwhite/20 cursor-not-allowed'
+                )}
+                aria-label="Next photo"
+              >
+                <ChevronRight className="w-5 h-5" strokeWidth={2} />
+              </button>
             </div>
           </div>
         </div>

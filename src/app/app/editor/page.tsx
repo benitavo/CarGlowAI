@@ -36,6 +36,12 @@ const STYLES: StyleOption[] = [
     description: 'Wood floor with showroom behind',
     thumbnail:   '/backgrounds/wood-floor.jpg',
   },
+  {
+    slug:        'showroom',
+    name:        'Full Showroom',
+    description: 'Bright spacious multi-car dealership',
+    thumbnail:   '/backgrounds/showroom.jpg',
+  },
 ]
 
 // ─── Photo-slot state model ─────────────────────────────────────────────────

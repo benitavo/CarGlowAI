@@ -39,6 +39,7 @@ interface BgConfig {
 const BACKGROUNDS: Record<string, BgConfig> = {
   'dealership': { file: 'dealership.jpg', mimeType: 'image/jpeg' },
   'wood-floor': { file: 'wood-floor.jpg', mimeType: 'image/jpeg' },
+  'showroom':   { file: 'showroom.jpg',   mimeType: 'image/jpeg' },
 }
 const DEFAULT_BG_SLUG = 'dealership'
 
@@ -61,23 +62,56 @@ const BACKGROUND_DESCRIPTIONS: Record<string, string> = {
     'windows at back with warm natural daylight flooding in, airy luminous premium atmosphere, ' +
     'shallow depth of field background blur, no foreground objects',
 
-  // Bright modern car dealership. Light natural oak wood plank floor sharp in
-  // the foreground. Blurred background with multiple colorful cars (black, yellow,
-  // silver, dark) as soft bokeh shapes. White ceiling with round recessed
-  // spotlights. Bright white walls. Large windows with abundant natural daylight.
-  // Clean open automotive showroom.
+  // Modern luxury editorial showroom. Light natural oak hardwood planks floor
+  // (horizontal grain, clearly visible, uniform from edge to edge). Left wall:
+  // large dark matte black painted surface with recessed track spotlights above.
+  // Center back: vertical narrow light wood slat panel. Right wall: large grey
+  // raw concrete textured panel. Black ceiling with recessed directional
+  // spotlights. Empty, architectural, premium brand environment.
   'wood-floor':
-    'Bright modern car dealership showroom, light natural oak wood plank floor sharp in ' +
-    'foreground, blurred colorful cars in background as soft bokeh including black yellow ' +
-    'silver vehicles, white ceiling with round recessed spotlights, bright white walls, ' +
-    'large windows with abundant natural daylight, clean open showroom, ' +
-    'strong background blur bokeh effect',
+    'Modern luxury automotive showroom, continuous uniform light natural oak hardwood plank ' +
+    'floor with consistent wood grain texture from left edge to right edge, ' +
+    'horizontal wood planks running uniformly at the same level across the full width, ' +
+    'large dark matte black wall on the left with recessed track spotlights, ' +
+    'vertical narrow light wood slat panel on center back wall, ' +
+    'large grey raw concrete texture panel on right wall, ' +
+    'black ceiling with recessed directional spotlights, ' +
+    'empty architectural premium interior, no cars no people, ' +
+    'no trees no outdoor foliage no sky no nature visible, shallow depth of field',
+
+  // Premium car dealership showroom. Wide central aisle in perspective leading
+  // to the back wall. Cars parked in two parallel rows left and right of the
+  // aisle: white, black and dark red sedans on the left; blue and white sedans
+  // on the right; a single dark navy car centred at the far end.
+  // Floor: large white/light grey polished tiles, clean and slightly reflective.
+  // Left wall: floor-to-ceiling tall glass windows, bright cool natural daylight.
+  // Back wall: dark display screen mounted centrally, diamond brand logo, central
+  // glazed door. Upper level: white mezzanine gallery with railing at the back right.
+  // Right side: two hanging navy blue brand banners with star logo.
+  // Ceiling: flat white with evenly spaced recessed lighting panels.
+  // Atmosphere: vast, bright, symmetric, premium brand environment.
+  'showroom':
+    'Premium car dealership showroom, wide symmetric central aisle in perspective, ' +
+    'white and black and dark red sedans parked in a row on the left side, ' +
+    'blue and white sedans parked in a row on the right side, ' +
+    'single dark navy car centred at the far end of the aisle, ' +
+    'large white polished tile floor with subtle clean reflections, ' +
+    'full height floor-to-ceiling glass windows on the left wall with bright cool natural daylight, ' +
+    'back wall with dark mounted display screen and diamond brand logo and central glazed door, ' +
+    'white mezzanine gallery with railing visible at back right, ' +
+    'two hanging navy blue brand banners with star logo on right side, ' +
+    'flat white ceiling with evenly spaced recessed light panels, ' +
+    'vast bright symmetric premium brand atmosphere, ' +
+    'no trees no outdoor foliage no nature visible inside, shallow depth of field',
 }
 
 // Bria is told to not keep window reflections of the original car background.
 const NEGATIVE_PROMPT =
-  'reflections of previous background in car windows, old environment visible through glass, ' +
-  'wrong reflections in windshield, original background reflected in windows, ' +
+  'tree reflections in car windows, green foliage reflected in glass, outdoor sky in windshield, ' +
+  'nature reflected in windows, trees visible through glass, outdoor environment in car windows, ' +
+  'reflections of previous background in windows, wrong reflections in glass, ' +
+  'inconsistent floor texture, mismatched floor material, floor colour variation, ' +
+  'mixed floor patterns, broken floor continuity, ' +
   'distorted proportions, warped architecture, unrealistic perspective'
 
 // ─── DoF reference cache ─────────────────────────────────────────────────────
@@ -87,11 +121,76 @@ const NEGATIVE_PROMPT =
 // (bottom 28 %) is barely blurred (sigma 1.5) so ground contact stays crisp.
 const dofRefCache = new Map<string, string>()
 
+// Build the source buffer for the DoF reference.
+// For 'wood-floor' we composite the floor section from wood-corner.webp
+// (consistent flat horizontal planks) over the upper showroom scene from
+// wood-floor.jpg (bright atmosphere, bokeh cars, good lighting).
+// Every other slug just reads its own file directly.
+async function buildSourceBuffer(slug: string): Promise<Buffer> {
+  const bgDir = path.join(process.cwd(), 'public', 'backgrounds')
+
+  if (slug !== 'wood-floor') {
+    const cfg = BACKGROUNDS[slug] ?? BACKGROUNDS[DEFAULT_BG_SLUG]
+    return readFile(path.join(bgDir, cfg.file))
+  }
+
+  // ── wood-floor composite ─────────────────────────────────────────────────
+  // 1. Load both source images, normalise to the same dimensions.
+  // 2. Bottom 42 % → consistent horizontal parquet from wood-corner.webp
+  // 3. Top    58 % → bright showroom scene from wood-floor.jpg
+  // 4. Blend with a gradient so the seam is invisible.
+  const [woodBuf, showroomBuf] = await Promise.all([
+    readFile(path.join(bgDir, 'wood-corner.webp')),
+    readFile(path.join(bgDir, 'wood-floor.jpg')),
+  ])
+
+  const { width: W = 1200, height: H = 800 } = await sharp(showroomBuf).metadata()
+
+  const [woodResized, showroomResized] = await Promise.all([
+    sharp(woodBuf).resize(W, H, { fit: 'cover', position: 'bottom' }).jpeg({ quality: 95 }).toBuffer(),
+    sharp(showroomBuf).resize(W, H, { fit: 'cover' }).jpeg({ quality: 95 }).toBuffer(),
+  ])
+
+  // Extract the bottom floor strip from wood-corner
+  const FLOOR_FRAC  = 0.42
+  const floorH      = Math.round(H * FLOOR_FRAC)
+  const floorStrip  = await sharp(woodResized)
+    .extract({ left: 0, top: H - floorH, width: W, height: floorH })
+    .toBuffer()
+
+  // Apply vertical gradient alpha to the strip:
+  //   top edge of strip  → alpha 0   (fully transparent → showroom shows through)
+  //   bottom edge        → alpha 255 (fully opaque   → wood floor shows through)
+  // Blend zone = top 40 % of the strip
+  const { data: raw, info: ri } = await sharp(floorStrip)
+    .ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+
+  const px = Buffer.from(raw)
+  const BLEND_ZONE = 0.40
+  for (let y = 0; y < ri.height; y++) {
+    const alpha = y / ri.height < BLEND_ZONE
+      ? Math.round(255 * (y / ri.height / BLEND_ZONE))
+      : 255
+    for (let x = 0; x < ri.width; x++) {
+      px[(y * ri.width + x) * 4 + 3] = alpha
+    }
+  }
+
+  const floorOverlay = await sharp(px, {
+    raw: { width: ri.width, height: ri.height, channels: 4 },
+  }).png().toBuffer()
+
+  // showroom as base, wood floor blended in at the bottom
+  return sharp(showroomResized)
+    .composite([{ input: floorOverlay, left: 0, top: H - floorH }])
+    .jpeg({ quality: 95 })
+    .toBuffer()
+}
+
 async function buildDofReference(slug: string): Promise<string> {
   if (dofRefCache.has(slug)) return dofRefCache.get(slug)!
 
-  const cfg = BACKGROUNDS[slug] ?? BACKGROUNDS[DEFAULT_BG_SLUG]
-  const buf = await readFile(path.join(process.cwd(), 'public', 'backgrounds', cfg.file))
+  const buf = await buildSourceBuffer(slug)
 
   const { width: W = 1920, height: H = 1080 } = await sharp(buf).metadata()
 
@@ -152,32 +251,116 @@ async function buildDofReference(slug: string): Promise<string> {
   return url
 }
 
-// ─── Padding ──────────────────────────────────────────────────────────────────
-// 30 % padding on each side: car occupies ~55 % of width, perfectly centred.
-const PADDING_FRACTION = 0.30
+// ─── Centre car on neutral canvas ────────────────────────────────────────────
+// Pipeline:
+//   1. RMBG → transparent car PNG
+//   2. Find car bounding box from alpha channel (ignores RMBG noise)
+//   3. Crop tightly to the car
+//   4. Place on a neutral grey canvas with 30 % padding on each side
+//
+// The car always lands at the exact centre of the canvas regardless of how
+// it was framed in the original photo. Bria receives a clean, consistently
+// composed image every time.
+// Padding relative to the car's cropped size.
+// 0.70 → car occupies ~42 % of the canvas width (strong zoom-out).
+const PADDING_FRACTION = 0.70
 
-async function padAndUpload(imageUrl: string): Promise<string> {
-  const resp = await fetch(imageUrl)
-  if (!resp.ok) throw new Error(`Could not fetch source image: ${resp.status}`)
-  const buf = Buffer.from(await resp.arrayBuffer())
+async function centreAndUpload(imageUrl: string): Promise<string> {
+  // Strategy: use RMBG only to LOCATE the car, then centre the ORIGINAL PHOTO
+  // on a larger canvas — not the transparent cutout.
+  //
+  // Sending a cutout-on-grey-canvas to bria/background/replace causes Bria to
+  // treat the whole rectangle (car + original background) as the "product" and
+  // stamp it onto the new scene.  By keeping the original photo and just
+  // reframing it, Bria receives a genuine photograph and does its own clean
+  // subject extraction before generating the new background.
 
-  const { width: W = 1024, height: H = 768 } = await sharp(buf).metadata()
-  const padX = Math.round(W * PADDING_FRACTION)
-  const padY = Math.round(H * PADDING_FRACTION)
+  // Step 1: RMBG → find car bounding box
+  const rmbg = await withRetry(
+    () => fal.subscribe('fal-ai/bria/background/remove', {
+      input: { image_url: imageUrl },
+    }),
+    3, 'rmbg',
+  )
+  const carPngUrl = (rmbg.data as any).image?.url as string | undefined
+  if (!carPngUrl) throw new Error('RMBG: no output image')
 
-  const padded = await sharp({
-    create: {
-      width:      W + padX * 2,
-      height:     H + padY * 2,
-      channels:   3,
-      background: { r: 220, g: 220, b: 220 },
-    },
+  const carResp = await fetch(carPngUrl)
+  if (!carResp.ok) throw new Error(`Cannot fetch car cutout: ${carResp.status}`)
+  const carBuf = Buffer.from(await carResp.arrayBuffer())
+
+  const { data: alpha, info: ai } = await sharp(carBuf)
+    .ensureAlpha().extractChannel('alpha').raw()
+    .toBuffer({ resolveWithObject: true })
+
+  const rowCounts = new Array(ai.height).fill(0)
+  const colCounts = new Array(ai.width).fill(0)
+  for (let y = 0; y < ai.height; y++) {
+    const off = y * ai.width
+    for (let x = 0; x < ai.width; x++) {
+      if (alpha[off + x] > 20) { rowCounts[y]++; colCounts[x]++ }
+    }
+  }
+  const maxRow = Math.max(...rowCounts)
+  const maxCol = Math.max(...colCounts)
+  const rowMin = Math.max(2, Math.round(maxRow * 0.05))
+  const colMin = Math.max(2, Math.round(maxCol * 0.04))
+
+  let minX = ai.width, minY = ai.height, maxX = -1, maxY = -1
+  for (let y = 0; y < ai.height; y++) {
+    if (rowCounts[y] >= rowMin) { minY = Math.min(minY, y); maxY = Math.max(maxY, y) }
+  }
+  for (let x = 0; x < ai.width; x++) {
+    if (colCounts[x] >= colMin) { minX = Math.min(minX, x); maxX = Math.max(maxX, x) }
+  }
+  if (maxX < 0) { minX = 0; minY = 0; maxX = ai.width - 1; maxY = ai.height - 1 }
+
+  const bottomMargin = Math.round(ai.height * 0.01)
+  maxY = Math.min(ai.height - 1, maxY + bottomMargin)
+
+  const carW  = maxX - minX + 1
+  const carH  = maxY - minY + 1
+  const carCX = minX + carW / 2   // car centre X in original image coords
+  const carCY = minY + carH / 2   // car centre Y in original image coords
+
+  // Step 2: download the ORIGINAL photo
+  const origResp = await fetch(imageUrl)
+  if (!origResp.ok) throw new Error(`Cannot fetch original image: ${origResp.status}`)
+  const origBuf = Buffer.from(await origResp.arrayBuffer())
+  const { width: OW = ai.width, height: OH = ai.height } = await sharp(origBuf).metadata()
+
+  // Step 3: canvas where car centre aligns to canvas centre + PADDING padding
+  const padX    = Math.round(carW * PADDING_FRACTION)
+  const padY    = Math.round(carH * PADDING_FRACTION)
+  const canvasW = carW + padX * 2
+  const canvasH = carH + padY * 2
+
+  // Position of original image's top-left corner on the canvas
+  const origOnCanvasX = Math.round(canvasW / 2 - carCX)
+  const origOnCanvasY = Math.round(canvasH / 2 - carCY)
+
+  // Sharp requires non-negative composite offsets — clip source + destination
+  const srcLeft = Math.max(0, -origOnCanvasX)
+  const srcTop  = Math.max(0, -origOnCanvasY)
+  const dstLeft = Math.max(0,  origOnCanvasX)
+  const dstTop  = Math.max(0,  origOnCanvasY)
+  const copyW   = Math.min(OW - srcLeft, canvasW - dstLeft)
+  const copyH   = Math.min(OH - srcTop,  canvasH - dstTop)
+
+  const origPiece = await sharp(origBuf)
+    .extract({ left: srcLeft, top: srcTop, width: Math.max(1, copyW), height: Math.max(1, copyH) })
+    .toBuffer()
+
+  // Grey fill for the padding strips — Bria will remove them together with
+  // the original photo background and generate the new scene in their place.
+  const centred = await sharp({
+    create: { width: canvasW, height: canvasH, channels: 3, background: { r: 220, g: 220, b: 220 } },
   })
-    .composite([{ input: buf, left: padX, top: padY }])
+    .composite([{ input: origPiece, left: dstLeft, top: dstTop }])
     .jpeg({ quality: 96 })
     .toBuffer()
 
-  const file = new File([Buffer.from(padded)], 'padded.jpg', { type: 'image/jpeg' })
+  const file = new File([Buffer.from(centred)], 'centred.jpg', { type: 'image/jpeg' })
   return fal.storage.upload(file)
 }
 
@@ -254,9 +437,9 @@ export async function POST(req: NextRequest) {
     console.log(`[enhance] stage 1: prepare assets — slug="${slug}"`)
     const t1 = Date.now()
 
-    const [dofRefUrl, paddedImageUrl] = await Promise.all([
-      buildDofReference(slug),   // exact library image with DoF blur, cached forever
-      padAndUpload(imageUrl),    // car zoomed-out and centred
+    const [dofRefUrl, centredImageUrl] = await Promise.all([
+      buildDofReference(slug),      // exact library image with DoF blur, cached forever
+      centreAndUpload(imageUrl),    // RMBG → bounding box → car centred on canvas
     ])
 
     console.log(`[enhance] stage 1 done in ${Date.now() - t1}ms`)
@@ -273,7 +456,7 @@ export async function POST(req: NextRequest) {
     //     override/enrich it.  When both are present Bria v2 merges them.
     // If the API rejects both together it falls back to ref_image_url only.
     const briaInput: Record<string, unknown> = {
-      image_url:       paddedImageUrl,
+      image_url:       centredImageUrl,
       ref_image_url:   dofRefUrl,
       negative_prompt: NEGATIVE_PROMPT,
       refine_prompt:   true,
