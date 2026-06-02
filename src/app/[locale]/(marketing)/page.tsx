@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import {
@@ -10,13 +10,107 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// Hero uses Unsplash placeholder images for the before/after demo
+// ─── BEFORE / AFTER SLIDER ───────────────────────────────────────────────────
+function BeforeAfterSlider() {
+  const [pos, setPos]       = useState(50)   // 0–100 %
+  const [dragging, setDragging] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const updatePos = useCallback((clientX: number) => {
+    const el = containerRef.current
+    if (!el) return
+    const { left, width } = el.getBoundingClientRect()
+    const pct = Math.min(100, Math.max(0, ((clientX - left) / width) * 100))
+    setPos(pct)
+  }, [])
+
+  // Mouse
+  const onMouseDown = (e: React.MouseEvent) => { e.preventDefault(); setDragging(true); updatePos(e.clientX) }
+  useEffect(() => {
+    if (!dragging) return
+    const onMove = (e: MouseEvent) => updatePos(e.clientX)
+    const onUp   = () => setDragging(false)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+  }, [dragging, updatePos])
+
+  // Touch
+  const onTouchStart = (e: React.TouchEvent) => { setDragging(true); updatePos(e.touches[0].clientX) }
+  useEffect(() => {
+    if (!dragging) return
+    const onMove = (e: TouchEvent) => updatePos(e.touches[0].clientX)
+    const onEnd  = () => setDragging(false)
+    window.addEventListener('touchmove', onMove, { passive: true })
+    window.addEventListener('touchend', onEnd)
+    return () => { window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd) }
+  }, [dragging, updatePos])
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        'relative aspect-[4/3] rounded-3xl overflow-hidden select-none',
+        'shadow-[0_24px_80px_-20px_rgba(0,0,0,0.8)] border border-white/[0.08]',
+        dragging ? 'cursor-ew-resize' : 'cursor-col-resize',
+      )}
+      onMouseDown={onMouseDown}
+      onTouchStart={onTouchStart}
+    >
+      {/* AFTER (clean showroom) — full width base */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/ba-after.png"
+        alt="After — professional showroom"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        draggable={false}
+      />
+
+      {/* BEFORE (trash lot) — clipped to left side */}
+      <div
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        style={{ width: `${pos}%` }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/ba-before.png"
+          alt="Before — dirty parking lot"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ width: `${10000 / pos}%`, maxWidth: 'none' }}
+          draggable={false}
+        />
+      </div>
+
+      {/* Divider line */}
+      <div
+        className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_12px_rgba(255,255,255,0.6)] pointer-events-none"
+        style={{ left: `${pos}%` }}
+      />
+
+      {/* Handle */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white shadow-[0_2px_16px_rgba(0,0,0,0.5)] flex items-center justify-center pointer-events-none z-10"
+        style={{ left: `${pos}%` }}
+      >
+        <ChevronLeft className="w-3.5 h-3.5 text-midnight absolute -left-0.5" strokeWidth={2.5} />
+        <ChevronRight className="w-3.5 h-3.5 text-midnight absolute -right-0.5" strokeWidth={2.5} />
+      </div>
+
+      {/* Labels */}
+      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-midnight/75 backdrop-blur-sm text-xs font-semibold text-rose-300 border border-rose-500/30 pointer-events-none">
+        Before
+      </div>
+      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-midnight/75 backdrop-blur-sm text-xs font-semibold text-emerald-300 border border-emerald-500/30 pointer-events-none">
+        After
+      </div>
+    </div>
+  )
+}
 
 // ─── HERO SECTION ────────────────────────────────────────────────────────────
 function HeroSection() {
   const t = useTranslations('home.hero')
   const tSocial = useTranslations('home.social')
-  const baRef = useRef<HTMLDivElement>(null)
 
   return (
     <section className="relative min-h-screen flex items-center pt-24 pb-16 overflow-hidden grain">
@@ -69,34 +163,16 @@ function HeroSection() {
           </div>
         </div>
 
-        {/* Right — Before/After */}
+        {/* Right — Before/After slider */}
         <div className="relative">
-          {/* Slider container */}
-          <div
-            ref={baRef}
-            className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-[0_24px_80px_-20px_rgba(0,0,0,0.8)] border border-white/[0.08] flex items-center justify-center bg-midnight-900"
-          >
-            <div className="text-center px-8">
-              <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-offwhite/25" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3 21h18M3.75 3h16.5A.75.75 0 0 1 21 3.75v13.5a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V3.75A.75.75 0 0 1 3.75 3Z" /></svg>
-              </div>
-              <p className="text-offwhite/30 text-sm">Before / after examples coming soon</p>
-            </div>
-          </div>
+          <BeforeAfterSlider />
 
-          {/* Feature callouts */}
-          <div className="grid grid-cols-3 gap-3 mt-4">
-            {[
-              { label: 'Background removed', icon: '🏛️' },
-              { label: 'Studio lighting added', icon: '💡' },
-              { label: 'Plate preserved', icon: '🔒' },
-            ].map((f) => (
-              <div key={f.label} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs text-offwhite/50">
-                <span>{f.icon}</span>
-                {f.label}
-              </div>
-            ))}
-          </div>
+          {/* Hint */}
+          <p className="text-center text-xs text-offwhite/30 mt-3 flex items-center justify-center gap-1.5">
+            <ChevronLeft className="w-3 h-3" />
+            Drag to compare
+            <ChevronRight className="w-3 h-3" />
+          </p>
         </div>
       </div>
     </section>

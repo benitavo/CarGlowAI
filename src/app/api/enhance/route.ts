@@ -43,6 +43,16 @@ const BACKGROUNDS: Record<string, BgConfig> = {
 }
 const DEFAULT_BG_SLUG = 'dealership'
 
+// ── Trash mode ────────────────────────────────────────────────────────────────
+// Text-only prompt (no ref image). Used exclusively to generate a "before"
+// photo for before/after demos. Not shown to end users in production.
+const TRASH_PROMPT =
+  'Abandoned derelict outdoor parking lot, heavily cracked and stained dark asphalt full of ' +
+  'potholes and oil stains, large dirty puddles reflecting a grey overcast sky, scattered ' +
+  'litter and crushed plastic bottles on the ground, rusty chain-link fence with broken ' +
+  'panels in the background, peeling graffiti-covered concrete wall, dead weeds growing ' +
+  'through cracks, harsh flat grey daylight, gritty urban decay, dirty neglected atmosphere'
+
 // =============================================================================
 // Precise visual descriptions of each library background.
 // These are used as Bria's text prompt so the generated background stays
@@ -387,6 +397,111 @@ async function withRetry<T>(
 }
 
 // =============================================================================
+// Stage 3: License plate detection + blur
+//
+// Florence-2 phrase-grounding detects plates. Three strict filters reject the
+// false positives that plagued the old implementation (Florence detecting the
+// whole car):
+//   1. Aspect ratio  > 1.5  — plates are always wider than tall
+//   2. Vertical pos  < 80 % — plates sit in the lower portion of the image,
+//                             never at the very top
+//   3. Area fraction 0.1 %–8 % — a plate is small; anything larger is the car
+//
+// If no plate is found the original image URL is returned unchanged.
+// =============================================================================
+
+interface BBox { x1: number; y1: number; x2: number; y2: number }
+
+async function blurLicensePlates(imageUrl: string): Promise<string> {
+  const resp = await fetch(imageUrl)
+  if (!resp.ok) throw new Error(`Cannot fetch image for plate blur: ${resp.status}`)
+  const imgBuf = Buffer.from(await resp.arrayBuffer())
+  const { width: W = 0, height: H = 0 } = await sharp(imgBuf).metadata()
+  if (!W || !H) return imageUrl
+
+  const phrases = ['license plate', 'number plate', 'registration plate']
+  const boxes: BBox[] = []
+
+  for (const phrase of phrases) {
+    try {
+      const res = await fal.subscribe('fal-ai/florence-2-large/caption-to-phrase-grounding', {
+        input: { image_url: imageUrl, text_input: phrase },
+      })
+      const data = res.data as any
+
+      // Scale factors: Florence may resize the image internally
+      const fW = data?.image?.width  ?? W
+      const fH = data?.image?.height ?? H
+      const sx = fW > 0 ? W / fW : 1
+      const sy = fH > 0 ? H / fH : 1
+
+      const grounding =
+        data?.results?.['<CAPTION_TO_PHRASE_GROUNDING>'] ?? data?.results ?? data
+      const rawBoxes: any[] = grounding?.bboxes ?? grounding?.entities?.bboxes ?? []
+
+      for (const b of rawBoxes) {
+        let x1: number, y1: number, x2: number, y2: number
+        if (Array.isArray(b) && b.length === 4)          { [x1, y1, x2, y2] = b }
+        else if (b?.x !== undefined && b?.w !== undefined){ x1=b.x; y1=b.y; x2=b.x+b.w; y2=b.y+b.h }
+        else if (b?.x1 !== undefined)                     { x1=b.x1; y1=b.y1; x2=b.x2; y2=b.y2 }
+        else continue
+
+        const bx1 = x1 * sx, by1 = y1 * sy, bx2 = x2 * sx, by2 = y2 * sy
+        const bw   = bx2 - bx1
+        const bh   = by2 - by1
+        const area = (bw * bh) / (W * H)
+
+        // Filter 1: plates are horizontal (wider than tall)
+        if (bw / Math.max(bh, 1) < 1.5) continue
+        // Filter 2: plate must be below the top 20 % of the image
+        if (by1 / H < 0.20 && by2 / H < 0.35) continue
+        // Filter 3: area must be between 0.1 % and 8 % of image
+        if (area < 0.001 || area > 0.08)  continue
+
+        boxes.push({ x1: bx1, y1: by1, x2: bx2, y2: by2 })
+        console.log(`[plate] "${phrase}" → box [${Math.round(bx1)},${Math.round(by1)},${Math.round(bx2)},${Math.round(by2)}] area=${(area*100).toFixed(2)}%`)
+      }
+    } catch (err) {
+      console.warn(`[plate] Florence "${phrase}" error:`, err)
+    }
+    if (boxes.length > 0) break  // found plates, no need to try other phrases
+  }
+
+  if (boxes.length === 0) {
+    console.log('[plate] no plate detected — skipping blur')
+    return imageUrl
+  }
+
+  // Blur each detected plate region with Sharp
+  const overlays: sharp.OverlayOptions[] = []
+  for (const box of boxes) {
+    const padX = (box.x2 - box.x1) * 0.10
+    const padY = (box.y2 - box.y1) * 0.10
+    const left   = Math.max(0,  Math.floor(box.x1 - padX))
+    const top    = Math.max(0,  Math.floor(box.y1 - padY))
+    const right  = Math.min(W,  Math.ceil(box.x2  + padX))
+    const bottom = Math.min(H,  Math.ceil(box.y2  + padY))
+    const pw = right - left, ph = bottom - top
+    if (pw < 4 || ph < 4) continue
+
+    const blurR = Math.max(14, Math.round(Math.min(pw, ph) / 2.5))
+    const patch = await sharp(imgBuf)
+      .extract({ left, top, width: pw, height: ph })
+      .blur(blurR)
+      .toBuffer()
+    overlays.push({ input: patch, left, top })
+  }
+
+  if (overlays.length === 0) return imageUrl
+
+  const out  = await sharp(imgBuf).composite(overlays).jpeg({ quality: 95 }).toBuffer()
+  const file = new File([Buffer.from(out)], 'plate-blurred.jpg', { type: 'image/jpeg' })
+  const url  = await fal.storage.upload(file)
+  console.log(`[plate] blurred ${overlays.length} plate(s)`)
+  return url
+}
+
+// =============================================================================
 // Main handler
 // =============================================================================
 export async function POST(req: NextRequest) {
@@ -437,9 +552,11 @@ export async function POST(req: NextRequest) {
     console.log(`[enhance] stage 1: prepare assets — slug="${slug}"`)
     const t1 = Date.now()
 
+    const isTrash = slug === 'trash'
+
     const [dofRefUrl, centredImageUrl] = await Promise.all([
-      buildDofReference(slug),      // exact library image with DoF blur, cached forever
-      centreAndUpload(imageUrl),    // RMBG → bounding box → car centred on canvas
+      isTrash ? Promise.resolve('') : buildDofReference(slug),
+      centreAndUpload(imageUrl),
     ])
 
     console.log(`[enhance] stage 1 done in ${Date.now() - t1}ms`)
@@ -449,21 +566,26 @@ export async function POST(req: NextRequest) {
     console.log(`[enhance] stage 2: bria/background/replace — start`)
     const t2 = Date.now()
 
-    // Bria receives:
-    //   • ref_image_url = the lightly DoF-blurred library image → visual style
-    //   • refine_prompt = true → Bria derives the scene prompt from the reference
-    //     image, but we also provide our precise description via `prompt` to
-    //     override/enrich it.  When both are present Bria v2 merges them.
-    // If the API rejects both together it falls back to ref_image_url only.
-    const briaInput: Record<string, unknown> = {
-      image_url:       centredImageUrl,
-      ref_image_url:   dofRefUrl,
-      negative_prompt: NEGATIVE_PROMPT,
-      refine_prompt:   true,
-      num_images:      1,
-      fast:            true,
-      ...(seed !== undefined && { seed }),
-    }
+    // Trash mode uses a text prompt directly (no ref image).
+    // All other slugs use ref_image_url pointing to the DoF-blurred library image.
+    const briaInput: Record<string, unknown> = isTrash
+      ? {
+          image_url:       centredImageUrl,
+          prompt:          TRASH_PROMPT,
+          negative_prompt: 'clean background, studio, showroom, professional, luxury, new car',
+          num_images:      1,
+          fast:            true,
+          ...(seed !== undefined && { seed }),
+        }
+      : {
+          image_url:       centredImageUrl,
+          ref_image_url:   dofRefUrl,
+          negative_prompt: NEGATIVE_PROMPT,
+          refine_prompt:   true,
+          num_images:      1,
+          fast:            true,
+          ...(seed !== undefined && { seed }),
+        }
 
     const result = await withRetry(
       () => fal.subscribe('fal-ai/bria/background/replace', { input: briaInput as any }),
@@ -473,9 +595,15 @@ export async function POST(req: NextRequest) {
 
     console.log(`[enhance] stage 2 done in ${Date.now() - t2}ms`)
 
-    const images   = (result.data as any).images as Array<{ url: string }> | undefined
-    const finalUrl = images?.[0]?.url
-    if (!finalUrl) throw new Error('bria/background/replace: no output image returned')
+    const images      = (result.data as any).images as Array<{ url: string }> | undefined
+    const briaUrl     = images?.[0]?.url
+    if (!briaUrl) throw new Error('bria/background/replace: no output image returned')
+
+    // Stage 3: license plate blur
+    console.log('[enhance] stage 3: plate detection + blur — start')
+    const t3 = Date.now()
+    const finalUrl = await blurLicensePlates(briaUrl)
+    console.log(`[enhance] stage 3 done in ${Date.now() - t3}ms`)
 
     const processingMs = Date.now() - startMs
     console.log(`[enhance] complete in ${processingMs}ms`)

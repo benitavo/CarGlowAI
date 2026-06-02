@@ -42,6 +42,12 @@ const STYLES: StyleOption[] = [
     description: 'Bright spacious multi-car dealership',
     thumbnail:   '/backgrounds/showroom.jpg',
   },
+  {
+    slug:        'trash',
+    name:        '🗑️ Super Trash',
+    description: 'Abandoned lot · before/after demo only',
+    thumbnail:   '/backgrounds/dealership.jpg', // placeholder thumbnail
+  },
 ]
 
 // ─── Photo-slot state model ─────────────────────────────────────────────────
