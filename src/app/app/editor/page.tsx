@@ -425,6 +425,25 @@ export default function EditorPage() {
                 Jusqu'à {MAX_PHOTOS} photos du même véhicule · JPG, PNG, WEBP, HEIC
               </p>
             </div>
+
+            {/* No-credits gate — shown before the upload zone */}
+            {!isSuperuser && remaining !== null && remaining < 1 && (
+              <div className="mb-6 flex flex-col items-center gap-3 p-5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center">
+                <AlertCircle className="w-6 h-6 text-rose-400" strokeWidth={1.75} />
+                <div>
+                  <p className="text-sm font-semibold text-rose-300">No credits remaining</p>
+                  <p className="text-xs text-rose-300/65 mt-1">
+                    You&apos;ve used all your enhancements. Top up to keep going.
+                  </p>
+                </div>
+                <Link
+                  href="/app/billing"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-xs font-semibold transition-colors"
+                >
+                  Top up credits
+                </Link>
+              </div>
+            )}
             <button
               onClick={() => fileRef.current?.click()}
               onDrop={onDropZoneDrop}
@@ -581,10 +600,22 @@ export default function EditorPage() {
                 }
               </button>
 
-              {!isSuperuser && remaining !== null && remaining < 5 && remaining > 0 && (
-                <p className="text-xs text-center text-rose-400">
+              {!isSuperuser && remaining !== null && remaining < 1 && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" strokeWidth={1.75} />
+                  <div>
+                    <p className="text-xs font-semibold text-rose-300">No credits remaining</p>
+                    <p className="text-[11px] text-rose-300/65 mt-0.5">
+                      <Link href="/app/billing" className="underline hover:text-rose-200">Top up</Link>
+                      {' '}to enhance more photos.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {!isSuperuser && remaining !== null && remaining >= 1 && remaining < 5 && (
+                <p className="text-xs text-center text-amber-400">
                   Only {remaining} credit{remaining !== 1 ? 's' : ''} left.{' '}
-                  <Link href="/app/billing" className="underline hover:text-rose-300">Top up</Link>
+                  <Link href="/app/billing" className="underline hover:text-amber-300">Top up</Link>
                 </p>
               )}
 

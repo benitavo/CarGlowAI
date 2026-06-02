@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, Image as ImageIcon, ArrowRight } from 'lucide-react'
+import { Sparkles, Image as ImageIcon, ArrowRight, AlertCircle, CreditCard } from 'lucide-react'
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
 
@@ -32,6 +32,26 @@ export default async function DashboardPage() {
 
   return (
     <div className="pb-24 lg:pb-12">
+
+      {/* No-credits banner */}
+      {creditsRemaining === 0 && (
+        <div className="mx-6 lg:mx-10 mt-6 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" strokeWidth={1.75} />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-rose-300">You&apos;re out of credits</p>
+            <p className="text-xs text-rose-300/65 mt-0.5">
+              You&apos;ve used all your enhancements. Top up to keep going.
+            </p>
+          </div>
+          <Link
+            href="/app/billing"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-xs font-semibold transition-colors shrink-0"
+          >
+            <CreditCard className="w-3.5 h-3.5" /> Top up
+          </Link>
+        </div>
+      )}
+
       {/* Header */}
       <section className="border-b border-white/[0.04] bg-gradient-to-b from-glow-500/[0.025] to-transparent">
         <div className="px-6 lg:px-10 py-8 lg:py-10 max-w-[1480px]">
