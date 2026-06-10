@@ -43,10 +43,28 @@ const STYLES: StyleOption[] = [
     thumbnail:   '/backgrounds/showroom.jpg',
   },
   {
+    slug:        'dark-garage',
+    name:        'Dark Garage',
+    description: 'Moody industrial studio',
+    thumbnail:   '/backgrounds/dark-garage.jpg',
+  },
+  {
+    slug:        'white-studio',
+    name:        'White Studio',
+    description: 'Clean minimal white backdrop',
+    thumbnail:   '/backgrounds/white-studio.jpg',
+  },
+  {
+    slug:        'podium',
+    name:        'Podium',
+    description: 'Luxury spotlight reveal',
+    thumbnail:   '/backgrounds/podium.webp',
+  },
+  {
     slug:        'trash',
     name:        '🗑️ Super Trash',
     description: 'Abandoned lot · before/after demo only',
-    thumbnail:   '/backgrounds/dealership.jpg', // placeholder thumbnail
+    thumbnail:   '/backgrounds/dealership.jpg',
   },
 ]
 
