@@ -1,16 +1,17 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Zap } from 'lucide-react'
+import Image from 'next/image'
+import { Leaf } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 
 export function Footer() {
   const t = useTranslations('footer')
 
   return (
-    <footer className="bg-midnight border-t border-white/[0.06]">
+    <footer className="bg-midnight border-t border-offwhite/[0.06]">
       {/* CTA band */}
-      <div className="border-b border-white/[0.06]">
+      <div className="border-b border-offwhite/[0.06]">
         <div className="page-container py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <p className="text-lg font-display font-semibold text-offwhite">
@@ -22,7 +23,7 @@ export function Footer() {
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/book-a-demo"
-              className="px-5 py-2.5 rounded-xl border border-white/[0.12] text-sm font-medium text-offwhite/80 hover:text-offwhite hover:bg-white/[0.04] transition-all">
+              className="px-5 py-2.5 rounded-xl border border-offwhite/[0.12] text-sm font-medium text-offwhite/70 hover:text-offwhite hover:bg-offwhite/[0.05] transition-all">
               {t('ctaSecondary')}
             </Link>
             <Link href="/signup"
@@ -39,12 +40,11 @@ export function Footer() {
           {/* Brand */}
           <div className="shrink-0">
             <Link href="/" className="flex items-center gap-2 mb-4 group">
-              <div className="w-8 h-8 rounded-lg bg-glow-500 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-midnight" fill="currentColor" />
+              <div className="w-7 h-7 rounded-lg bg-sage-500 flex items-center justify-center shrink-0">
+                <Leaf className="w-3.5 h-3.5 text-white" fill="currentColor" />
               </div>
-              <span className="font-display font-bold text-offwhite">
-                Car<span className="text-glow-500">Glow</span>
-                <span className="text-offwhite/40 font-normal text-sm ml-1">AI</span>
+              <span className="font-display font-bold text-offwhite text-lg">
+                Ver<span className="text-sage-400">dia</span>
               </span>
             </Link>
             <p className="text-xs text-offwhite/40 leading-relaxed max-w-[200px]">
@@ -55,25 +55,24 @@ export function Footer() {
           {/* Links */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Product</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Produit</h4>
               <ul className="flex flex-col gap-2.5">
-                <li><Link href="/features" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Features</Link></li>
-                <li><Link href="/pricing" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Pricing</Link></li>
-                <li><a href="https://status.carglowai.com" target="_blank" rel="noopener noreferrer" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Status</a></li>
+                <li><Link href="#comment-ca-marche" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Comment ça marche</Link></li>
+                <li><Link href="#tarifs" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Tarifs</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Company</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Entreprise</h4>
               <ul className="flex flex-col gap-2.5">
-                <li><Link href="/about" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">About</Link></li>
+                <li><Link href="/about" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">À propos</Link></li>
                 <li><Link href="/contact" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Legal</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Légal</h4>
               <ul className="flex flex-col gap-2.5">
-                <li><Link href="/legal/terms" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Terms</Link></li>
-                <li><Link href="/legal/privacy" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Privacy</Link></li>
+                <li><Link href="/legal/terms" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Conditions</Link></li>
+                <li><Link href="/legal/privacy" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Confidentialité</Link></li>
               </ul>
             </div>
           </div>
@@ -81,13 +80,13 @@ export function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-white/[0.06]">
+      <div className="border-t border-offwhite/[0.06]">
         <div className="page-container py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-offwhite/30">
-            © {new Date().getFullYear()} CarGlow AI, Inc. {t('copyright')}
+            © {new Date().getFullYear()} Verdia. {t('copyright')}
           </p>
           <p className="text-xs text-offwhite/20">
-            🇪🇺 {t('builtInEurope')}
+            🇫🇷 {t('builtInEurope')}
           </p>
         </div>
       </div>

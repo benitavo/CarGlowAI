@@ -13,106 +13,102 @@ fal.config({ credentials: process.env.FAL_KEY })
 // =============================================================================
 // PIPELINE:
 //
-// Normal mode (all slugs except trash):
-//   1. RMBG (fal-ai/bria/background/remove) → transparent car PNG
-//   2. Sharp composite: car PNG scaled + placed on the exact background image
-//   3. Upload composite to fal CDN
+//   1. centreAndUpload: RMBG to find car bbox → crop original + 30% grey padding → upload
+//   2. bria/background/remove on centred image → transparent PNG
+//   3. PhotoRoom image-editing: transparent PNG + studio bg → composite with shadow + perspective
 //   4. License plate blur (Florence-2 + Sharp)
-//
-// Trash mode (demo "before" photo — no real background image):
-//   1. fal-ai/bria/background/replace with TRASH_PROMPT
-//   2. License plate blur
-//
-// The background image is used pixel-for-pixel as-is.
 // =============================================================================
 
-interface BgConfig {
-  file:     string
-  mimeType: 'image/jpeg' | 'image/webp' | 'image/png'
-}
+// Background image sent to PhotoRoom as the studio backdrop.
+// The walls are intentionally blank so a client logo can be composited later.
+const STUDIO_BG_FILE = 'white-studio.jpg'
 
-const BACKGROUNDS: Record<string, BgConfig> = {
-  'dealership':  { file: 'dealership.jpg',  mimeType: 'image/jpeg' },
-  'wood-floor':  { file: 'wood-floor.jpg',  mimeType: 'image/jpeg' },
-  'showroom':    { file: 'showroom.jpg',    mimeType: 'image/jpeg' },
-  'dark-garage': { file: 'dark-garage.jpg', mimeType: 'image/jpeg' },
-  'white-studio':{ file: 'white-studio.jpg',mimeType: 'image/jpeg' },
-  'podium':      { file: 'podium.webp',     mimeType: 'image/webp' },
-}
-const DEFAULT_BG_SLUG = 'dealership'
+// ─── Centre car with asymmetric padding ───────────────────────────────────────
+// Asymmetric vertical padding: lots of space ABOVE (shows background wall/ceiling)
+// and almost none BELOW (car sits near the ground line).
+// This ensures wheels are never cut off AND the car appears grounded when
+// PhotoRoom composites it onto the studio background.
+const PADDING_X      = 0.25  // 25% of car width, each horizontal side
+const PADDING_TOP    = 0.45  // 45% of car height above — room for background wall
+const PADDING_BOTTOM = 0.04  // 4% of car height below  — car near the ground
 
-// Trash mode — text-only prompt, no background image, demo use only.
-const TRASH_PROMPT =
-  'Abandoned derelict outdoor parking lot, heavily cracked and stained dark asphalt full of ' +
-  'potholes and oil stains, large dirty puddles reflecting a grey overcast sky, scattered ' +
-  'litter and crushed plastic bottles on the ground, rusty chain-link fence with broken ' +
-  'panels in the background, peeling graffiti-covered concrete wall, dead weeds growing ' +
-  'through cracks, harsh flat grey daylight, gritty urban decay, dirty neglected atmosphere'
-
-// ─── RMBG + Sharp composite ──────────────────────────────────────────────────
-// 1. Remove the car background with Bria RMBG → transparent PNG
-// 2. Scale the cutout to ~82 % of the background width (keeps aspect ratio)
-// 3. Centre horizontally; align the bottom of the car to 88 % height of the bg
-//    (leaves a natural floor strip below the car)
-// 4. Composite onto the exact background image pixel-for-pixel
-// 5. Upload the result to fal CDN so blurLicensePlates can fetch it
-async function compositeCarOnBackground(carImageUrl: string, slug: string): Promise<string> {
-  const cfg   = BACKGROUNDS[slug] ?? BACKGROUNDS[DEFAULT_BG_SLUG]
-  const bgDir = path.join(process.cwd(), 'public', 'backgrounds')
-
-  // RMBG + background load in parallel
-  const [rmbg, bgBuf] = await Promise.all([
-    withRetry(
-      () => fal.subscribe('fal-ai/bria/background/remove', { input: { image_url: carImageUrl } }),
-      3, 'rmbg',
-    ),
-    readFile(path.join(bgDir, cfg.file)),
-  ])
-
+async function centreAndUpload(imageUrl: string): Promise<string> {
+  const rmbg = await withRetry(
+    () => fal.subscribe('fal-ai/bria/background/remove', { input: { image_url: imageUrl } }),
+    3, 'rmbg/centre',
+  )
   const carPngUrl = (rmbg.data as any).image?.url as string | undefined
-  if (!carPngUrl) throw new Error('RMBG: no output image')
+  if (!carPngUrl) throw new Error('centreAndUpload: RMBG returned no image')
 
-  const carResp = await fetch(carPngUrl)
-  if (!carResp.ok) throw new Error(`Cannot fetch car cutout: ${carResp.status}`)
-  const carBuf = Buffer.from(await carResp.arrayBuffer())
+  const [origResp, carResp] = await Promise.all([fetch(imageUrl), fetch(carPngUrl)])
+  if (!origResp.ok) throw new Error(`Cannot fetch original: ${origResp.status}`)
+  if (!carResp.ok)  throw new Error(`Cannot fetch car cutout: ${carResp.status}`)
 
-  const [bgMeta, carMeta] = await Promise.all([
-    sharp(bgBuf).metadata(),
-    sharp(carBuf).metadata(),
+  const [origBuf, carBuf] = await Promise.all([
+    origResp.arrayBuffer().then(b => Buffer.from(b)),
+    carResp.arrayBuffer().then(b => Buffer.from(b)),
   ])
-  const bgW  = bgMeta.width  ?? 1920
-  const bgH  = bgMeta.height ?? 1080
-  const carW = carMeta.width  ?? 800
-  const carH = carMeta.height ?? 600
 
-  // Scale car to fit within 82 % of bg width AND 82 % of bg height,
-  // preserving aspect ratio (uniform scale — no padding added).
-  const maxCarW = Math.round(bgW * 0.82)
-  const maxCarH = Math.round(bgH * 0.82)
-  const scale   = Math.min(maxCarW / carW, maxCarH / carH)
-  const actualW = Math.round(carW * scale)
-  const actualH = Math.round(carH * scale)
+  // Find tight bounding box of non-transparent pixels in the cutout
+  const { data: rgba, info } = await sharp(carBuf)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  const W = info.width, H = info.height
+  let minX = W, minY = H, maxX = 0, maxY = 0
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (rgba[(y * W + x) * 4 + 3] > 10) {
+        if (x < minX) minX = x
+        if (x > maxX) maxX = x
+        if (y < minY) minY = y
+        if (y > maxY) maxY = y
+      }
+    }
+  }
 
-  const carResized = await sharp(carBuf)
-    .resize(actualW, actualH, { fit: 'fill' })
-    .png()
+  if (maxX <= minX || maxY <= minY) {
+    // RMBG found nothing — upload original as-is
+    const file = new File([origBuf], 'centred.jpg', { type: 'image/jpeg' })
+    return fal.storage.upload(file)
+  }
+
+  const carW = maxX - minX + 1
+  const carH = maxY - minY + 1
+  const padX   = Math.round(carW * PADDING_X)
+  const padTop = Math.round(carH * PADDING_TOP)
+  const padBot = Math.round(carH * PADDING_BOTTOM)
+
+  // Crop original to car bbox + asymmetric padding (clamped to image bounds)
+  const cropLeft   = Math.max(0, minX - padX)
+  const cropTop    = Math.max(0, minY - padTop)
+  const cropRight  = Math.min(W, maxX + 1 + padX)
+  const cropBottom = Math.min(H, maxY + 1 + padBot)
+  const cropW = cropRight - cropLeft
+  const cropH = cropBottom - cropTop
+
+  // Canvas: car near the bottom, lots of space above for the background to show
+  const canvasW   = carW + padX * 2
+  const canvasH   = carH + padTop + padBot
+  const pasteLeft = Math.max(0, padX   - (minX - cropLeft))
+  const pasteTop  = Math.max(0, padTop - (minY - cropTop))
+
+  const cropped = await sharp(origBuf)
+    .extract({ left: cropLeft, top: cropTop, width: cropW, height: cropH })
     .toBuffer()
 
-  // Centre horizontally; bottom of car flush with the bottom of the background.
-  const left = Math.max(0, Math.min(Math.round((bgW - actualW) / 2), bgW - actualW))
-  const top  = Math.max(0, bgH - actualH)
-
-  const composite = await sharp(bgBuf)
-    .composite([{ input: carResized, left, top }])
+  const canvas = await sharp({
+    create: { width: canvasW, height: canvasH, channels: 3, background: { r: 128, g: 128, b: 128 } },
+  })
+    .composite([{ input: cropped, left: pasteLeft, top: pasteTop }])
     .jpeg({ quality: 95 })
     .toBuffer()
 
-  const file = new File([Buffer.from(composite)], 'enhanced.jpg', { type: 'image/jpeg' })
+  const file = new File([canvas], 'centred.jpg', { type: 'image/jpeg' })
   const url  = await fal.storage.upload(file)
-  console.log(`[enhance] composite "${slug}" done — car ${actualW}×${actualH} at (${left},${top}) on ${bgW}×${bgH}`)
+  console.log(`[enhance] centreAndUpload — car bbox ${carW}×${carH}, padTop=${padTop} padBot=${padBot} → canvas ${canvasW}×${canvasH}`)
   return url
 }
-
 
 // ─── Retry wrapper ────────────────────────────────────────────────────────────
 async function withRetry<T>(
@@ -137,7 +133,7 @@ async function withRetry<T>(
 }
 
 // =============================================================================
-// Stage 3: License plate detection + blur
+// Stage 4: License plate detection + blur
 //
 // Florence-2 phrase-grounding detects plates. Three strict filters reject the
 // false positives that plagued the old implementation (Florence detecting the
@@ -250,7 +246,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { imageUrl, styleSlug, vehicleId, workspaceId, batchSeed } = await req.json()
+  const { imageUrl, vehicleId, workspaceId, batchSeed } = await req.json()
 
   if (!imageUrl || !workspaceId) {
     return NextResponse.json({ error: 'imageUrl and workspaceId are required' }, { status: 400 })
@@ -270,17 +266,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No credits remaining' }, { status: 402 })
   }
 
-  const slug = styleSlug ?? DEFAULT_BG_SLUG
-  const seed = typeof batchSeed === 'number' ? batchSeed : undefined
-
   const photo = await db.photo.create({
     data: {
       workspaceId,
       vehicleId:   vehicleId ?? null,
       originalUrl: imageUrl,
       status:      'PROCESSING',
-      styleUsed:   slug,
-      toolsUsed:   ['bria_background_replace'],
+      styleUsed:   'studio',
+      toolsUsed:   ['photoroom_image_editing'],
       createdById: session.user.id,
     },
   })
@@ -288,41 +281,77 @@ export async function POST(req: NextRequest) {
   const startMs = Date.now()
 
   try {
-    const isTrash = slug === 'trash'
-
-    // Stage 1: composite car on background (or Bria for trash demo mode)
-    console.log(`[enhance] stage 1: ${isTrash ? 'bria/trash' : 'rmbg+composite'} — slug="${slug}"`)
+    // Stage 1: centre car with 30% padding on grey canvas
+    console.log('[enhance] stage 1: centreAndUpload — start')
     const t1 = Date.now()
-
-    let rawUrl: string
-    if (isTrash) {
-      const result = await withRetry(
-        () => fal.subscribe('fal-ai/bria/background/replace', {
-          input: {
-            image_url:       imageUrl,
-            prompt:          TRASH_PROMPT,
-            negative_prompt: 'clean background, studio, showroom, professional, luxury, new car',
-            num_images:      1,
-            fast:            true,
-            ...(seed !== undefined && { seed }),
-          } as any,
-        }),
-        3, 'bria/trash',
-      )
-      const images = (result.data as any).images as Array<{ url: string }> | undefined
-      rawUrl = images?.[0]?.url ?? ''
-      if (!rawUrl) throw new Error('bria/background/replace: no output image returned')
-    } else {
-      rawUrl = await compositeCarOnBackground(imageUrl, slug)
-    }
-
+    const centredImageUrl = await centreAndUpload(imageUrl)
     console.log(`[enhance] stage 1 done in ${Date.now() - t1}ms`)
 
-    // Stage 2: license plate blur
-    console.log('[enhance] stage 2: plate detection + blur — start')
+    // Stage 2: PhotoRoom — détourage + fond + ombre en un seul appel
+    console.log('[enhance] stage 2: photoroom /v2/edit — start')
     const t2 = Date.now()
-    const finalUrl = await blurLicensePlates(rawUrl)
+
+    const photoRoomApiKey = process.env.PHOTOROOM_API_KEY
+    if (!photoRoomApiKey) throw new Error('PHOTOROOM_API_KEY is not set in environment')
+
+    const bgPath = path.join(process.cwd(), 'public', 'backgrounds', STUDIO_BG_FILE)
+
+    const [centredBuf, bgBuf] = await Promise.all([
+      fetch(centredImageUrl).then(r => {
+        if (!r.ok) throw new Error(`Cannot fetch centred image: ${r.status}`)
+        return r.arrayBuffer()
+      }),
+      readFile(bgPath),
+    ])
+
+    const formData = new FormData()
+
+    // Image principale : la voiture (PhotoRoom détourera lui-même via removeBackground)
+    formData.append(
+      'imageFile',
+      new Blob([centredBuf], { type: 'image/png' }),
+      'car.png',
+    )
+
+    // Fond exact à appliquer
+    formData.append(
+      'background.imageFile',
+      new Blob([bgBuf], { type: 'image/jpeg' }),
+      'background.jpg',
+    )
+
+    formData.append('removeBackground', 'true')
+    formData.append('shadow.mode',      'ai.soft')
+    formData.append('padding',          '0.1')
+
+    console.log('[photoroom] sending — centredImageUrl:', centredImageUrl, '— bg:', STUDIO_BG_FILE)
+
+    const prResponse = await fetch('https://image-api.photoroom.com/v2/edit', {
+      method:  'POST',
+      headers: {
+        'x-api-key': photoRoomApiKey,
+        'pr-ai-background-model-version': 'background-studio-beta-2025-03-17',
+      },
+      body: formData,
+    })
+
+    console.log('[photoroom] response status:', prResponse.status, prResponse.statusText)
+    if (!prResponse.ok) {
+      const errText = await prResponse.text()
+      console.error('[photoroom] error body:', errText)
+      throw new Error(`PhotoRoom API error ${prResponse.status}: ${errText}`)
+    }
+
+    const prBuffer = await prResponse.arrayBuffer()
+    const prFile   = new File([Buffer.from(prBuffer)], 'photoroom-result.jpg', { type: 'image/jpeg' })
+    const rawUrl   = await fal.storage.upload(prFile)
     console.log(`[enhance] stage 2 done in ${Date.now() - t2}ms`)
+
+    // Stage 3: license plate blur
+    console.log('[enhance] stage 3: plate detection + blur — start')
+    const t3 = Date.now()
+    const finalUrl = await blurLicensePlates(rawUrl)
+    console.log(`[enhance] stage 3 done in ${Date.now() - t3}ms`)
 
     const processingMs = Date.now() - startMs
     console.log(`[enhance] complete in ${processingMs}ms`)
@@ -374,6 +403,8 @@ export async function POST(req: NextRequest) {
     let userMessage = 'Enhancement failed. Please try again.'
     if (msg.includes('Timed out')) {
       userMessage = 'The enhancement took too long. Please try again.'
+    } else if (msg.includes('PhotoRoom API error')) {
+      userMessage = 'Background composite failed. Please try again.'
     } else if (msg.includes('no output') || msg.includes('source image')) {
       userMessage = 'Could not process the vehicle photo. Make sure the car is fully visible.'
     }

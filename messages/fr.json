@@ -1,18 +1,18 @@
 {
   "nav": {
-    "pricing": "Pricing",
-    "about": "About",
-    "signIn": "Sign in",
-    "startFree": "Start free trial"
+    "pricing": "Tarifs",
+    "about": "À propos",
+    "signIn": "Connexion",
+    "startFree": "Essai gratuit"
   },
   "footer": {
-    "ctaTitle": "Ready to ship better listings?",
-    "ctaBody": "3 free photos. No card required. Cancel anytime.",
-    "ctaButton": "Start free trial",
-    "ctaSecondary": "Talk to sales",
-    "tagline": "AI photography for the automotive industry. Built in Europe.",
-    "copyright": "All rights reserved.",
-    "builtInEurope": "Built in Europe · GDPR compliant"
+    "ctaTitle": "Visualisez votre jardin de rêve.",
+    "ctaBody": "Premier rendu offert. Aucune carte bancaire requise.",
+    "ctaButton": "Démarrer gratuitement",
+    "ctaSecondary": "Nous contacter",
+    "tagline": "Visualisation de jardins par IA · Verdia, conçu en France.",
+    "copyright": "Tous droits réservés.",
+    "builtInEurope": "Conçu en France · Conforme RGPD"
   },
   "home": {},
   "pricing": {},

@@ -8,17 +8,16 @@ import { signIn } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 
 const BENEFITS = [
-  '3 free photos, no card required',
-  'Cancel anytime, keep your photos',
-  'GDPR-compliant, EU data residency',
+  '1 rendu offert, sans carte bancaire',
+  'Résiliation à tout moment',
+  'Conforme RGPD · Données hébergées en France',
 ]
 
-// Password rules — kept simple but enforced both client- and server-side
 function validatePassword(pwd: string): string | null {
-  if (pwd.length < 8)              return 'Password must be at least 8 characters.'
-  if (pwd.length > 200)            return 'Password is too long.'
-  if (!/[A-Za-z]/.test(pwd))       return 'Password must contain at least one letter.'
-  if (!/\d/.test(pwd))             return 'Password must contain at least one number.'
+  if (pwd.length < 8)        return 'Le mot de passe doit contenir au moins 8 caractères.'
+  if (pwd.length > 200)      return 'Le mot de passe est trop long.'
+  if (!/[A-Za-z]/.test(pwd)) return 'Le mot de passe doit contenir au moins une lettre.'
+  if (!/\d/.test(pwd))       return 'Le mot de passe doit contenir au moins un chiffre.'
   return null
 }
 
@@ -40,7 +39,6 @@ export default function SignUpPage() {
     setError(null)
 
     try {
-      // Step 1: register the account
       const res = await fetch('/api/auth/register', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,20 +46,14 @@ export default function SignUpPage() {
       })
       const body = await res.json()
       if (!res.ok) {
-        setError(body.error ?? 'Could not create account.')
+        setError(body.error ?? 'Impossible de créer le compte.')
         setLoading(false)
         return
       }
 
-      // Step 2: sign in to issue the session JWT
-      const signInResult = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      })
-
+      const signInResult = await signIn('credentials', { email, password, redirect: false })
       if (signInResult?.error) {
-        setError('Account created — please sign in.')
+        setError('Compte créé — veuillez vous connecter.')
         setLoading(false)
         router.push('/signin')
         return
@@ -69,9 +61,8 @@ export default function SignUpPage() {
 
       router.push('/app')
       router.refresh()
-
-    } catch (err) {
-      setError('Something went wrong. Please try again.')
+    } catch {
+      setError('Une erreur est survenue. Veuillez réessayer.')
       setLoading(false)
     }
   }
@@ -79,92 +70,68 @@ export default function SignUpPage() {
   return (
     <div>
       <div className="mb-7">
-        <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-2">
-          Start free
+        <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-500 mb-2">
+          Essai gratuit
         </div>
-        <h1 className="font-display font-bold tracking-tight text-3xl xl:text-4xl leading-[1.1]">
-          Create your account.
+        <h1 className="font-display font-bold tracking-tight text-3xl xl:text-4xl leading-[1.1] text-midnight">
+          Créer votre compte.
         </h1>
-        <p className="text-offwhite/55 mt-2 text-[15px]">
-          Already with us?{' '}
-          <Link href="/signin" className="text-glow-400 hover:text-glow-300">Sign in</Link>
+        <p className="text-midnight/50 mt-2 text-[15px]">
+          Déjà membre ?{' '}
+          <Link href="/signin" className="text-sage-500 hover:text-sage-600 font-medium">Se connecter</Link>
         </p>
       </div>
 
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Full name" icon={User}>
-          <input
-            type="text"
-            required
-            autoComplete="name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Marcus Hill"
-            className="auth-input"
-          />
+        <Field label="Nom complet" icon={User}>
+          <input type="text" required autoComplete="name" value={name}
+            onChange={e => setName(e.target.value)} placeholder="Thomas Bernard" className="auth-input" />
         </Field>
 
         <Field label="Email" icon={Mail}>
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="you@dealership.com"
-            className="auth-input"
-          />
+          <input type="email" required autoComplete="email" value={email}
+            onChange={e => setEmail(e.target.value)} placeholder="vous@exemple.fr" className="auth-input" />
         </Field>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold tracking-widest uppercase text-offwhite/55">Password</label>
+          <label className="text-[11px] font-semibold tracking-widest uppercase text-midnight/50">Mot de passe</label>
           <div className="relative">
-            <KeyRound className="w-4 h-4 text-offwhite/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={1.75} />
-            <input
-              type="password"
-              required
-              autoComplete="new-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              className="auth-input"
-            />
+            <KeyRound className="w-4 h-4 text-midnight/35 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={1.75} />
+            <input type="password" required autoComplete="new-password" value={password}
+              onChange={e => setPassword(e.target.value)} placeholder="8 caractères minimum" className="auth-input" />
           </div>
-          {pwdError && <p className="text-[11px] text-rose-400">{pwdError}</p>}
+          {pwdError && <p className="text-[11px] text-rose-500">{pwdError}</p>}
           {!pwdError && password.length >= 8 && (
-            <p className="text-[11px] text-emerald-400 flex items-center gap-1">
-              <Check className="w-3 h-3" strokeWidth={3} /> Looks good
+            <p className="text-[11px] text-sage-600 flex items-center gap-1">
+              <Check className="w-3 h-3" strokeWidth={3} /> Parfait
             </p>
           )}
         </div>
 
-        {error && <p className="text-sm text-rose-400">{error}</p>}
+        {error && <p className="text-sm text-rose-500">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading || !valid}
+        <button type="submit" disabled={loading || !valid}
           className={cn(
-            'w-full rounded-lg bg-glow-500 hover:bg-glow-400 disabled:opacity-60 disabled:cursor-not-allowed text-midnight px-4 py-2.5 text-sm font-semibold shadow-glow-md transition-colors flex items-center justify-center gap-1.5 mt-2',
-          )}
-        >
+            'w-full rounded-xl bg-sage-500 hover:bg-sage-600 disabled:opacity-60 disabled:cursor-not-allowed text-white px-4 py-2.5 text-sm font-semibold shadow-sage-sm transition-colors flex items-center justify-center gap-1.5 mt-2',
+          )}>
           {loading
             ? <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
-            : <><span>Create account</span><ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>
+            : <><span>Créer mon compte</span><ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>
           }
         </button>
 
-        <p className="text-[11px] text-offwhite/45 text-center leading-relaxed">
-          By creating an account you agree to our{' '}
-          <Link href="/terms" className="text-offwhite/65 underline-offset-2 hover:underline">Terms</Link>
-          {' '}and{' '}
-          <Link href="/privacy" className="text-offwhite/65 underline-offset-2 hover:underline">Privacy Policy</Link>.
+        <p className="text-[11px] text-midnight/40 text-center leading-relaxed">
+          En créant un compte, vous acceptez nos{' '}
+          <Link href="/terms" className="text-midnight/60 underline-offset-2 hover:underline">CGU</Link>
+          {' '}et notre{' '}
+          <Link href="/privacy" className="text-midnight/60 underline-offset-2 hover:underline">Politique de confidentialité</Link>.
         </p>
       </form>
 
-      <ul className="mt-8 pt-6 border-t border-white/[0.05] space-y-2">
+      <ul className="mt-8 pt-6 border-t border-midnight/[0.07] space-y-2">
         {BENEFITS.map(b => (
-          <li key={b} className="flex items-center gap-2 text-xs text-offwhite/65">
-            <Check className="w-3.5 h-3.5 text-glow-400 flex-shrink-0" strokeWidth={2.5} />
+          <li key={b} className="flex items-center gap-2 text-xs text-midnight/55">
+            <Check className="w-3.5 h-3.5 text-sage-500 flex-shrink-0" strokeWidth={2.5} />
             {b}
           </li>
         ))}
@@ -173,36 +140,31 @@ export default function SignUpPage() {
       <style jsx global>{`
         .auth-input {
           width: 100%;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 0.5rem;
+          background: #F3FAF0;
+          border: 1px solid rgba(13, 31, 17, 0.10);
+          border-radius: 0.75rem;
           padding: 0.625rem 0.75rem 0.625rem 2.25rem;
           font-size: 0.875rem;
-          color: inherit;
+          color: #0D1F11;
           transition: border-color 0.15s, background 0.15s;
         }
-        .auth-input::placeholder { color: rgba(247, 245, 241, 0.35); }
+        .auth-input::placeholder { color: rgba(13, 31, 17, 0.30); }
         .auth-input:focus {
           outline: none;
-          border-color: rgba(255, 138, 61, 0.5);
-          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(82, 183, 136, 0.50);
+          background: #FFFFFF;
         }
       `}</style>
     </div>
   )
 }
 
-function Field({
-  label, icon: Icon, optional, children,
-}: { label: string; icon: typeof Mail; optional?: boolean; children: React.ReactNode }) {
+function Field({ label, icon: Icon, children }: { label: string; icon: typeof Mail; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <label className="text-[11px] font-semibold tracking-widest uppercase text-offwhite/55">{label}</label>
-        {optional && <span className="text-[10px] text-offwhite/40 uppercase tracking-wider">Optional</span>}
-      </div>
+      <label className="text-[11px] font-semibold tracking-widest uppercase text-midnight/50">{label}</label>
       <div className="relative">
-        <Icon className="w-4 h-4 text-offwhite/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={1.75} />
+        <Icon className="w-4 h-4 text-midnight/35 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={1.75} />
         {children}
       </div>
     </div>

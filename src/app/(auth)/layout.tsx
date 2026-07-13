@@ -1,19 +1,23 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Sparkles, Quote } from 'lucide-react'
+import { Quote } from 'lucide-react'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-midnight grain text-offwhite flex">
+    <div className="min-h-screen bg-cream-50 text-midnight flex">
       {/* ── Form column ─────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top: logo */}
-        <header className="px-6 lg:px-10 py-6">
-          <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-glow-500 flex items-center justify-center shadow-glow-sm group-hover:shadow-glow-md transition-shadow">
-              <Sparkles className="w-4 h-4 text-midnight" strokeWidth={2.5} />
-            </div>
-            <span className="font-display font-bold text-lg tracking-tight">CarGlow</span>
+      <div className="flex-1 flex flex-col min-w-0 bg-white">
+        {/* Logo */}
+        <header className="px-6 lg:px-10 py-6 border-b border-midnight/[0.06]">
+          <Link href="/" className="inline-flex items-center">
+            <Image
+              src="/logo-verdia.jpg"
+              alt="Verdia"
+              width={120}
+              height={36}
+              className="h-9 w-auto object-contain"
+              priority
+            />
           </Link>
         </header>
 
@@ -25,68 +29,62 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </main>
 
         {/* Footer */}
-        <footer className="px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between gap-3 text-xs text-offwhite/45">
-          <div>© {new Date().getFullYear()} CarGlow AI</div>
+        <footer className="px-6 lg:px-10 py-6 border-t border-midnight/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs text-midnight/40">
+          <div>© {new Date().getFullYear()} Verdia</div>
           <div className="flex items-center gap-4">
-            <Link href="/terms" className="hover:text-offwhite/70">Terms</Link>
-            <Link href="/privacy" className="hover:text-offwhite/70">Privacy</Link>
-            <Link href="/support" className="hover:text-offwhite/70">Support</Link>
+            <Link href="/terms"   className="hover:text-midnight/70">CGU</Link>
+            <Link href="/privacy" className="hover:text-midnight/70">Confidentialité</Link>
+            <Link href="/support" className="hover:text-midnight/70">Support</Link>
           </div>
         </footer>
       </div>
 
       {/* ── Visual column ───────────────────────────────────────────── */}
-      <aside className="hidden lg:block lg:w-[44%] xl:w-[48%] relative overflow-hidden border-l border-white/[0.05]">
-        {/* Background image */}
+      <aside className="hidden lg:block lg:w-[44%] xl:w-[48%] relative overflow-hidden">
+        {/* Background image — garden */}
         <Image
-          src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=85"
-          alt=""
+          src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=85"
+          alt="Jardin paysagé"
           fill
           priority
           className="object-cover"
         />
-        {/* Gradient + tint overlays */}
-        <div className="absolute inset-0 bg-gradient-to-br from-midnight/85 via-midnight/65 to-midnight/95" />
-        <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/95 via-transparent to-transparent" />
+        {/* Forest green overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-midnight/80 via-midnight/60 to-midnight/90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/90 via-transparent to-transparent" />
 
-        {/* Glow orb */}
-        <div className="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-glow-500/20 blur-[100px]" />
-        <div className="absolute bottom-1/3 -left-20 w-72 h-72 rounded-full bg-glow-500/10 blur-[80px]" />
+        {/* Sage green glow orbs */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-sage-500/20 blur-[90px]" />
+        <div className="absolute bottom-1/3 -left-16 w-64 h-64 rounded-full bg-sage-600/15 blur-[80px]" />
 
         {/* Content */}
         <div className="relative h-full flex flex-col justify-between p-10 xl:p-14">
-          {/* Top: feature claim */}
           <div className="max-w-md">
-            <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-3">
-              For dealers, by people who&apos;ve sold cars
+            <div className="eyebrow-light mb-3">
+              Visualisation de jardin par IA
             </div>
-            <h2 className="font-display font-bold tracking-tight text-3xl xl:text-4xl leading-[1.1]">
-              Inventory photos that{' '}
-              <span className="text-gradient">close faster.</span>
+            <h2 className="font-display font-bold tracking-tight text-3xl xl:text-4xl leading-[1.1] text-offwhite">
+              Votre jardin de rêve{' '}
+              <span className="text-gradient-green">en 60 secondes.</span>
             </h2>
-            <p className="text-offwhite/65 mt-3 text-[15px] leading-relaxed">
-              Studio-grade backgrounds, plate masking, and brand watermarks — applied to every photo in seconds.
+            <p className="text-offwhite/60 mt-3 text-[15px] leading-relaxed">
+              Photographiez votre jardin actuel. Notre IA le transforme en rendu photoréaliste
+              de votre futur aménagement — aucune compétence technique requise.
             </p>
           </div>
 
-          {/* Bottom: testimonial */}
-          <div className="glass rounded-2xl border border-white/[0.08] p-5 max-w-md">
-            <Quote className="w-5 h-5 text-glow-400/80 mb-3" strokeWidth={1.5} />
+          {/* Testimonial card */}
+          <div className="glass rounded-2xl border border-offwhite/[0.10] p-5 max-w-md">
+            <Quote className="w-5 h-5 text-sage-400 mb-3" strokeWidth={1.5} />
             <p className="text-[15px] text-offwhite/85 leading-relaxed">
-              We replaced three lighting setups and a half-day of editing per vehicle with one upload.
-              Listings go live the same afternoon now.
+              J&apos;ai montré le rendu à mes clients avant même de calculer le devis.
+              Ils ont dit oui sur le champ. C&apos;est devenu mon outil de vente numéro un.
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <Image
-                src="https://i.pravatar.cc/100?img=14"
-                alt=""
-                width={36}
-                height={36}
-                className="rounded-full ring-1 ring-white/15"
-              />
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sage-400 to-sage-700 ring-1 ring-white/15" />
               <div>
-                <div className="text-sm font-medium">Marcus Hill</div>
-                <div className="text-xs text-offwhite/55">Sales Director, Summit Auto Group</div>
+                <div className="text-sm font-medium text-offwhite">Thomas B.</div>
+                <div className="text-xs text-offwhite/50">Paysagiste · Lyon, 69</div>
               </div>
             </div>
           </div>

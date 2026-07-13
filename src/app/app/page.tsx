@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, Image as ImageIcon, ArrowRight, AlertCircle, CreditCard } from 'lucide-react'
+import { Sparkles, Image as ImageIcon, ArrowRight, AlertCircle, CreditCard, Leaf } from 'lucide-react'
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
 
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
     where:   { workspaceId: wsId, status: 'ENHANCED' },
     orderBy: { createdAt: 'desc' },
     take:    12,
-    include: { vehicle: { select: { name: true } } },
+    select:  { id: true, thumbnailUrl: true, enhancedUrl: true, styleUsed: true, createdAt: true },
   })
 
   const creditsRemaining = workspace.creditsRemaining
@@ -38,16 +38,16 @@ export default async function DashboardPage() {
         <div className="mx-6 lg:mx-10 mt-6 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
           <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" strokeWidth={1.75} />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-rose-300">You&apos;re out of credits</p>
+            <p className="text-sm font-semibold text-rose-300">Plus de crédits disponibles</p>
             <p className="text-xs text-rose-300/65 mt-0.5">
-              You&apos;ve used all your enhancements. Top up to keep going.
+              Vous avez utilisé tous vos crédits. Rechargez pour continuer.
             </p>
           </div>
           <Link
             href="/app/billing"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white text-xs font-semibold transition-colors shrink-0"
           >
-            <CreditCard className="w-3.5 h-3.5" /> Top up
+            <CreditCard className="w-3.5 h-3.5" /> Recharger
           </Link>
         </div>
       )}
@@ -58,17 +58,17 @@ export default async function DashboardPage() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
               <h1 className="font-display font-bold tracking-tight text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.1]">
-                Dashboard
+                Tableau de bord
               </h1>
               <p className="text-offwhite/55 mt-2 text-[15px]">
-                <span className="text-offwhite font-semibold">{creditsRemaining.toLocaleString()}</span> credits remaining
+                <span className="text-offwhite font-semibold">{creditsRemaining.toLocaleString()}</span> crédits restants
               </p>
             </div>
             <Link
               href="/app/editor"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm shadow-glow-md transition-all"
             >
-              <Sparkles className="w-4 h-4" /> Enhance a photo
+              <Leaf className="w-4 h-4" /> Générer un rendu
             </Link>
           </div>
         </div>
@@ -78,9 +78,9 @@ export default async function DashboardPage() {
         {/* Library */}
         <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
           <header className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-            <h2 className="font-display font-semibold text-[15px]">Photo library</h2>
+            <h2 className="font-display font-semibold text-[15px]">Mes rendus de jardin</h2>
             <Link href="/app/library" className="text-[12px] text-glow-400 hover:text-glow-300 inline-flex items-center gap-1">
-              See all <ArrowRight className="w-3 h-3" />
+              Voir tout <ArrowRight className="w-3 h-3" />
             </Link>
           </header>
 
@@ -89,21 +89,22 @@ export default async function DashboardPage() {
               <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-4">
                 <ImageIcon className="w-6 h-6 text-offwhite/30" strokeWidth={1.5} />
               </div>
-              <p className="text-sm text-offwhite/45 mb-4">Your enhanced photos will appear here</p>
+              <p className="text-sm text-offwhite/45 mb-4">Vos rendus de jardin apparaîtront ici</p>
               <Link
                 href="/app/editor"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm shadow-glow-sm transition-all"
               >
-                <Sparkles className="w-4 h-4" /> Enhance your first photo
+                <Leaf className="w-4 h-4" /> Générer mon premier rendu
               </Link>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-px bg-white/[0.04]">
               {recentPhotos.map((p) => (
                 <div key={p.id} className="relative group bg-midnight aspect-square overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={p.thumbnailUrl ?? p.enhancedUrl ?? p.originalUrl}
-                    alt=""
+                    src={p.thumbnailUrl ?? p.enhancedUrl ?? ''}
+                    alt={p.styleUsed ?? 'rendu jardin'}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

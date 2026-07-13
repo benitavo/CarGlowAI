@@ -76,15 +76,15 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
         <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-5">
           <ImageIcon className="w-7 h-7 text-offwhite/25" strokeWidth={1.5} />
         </div>
-        <h2 className="font-display font-semibold text-lg text-offwhite mb-2">No photos yet</h2>
+        <h2 className="font-display font-semibold text-lg text-offwhite mb-2">Aucun rendu encore</h2>
         <p className="text-offwhite/45 text-sm mb-6">
-          Upload your first car photo and CarGlow will remove the background and apply a professional style.
+          Téléchargez une photo de votre jardin et JardinAI génère un rendu photoréaliste en 60 secondes.
         </p>
         <Link
           href="/app/editor"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm transition-all"
         >
-          Enhance your first photo <ArrowRight className="w-4 h-4" />
+          Générer mon premier rendu <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     )

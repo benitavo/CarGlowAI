@@ -4,7 +4,6 @@ import { getLocale } from 'next-intl/server'
 import { Providers } from '@/components/Providers'
 import './globals.css'
 
-// One Inter instance — multiple instances cause font-dedup warnings in Next 15
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -13,13 +12,13 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://carglowai.com'),
+  metadataBase: new URL('https://verdia.fr'),
   title: {
-    default: 'CarGlow AI — Phone photos in. Showroom photos out.',
-    template: '%s | CarGlow AI',
+    default: 'Verdia — Visualisez votre jardin de rêve en secondes',
+    template: '%s | Verdia',
   },
   description:
-    'CarGlow AI transforms ordinary phone photos of vehicles into studio-grade listing images in seconds.',
+    'Verdia transforme la photo de votre jardin actuel en rendu photoréaliste de votre futur aménagement paysager, propulsé par l\'IA.',
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 }
 
@@ -28,10 +27,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* --font-display falls back to --font-inter (production: license General Sans / Söhne) */}
         <style>{`:root { --font-display: var(--font-inter); }`}</style>
       </head>
-      <body className="bg-midnight text-offwhite antialiased">
+      <body className="bg-cream text-midnight antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

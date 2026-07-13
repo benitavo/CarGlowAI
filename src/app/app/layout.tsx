@@ -6,22 +6,22 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
   LayoutDashboard, Wand2, FolderOpen,
-  CreditCard, Zap, LogOut,
+  CreditCard, LogOut, Leaf,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV = [
-  { label: 'Dashboard', href: '/app',         icon: LayoutDashboard },
-  { label: 'Editor',    href: '/app/editor',  icon: Wand2 },
-  { label: 'Library',   href: '/app/library', icon: FolderOpen },
-  { label: 'Billing',   href: '/app/billing', icon: CreditCard },
+  { label: 'Tableau de bord', href: '/app',         icon: LayoutDashboard },
+  { label: 'Générateur',      href: '/app/editor',  icon: Wand2 },
+  { label: 'Mes rendus',      href: '/app/library', icon: FolderOpen },
+  { label: 'Abonnement',      href: '/app/billing', icon: CreditCard },
 ]
 
 const NAV_MOBILE = [
-  { label: 'Home',    href: '/app',         icon: LayoutDashboard },
-  { label: 'Editor',  href: '/app/editor',  icon: Wand2 },
-  { label: 'Photos',  href: '/app/library', icon: FolderOpen },
-  { label: 'Billing', href: '/app/billing', icon: CreditCard },
+  { label: 'Accueil',  href: '/app',         icon: LayoutDashboard },
+  { label: 'Générer',  href: '/app/editor',  icon: Wand2 },
+  { label: 'Rendus',   href: '/app/library', icon: FolderOpen },
+  { label: 'Plan',     href: '/app/billing', icon: CreditCard },
 ]
 
 interface WorkspaceSummary {
@@ -72,11 +72,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className="hidden lg:flex w-[200px] shrink-0 flex-col border-r border-white/[0.06] bg-midnight-800/40">
         {/* Logo */}
         <Link href="/app" className="flex items-center gap-2 h-16 px-4 border-b border-white/[0.06] group">
-          <div className="w-8 h-8 rounded-lg bg-glow-500 flex items-center justify-center shadow-glow-sm group-hover:shadow-glow-md transition-shadow">
-            <Zap className="w-4 h-4 text-midnight" fill="currentColor" />
+          <div className="w-7 h-7 rounded-lg bg-sage-500 flex items-center justify-center shrink-0">
+            <Leaf className="w-3.5 h-3.5 text-white" fill="currentColor" />
           </div>
-          <span className="font-display font-bold text-[1.05rem] tracking-tight">
-            Car<span className="text-glow-500">Glow</span>
+          <span className="font-display font-bold text-offwhite text-[1.05rem] tracking-tight">
+            Ver<span className="text-sage-400">dia</span>
           </span>
         </Link>
 
@@ -106,7 +106,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="border-t border-white/[0.06] p-3 space-y-2">
           <Link href="/app/billing"
             className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-glow-500/30 transition-colors">
-            <span className="text-xs text-offwhite/50">Credits</span>
+            <span className="text-xs text-offwhite/50">Crédits</span>
             <span className="text-sm font-semibold tabular-nums text-offwhite">
               {ws ? ws.creditsRemaining.toLocaleString() : '—'}
             </span>
@@ -122,8 +122,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <button
               onClick={handleSignOut}
               className="text-offwhite/30 hover:text-rose-400 transition-colors p-1 rounded hover:bg-white/[0.04]"
-              title="Sign out"
-              aria-label="Sign out"
+              title="Déconnexion"
+              aria-label="Déconnexion"
             >
               <LogOut className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
