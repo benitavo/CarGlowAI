@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import {
   Upload, Loader2, Download, ArrowLeft, Sparkles,
-  Leaf, RotateCcw,
+  Leaf, RotateCcw, Video, Image as ImageIcon, PenLine,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +17,8 @@ const GARDEN_STYLES = [
   { slug: 'zen',            name: 'Zen & Japonais',     emoji: '🎋', desc: 'Bambou, mousse et pierres' },
   { slug: 'potager',        name: 'Potager',            emoji: '🥬', desc: 'Carrés potagers et aromatiques' },
 ]
+
+type Mode = 'image' | 'video'
 
 interface GenState {
   status: 'idle' | 'loading' | 'done' | 'error'
@@ -37,11 +39,13 @@ async function fileToBase64(file: File): Promise<string> {
 export default function EditorPage() {
   const { data: session } = useSession()
 
-  const [file, setFile]             = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [styleSlug, setStyleSlug]   = useState('gazon-fleurs')
-  const [gen, setGen]               = useState<GenState>({ status: 'idle' })
-  const fileInputRef                = useRef<HTMLInputElement>(null)
+  const [mode, setMode]                      = useState<Mode>('image')
+  const [file, setFile]                      = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl]          = useState<string | null>(null)
+  const [styleSlug, setStyleSlug]            = useState('gazon-fleurs')
+  const [characteristics, setCharacteristics] = useState('')
+  const [gen, setGen]                        = useState<GenState>({ status: 'idle' })
+  const fileInputRef                         = useRef<HTMLInputElement>(null)
 
   const loadFile = useCallback((f: File) => {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
@@ -61,45 +65,47 @@ export default function EditorPage() {
     setGen({ status: 'loading' })
     try {
       const base64 = await fileToBase64(file)
-      const res = await fetch('/api/generate', {
+      const endpoint = mode === 'video' ? '/api/generate-video' : '/api/generate'
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageData:   base64,
-          mimeType:    file.type || 'image/jpeg',
+          imageData:       base64,
+          mimeType:        file.type || 'image/jpeg',
           styleSlug,
-          workspaceId: session.user.workspaceId,
+          characteristics: characteristics.trim() || undefined,
+          workspaceId:     session.user.workspaceId,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erreur inconnue')
-      setGen({ status: 'done', resultUrl: data.enhancedUrl, processingMs: data.processingMs })
+      setGen({ status: 'done', resultUrl: data.enhancedUrl ?? data.videoUrl, processingMs: data.processingMs })
     } catch (err) {
       setGen({ status: 'error', error: err instanceof Error ? err.message : 'Erreur inconnue' })
     }
-  }, [file, session, styleSlug])
+  }, [file, session, styleSlug, characteristics, mode])
 
   const handleDownload = () => {
     if (!gen.resultUrl) return
     const a = document.createElement('a')
     a.href = gen.resultUrl
-    a.download = `jardin-${styleSlug}-${Date.now()}.png`
+    a.download = `verdia-${styleSlug}-${Date.now()}.${mode === 'video' ? 'mp4' : 'png'}`
     a.click()
   }
 
   const canGenerate = !!file && gen.status !== 'loading'
 
   return (
-    <div className="min-h-screen bg-midnight text-offwhite">
+    <div className="min-h-screen bg-cream-50 text-midnight">
       {/* Topbar */}
-      <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-5 border-b border-white/[0.06] bg-midnight/95 backdrop-blur-xl">
-        <Link href="/app" className="flex items-center gap-2 text-offwhite/55 hover:text-offwhite text-sm transition-colors">
+      <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-5 border-b border-sage-100 bg-white/95 backdrop-blur-xl">
+        <Link href="/app" className="flex items-center gap-2 text-midnight/45 hover:text-midnight text-sm transition-colors">
           <ArrowLeft className="w-4 h-4" />
           <span>Tableau de bord</span>
         </Link>
         <div className="flex items-center gap-2">
-          <Leaf className="w-4 h-4 text-glow-400" />
-          <span className="font-display font-semibold text-sm">Générateur de jardin</span>
+          <Leaf className="w-4 h-4 text-sage-500" />
+          <span className="font-display font-semibold text-sm text-midnight">Générateur de jardin</span>
         </div>
         <div className="w-28" />
       </header>
@@ -114,8 +120,8 @@ export default function EditorPage() {
             className={cn(
               'relative rounded-3xl border-2 border-dashed transition-all',
               file
-                ? 'border-white/[0.1]'
-                : 'border-white/[0.1] bg-white/[0.015] hover:border-white/[0.2] hover:bg-white/[0.025] cursor-pointer',
+                ? 'border-sage-200'
+                : 'border-sage-200 bg-sage-50/40 hover:border-sage-400 hover:bg-sage-50 cursor-pointer',
             )}
             onDrop={onDrop}
             onDragOver={e => e.preventDefault()}
@@ -123,15 +129,15 @@ export default function EditorPage() {
           >
             {!file ? (
               <div className="flex flex-col items-center justify-center gap-4 py-20 px-8">
-                <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
-                  <Upload className="w-7 h-7 text-offwhite/35" />
+                <div className="w-16 h-16 rounded-2xl bg-sage-100 border border-sage-200 flex items-center justify-center">
+                  <Upload className="w-7 h-7 text-sage-400" />
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-offwhite/60 mb-1">Déposez votre photo de jardin</p>
-                  <p className="text-sm text-offwhite/35">JPG, PNG, HEIC · jusqu&apos;à 20 Mo</p>
+                  <p className="font-semibold text-midnight/55 mb-1">Déposez votre photo de jardin</p>
+                  <p className="text-sm text-midnight/35">JPG, PNG, HEIC · jusqu&apos;à 20 Mo</p>
                 </div>
                 <button
-                  className="px-5 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-sm font-medium text-offwhite/60 hover:text-offwhite hover:bg-white/[0.09] transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-white border border-sage-200 text-sm font-medium text-midnight/55 hover:text-midnight hover:border-sage-400 transition-all"
                   onClick={e => { e.stopPropagation(); fileInputRef.current?.click() }}
                 >
                   Choisir un fichier
@@ -146,11 +152,11 @@ export default function EditorPage() {
                   className="w-full object-contain"
                   style={{ maxHeight: 520 }}
                 />
-                <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-midnight/75 backdrop-blur-sm text-xs font-semibold text-offwhite/70 border border-white/[0.1]">
+                <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-white/85 backdrop-blur-sm text-xs font-semibold text-midnight/65 border border-sage-200">
                   Photo originale
                 </div>
                 <button
-                  className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-midnight/80 backdrop-blur-sm text-xs text-offwhite/70 hover:text-offwhite border border-white/[0.12] transition-colors"
+                  className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/85 backdrop-blur-sm text-xs text-midnight/60 hover:text-midnight border border-sage-200 transition-colors"
                   onClick={e => { e.stopPropagation(); fileInputRef.current?.click() }}
                 >
                   <RotateCcw className="w-3 h-3" /> Changer
@@ -167,22 +173,22 @@ export default function EditorPage() {
             onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }}
           />
 
-          {/* Result */}
-          {gen.status === 'done' && gen.resultUrl && (
-            <div className="rounded-3xl border border-glow-500/30 bg-glow-500/[0.03] overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-glow-500/20">
+          {/* Result — image */}
+          {gen.status === 'done' && gen.resultUrl && mode === 'image' && (
+            <div className="rounded-3xl border border-sage-200 bg-white overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-sage-100">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-glow-400" />
-                  <span className="font-semibold text-sm text-glow-300">Rendu généré</span>
+                  <Sparkles className="w-4 h-4 text-sage-500" />
+                  <span className="font-semibold text-sm text-sage-700">Rendu généré</span>
                   {gen.processingMs && (
-                    <span className="text-xs text-offwhite/30 ml-1">
+                    <span className="text-xs text-midnight/30 ml-1">
                       {(gen.processingMs / 1000).toFixed(1)}s
                     </span>
                   )}
                 </div>
                 <button
                   onClick={handleDownload}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight text-xs font-semibold transition-all shadow-glow-sm"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold transition-all"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Télécharger
@@ -198,21 +204,88 @@ export default function EditorPage() {
             </div>
           )}
 
+          {/* Result — video */}
+          {gen.status === 'done' && gen.resultUrl && mode === 'video' && (
+            <div className="rounded-3xl border border-sage-200 bg-white overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-sage-100">
+                <div className="flex items-center gap-2">
+                  <Video className="w-4 h-4 text-sage-500" />
+                  <span className="font-semibold text-sm text-sage-700">Vidéo générée</span>
+                  {gen.processingMs && (
+                    <span className="text-xs text-midnight/30 ml-1">
+                      {(gen.processingMs / 1000).toFixed(1)}s
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold transition-all"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Télécharger
+                </button>
+              </div>
+              <video
+                src={gen.resultUrl}
+                controls
+                autoPlay
+                loop
+                className="w-full"
+                style={{ maxHeight: 520 }}
+              />
+            </div>
+          )}
+
           {gen.status === 'error' && (
-            <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-5 py-4 text-sm text-rose-300">
+            <div className="rounded-2xl bg-rose-50 border border-rose-200 px-5 py-4 text-sm text-rose-700">
               {gen.error}
             </div>
           )}
         </div>
 
-        {/* Right: style picker + generate */}
-        <div className="flex flex-col gap-5">
+        {/* Right: mode + style + characteristics + generate */}
+        <div className="flex flex-col gap-4">
+
+          {/* Mode switch */}
+          <div className="rounded-2xl border border-sage-200 bg-white p-1.5 flex gap-1 shadow-sm">
+            <button
+              onClick={() => { setMode('image'); setGen({ status: 'idle' }) }}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all',
+                mode === 'image'
+                  ? 'bg-sage-500 text-white shadow-sm'
+                  : 'text-midnight/45 hover:text-midnight hover:bg-sage-50',
+              )}
+            >
+              <ImageIcon className="w-4 h-4" strokeWidth={1.75} />
+              Image
+            </button>
+            <button
+              onClick={() => { setMode('video'); setGen({ status: 'idle' }) }}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all',
+                mode === 'video'
+                  ? 'bg-sage-500 text-white shadow-sm'
+                  : 'text-midnight/45 hover:text-midnight hover:bg-sage-50',
+              )}
+            >
+              <Video className="w-4 h-4" strokeWidth={1.75} />
+              Vidéo
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sage-100 text-sage-600 font-bold">IA</span>
+            </button>
+          </div>
+
+          {mode === 'video' && (
+            <div className="rounded-xl border border-sage-200 bg-sage-50 px-4 py-3 text-[13px] text-sage-700 leading-relaxed">
+              <strong>🎬 Vidéo animée</strong> — Votre jardin transformé en vidéo 5 secondes. Parfait pour présenter vos projets ou partager sur les réseaux sociaux.
+            </div>
+          )}
 
           {/* Style picker */}
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.015] overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/[0.06]">
-              <h2 className="font-display font-semibold text-[15px]">Style de jardin</h2>
-              <p className="text-xs text-offwhite/40 mt-0.5">Choisissez l&apos;ambiance de votre rendu</p>
+          <div className="rounded-2xl border border-sage-100 bg-white overflow-hidden shadow-sm">
+            <div className="px-5 py-4 border-b border-sage-100">
+              <h2 className="font-display font-semibold text-[15px] text-midnight">Style de jardin</h2>
+              <p className="text-xs text-midnight/40 mt-0.5">Choisissez l&apos;ambiance de votre rendu</p>
             </div>
             <div className="p-3 flex flex-col gap-1">
               {GARDEN_STYLES.map(style => (
@@ -222,22 +295,45 @@ export default function EditorPage() {
                   className={cn(
                     'flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all',
                     styleSlug === style.slug
-                      ? 'bg-glow-500/[0.1] border border-glow-500/35'
-                      : 'border border-transparent hover:bg-white/[0.04] hover:border-white/[0.06]',
+                      ? 'bg-sage-50 border border-sage-300'
+                      : 'border border-transparent hover:bg-cream-100 hover:border-sage-100',
                   )}
                 >
                   <span className="text-xl shrink-0">{style.emoji}</span>
                   <div>
                     <p className={cn(
                       'text-sm font-semibold',
-                      styleSlug === style.slug ? 'text-glow-300' : 'text-offwhite/80',
+                      styleSlug === style.slug ? 'text-sage-700' : 'text-midnight/75',
                     )}>
                       {style.name}
                     </p>
-                    <p className="text-xs text-offwhite/40">{style.desc}</p>
+                    <p className="text-xs text-midnight/40">{style.desc}</p>
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Characteristics */}
+          <div className="rounded-2xl border border-sage-100 bg-white overflow-hidden shadow-sm">
+            <div className="px-5 py-4 border-b border-sage-100 flex items-center gap-2">
+              <PenLine className="w-4 h-4 text-sage-500" strokeWidth={1.75} />
+              <div>
+                <h2 className="font-display font-semibold text-[15px] text-midnight">Caractéristiques</h2>
+                <p className="text-xs text-midnight/40 mt-0.5">Précisez votre projet — optionnel</p>
+              </div>
+            </div>
+            <div className="p-4">
+              <textarea
+                value={characteristics}
+                onChange={e => setCharacteristics(e.target.value)}
+                placeholder="Ex : ajouter une pergola en bois naturel, conserver les rosiers en facade, prévoir un espace pour les enfants, fontaine en pierre, budget intermédiaire, éviter les espèces invasives…"
+                rows={4}
+                className="w-full bg-cream-50 border border-sage-200 rounded-xl px-4 py-3 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 resize-none transition-all"
+              />
+              <p className="text-xs text-midnight/30 mt-2">
+                Ces précisions seront transmises à l&apos;IA pour personnaliser le rendu.
+              </p>
             </div>
           </div>
 
@@ -248,42 +344,44 @@ export default function EditorPage() {
             className={cn(
               'w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm transition-all',
               canGenerate
-                ? 'bg-glow-500 hover:bg-glow-400 text-midnight shadow-glow-md hover:shadow-glow-lg cursor-pointer'
-                : 'bg-white/[0.05] text-offwhite/25 cursor-not-allowed border border-white/[0.06]',
+                ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sm hover:shadow-md cursor-pointer'
+                : 'bg-sage-100 text-sage-300 cursor-not-allowed border border-sage-200',
             )}
           >
             {gen.status === 'loading' ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Génération en cours…
+                {mode === 'video' ? 'Génération vidéo…' : 'Génération en cours…'}
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" />
-                Générer mon rendu
+                {mode === 'video' ? <Video className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                {mode === 'video' ? 'Générer la vidéo' : 'Générer mon rendu'}
               </>
             )}
           </button>
 
           {gen.status === 'loading' && (
-            <p className="text-xs text-center text-offwhite/35 leading-relaxed">
-              L&apos;IA analyse et transforme votre jardin.<br />
-              Comptez 30 à 60 secondes.
+            <p className="text-xs text-center text-midnight/35 leading-relaxed">
+              {mode === 'video'
+                ? <>L&apos;IA génère votre vidéo.<br />Comptez 60 à 120 secondes.</>
+                : <>L&apos;IA analyse et transforme votre jardin.<br />Comptez 30 à 60 secondes.</>
+              }
             </p>
           )}
 
           {!file && gen.status !== 'loading' && (
-            <p className="text-xs text-center text-offwhite/30">
+            <p className="text-xs text-center text-midnight/30">
               Téléchargez d&apos;abord une photo de votre jardin
             </p>
           )}
 
           {/* Tips */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] p-5">
-            <p className="text-[11px] font-semibold text-offwhite/35 uppercase tracking-widest mb-3">
+          <div className="rounded-2xl border border-sage-100 bg-cream-50 p-5">
+            <p className="text-[11px] font-semibold text-midnight/35 uppercase tracking-widest mb-3">
               Conseils photo
             </p>
-            <ul className="flex flex-col gap-2.5 text-xs text-offwhite/50 leading-relaxed">
+            <ul className="flex flex-col gap-2.5 text-xs text-midnight/50 leading-relaxed">
               <li className="flex items-start gap-2">
                 <span>📸</span>
                 <span>Photographiez depuis un angle montrant l&apos;ensemble du jardin</span>

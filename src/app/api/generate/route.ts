@@ -15,8 +15,8 @@ const GARDEN_STYLES: Record<string, string> = {
   'potager': 'a beautiful kitchen garden (potager) with raised wooden vegetable beds, abundant vegetables and aromatic herbs (thyme, basil, sage), and neat gravel paths between the beds.',
 }
 
-function buildPrompt(styleDesc: string) {
-  return `You are an expert landscape architect and photorealistic visualization specialist.
+function buildPrompt(styleDesc: string, characteristics?: string) {
+  let prompt = `You are an expert landscape architect and photorealistic visualization specialist.
 
 Transform the garden or outdoor space in this photo into a beautifully landscaped area in the following style: ${styleDesc}
 
@@ -27,9 +27,14 @@ STRICT RULES — follow exactly:
 4. The result MUST look photorealistic — like a professional architectural photo, not a render or illustration
 5. Maintain the same natural lighting direction and shadows as the original photo
 6. Colors, materials and plantings must be realistic for the French climate
-7. The transformation must look achievable by a real landscaper
+7. The transformation must look achievable by a real landscaper`
 
-Output a single photorealistic garden visualization image.`
+  if (characteristics?.trim()) {
+    prompt += `\n\nADDITIONAL SPECIFICATIONS FROM THE LANDSCAPER (integrate these into the design):\n${characteristics}`
+  }
+
+  prompt += '\n\nOutput a single photorealistic garden visualization image.'
+  return prompt
 }
 
 export async function POST(req: NextRequest) {
@@ -39,11 +44,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { imageData, mimeType, styleSlug, workspaceId } = body as {
+  const { imageData, mimeType, styleSlug, workspaceId, characteristics } = body as {
     imageData: string
     mimeType: string
     styleSlug: string
     workspaceId: string
+    characteristics?: string
   }
 
   if (!imageData || !workspaceId) {
@@ -65,6 +71,7 @@ export async function POST(req: NextRequest) {
   }
 
   const styleDesc = GARDEN_STYLES[styleSlug] ?? GARDEN_STYLES['gazon-fleurs']
+  const prompt = buildPrompt(styleDesc, characteristics)
 
   const photo = await db.photo.create({
     data: {
@@ -91,7 +98,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           contents: [{
             parts: [
-              { text: buildPrompt(styleDesc) },
+              { text: prompt },
               { inline_data: { mime_type: mimeType ?? 'image/jpeg', data: imageData } },
             ],
           }],

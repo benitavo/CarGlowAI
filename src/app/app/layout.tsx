@@ -36,7 +36,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session }   = useSession()
   const [ws, setWs]         = useState<WorkspaceSummary | null>(null)
 
-  // Pull workspace summary (plan + credits) for the sidebar.
   useEffect(() => {
     if (!session?.user?.id) return
     let cancelled = false
@@ -51,10 +50,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true }
   }, [session?.user?.id])
 
-  // Fix for the logout bug. Two-step pattern works across next-auth v4 and v5:
-  //   1. signOut({ redirect: false }) — clear the JWT cookie
-  //   2. router.push('/signin') + refresh() — kick to the sign-in page and
-  //      force middleware to re-evaluate authorization on /app/*
   const handleSignOut = async () => {
     await signOut({ redirect: false })
     router.push('/signin')
@@ -67,16 +62,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const avatarChar   = displayName.charAt(0).toUpperCase()
 
   return (
-    <div className="min-h-screen bg-midnight text-offwhite flex">
+    <div className="min-h-screen bg-cream-50 text-midnight flex">
       {/* Sidebar */}
-      <aside className="hidden lg:flex w-[200px] shrink-0 flex-col border-r border-white/[0.06] bg-midnight-800/40">
+      <aside className="hidden lg:flex w-[210px] shrink-0 flex-col border-r border-sage-100 bg-white">
         {/* Logo */}
-        <Link href="/app" className="flex items-center gap-2 h-16 px-4 border-b border-white/[0.06] group">
+        <Link href="/app" className="flex items-center gap-2 h-16 px-5 border-b border-sage-100 group">
           <div className="w-7 h-7 rounded-lg bg-sage-500 flex items-center justify-center shrink-0">
             <Leaf className="w-3.5 h-3.5 text-white" fill="currentColor" />
           </div>
-          <span className="font-display font-bold text-offwhite text-[1.05rem] tracking-tight">
-            Ver<span className="text-sage-400">dia</span>
+          <span className="font-display font-bold text-midnight text-[1.05rem] tracking-tight">
+            Ver<span className="text-sage-500">dia</span>
           </span>
         </Link>
 
@@ -89,13 +84,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             return (
               <Link key={item.href} href={item.href}
                 className={cn(
-                  'relative flex items-center gap-3 h-9 px-2.5 rounded-xl text-sm font-medium transition-all',
+                  'relative flex items-center gap-3 h-9 px-3 rounded-xl text-sm font-medium transition-all',
                   active
-                    ? 'bg-white/[0.06] text-offwhite'
-                    : 'text-offwhite/50 hover:text-offwhite hover:bg-white/[0.03]'
+                    ? 'bg-sage-50 text-sage-700 border border-sage-200/80'
+                    : 'text-midnight/50 hover:text-midnight hover:bg-cream-100',
                 )}>
-                {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-glow-500" />}
-                <item.icon className={cn('w-[17px] h-[17px] shrink-0', active ? 'text-glow-400' : 'text-offwhite/40')} strokeWidth={1.75} />
+                {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-sage-500" />}
+                <item.icon className={cn('w-[17px] h-[17px] shrink-0', active ? 'text-sage-600' : 'text-midnight/35')} strokeWidth={1.75} />
                 {item.label}
               </Link>
             )
@@ -103,25 +98,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* User + credits */}
-        <div className="border-t border-white/[0.06] p-3 space-y-2">
+        <div className="border-t border-sage-100 p-3 space-y-2">
           <Link href="/app/billing"
-            className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-glow-500/30 transition-colors">
-            <span className="text-xs text-offwhite/50">Crédits</span>
-            <span className="text-sm font-semibold tabular-nums text-offwhite">
+            className="flex items-center justify-between px-3 py-2 rounded-xl bg-sage-50 border border-sage-200 hover:border-sage-300 transition-colors">
+            <span className="text-xs text-midnight/50">Crédits</span>
+            <span className="text-sm font-semibold tabular-nums text-sage-700">
               {ws ? ws.creditsRemaining.toLocaleString() : '—'}
             </span>
           </Link>
           <div className="flex items-center gap-2 px-2 py-1.5">
-            <div className="w-7 h-7 rounded-lg bg-glow-500/15 border border-glow-500/30 flex items-center justify-center shrink-0">
-              <span className="text-xs font-bold text-glow-400">{avatarChar}</span>
+            <div className="w-7 h-7 rounded-lg bg-sage-100 border border-sage-200 flex items-center justify-center shrink-0">
+              <span className="text-xs font-bold text-sage-600">{avatarChar}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[12px] font-medium truncate">{displayName}</div>
-              <div className="text-[10px] text-offwhite/40 truncate">{planLabel}</div>
+              <div className="text-[12px] font-medium text-midnight truncate">{displayName}</div>
+              <div className="text-[10px] text-midnight/40 truncate">{planLabel}</div>
             </div>
             <button
               onClick={handleSignOut}
-              className="text-offwhite/30 hover:text-rose-400 transition-colors p-1 rounded hover:bg-white/[0.04]"
+              className="text-midnight/30 hover:text-rose-500 transition-colors p-1 rounded hover:bg-rose-50"
               title="Déconnexion"
               aria-label="Déconnexion"
             >
@@ -137,13 +132,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Mobile bottom tabs */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-20 h-16 bg-midnight-800/95 backdrop-blur-xl border-t border-white/[0.08] flex">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-20 h-16 bg-white border-t border-sage-100 flex">
         {NAV_MOBILE.map(it => {
           const active = it.href === '/app' ? pathname === '/app' : !!pathname?.startsWith(it.href)
           return (
             <Link key={it.href} href={it.href}
               className={cn('flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors',
-                active ? 'text-glow-400' : 'text-offwhite/45')}>
+                active ? 'text-sage-600' : 'text-midnight/40')}>
               <it.icon className="w-5 h-5" strokeWidth={1.75} />
               <span className="text-[10px] font-medium">{it.label}</span>
             </Link>

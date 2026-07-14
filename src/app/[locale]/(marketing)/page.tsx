@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
+import Script from 'next/script'
 import { Link } from '@/i18n/routing'
 import {
   ArrowRight, Check, ChevronDown, ChevronUp,
@@ -139,7 +140,7 @@ function HeroSection() {
         <div className="flex items-center justify-center gap-6 text-sm text-midnight/40">
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> Sans carte bancaire</span>
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> 60 secondes</span>
-          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> 6 styles</span>
+          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> Styles illimités</span>
         </div>
       </div>
     </section>
@@ -228,13 +229,181 @@ function GallerySection() {
   )
 }
 
+// ─── VIDEO DEMO ───────────────────────────────────────────────────────────────
+function PhoneVideoPlayer() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    v.muted = true
+    v.play().catch(() => {})
+  }, [])
+
+  return (
+    <div style={{ position: 'relative', width: 260, flexShrink: 0 }}>
+      {/* Ambient glow */}
+      <div style={{
+        position: 'absolute', top: -30, left: -30, right: -30, bottom: -30,
+        background: 'radial-gradient(ellipse at center, rgba(82,183,136,0.18) 0%, transparent 70%)',
+        filter: 'blur(24px)', zIndex: 0, pointerEvents: 'none',
+      }} />
+      {/* Phone shell */}
+      <div style={{
+        position: 'relative', zIndex: 1,
+        borderRadius: 48, padding: 10,
+        background: 'linear-gradient(160deg, #243028 0%, #0d1f11 100%)',
+        boxShadow: '0 30px 80px -10px rgba(13,31,17,0.55), 0 0 0 1px rgba(255,255,255,0.06)',
+      }}>
+        {/* Screen */}
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          height: 520,
+          borderRadius: 38,
+          overflow: 'hidden',
+          backgroundColor: '#111',
+        }}>
+          {/* Dynamic Island */}
+          <div style={{
+            position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+            width: 86, height: 25, backgroundColor: '#000', borderRadius: 12, zIndex: 20,
+          }} />
+          {/* Video — inline styles only, no Tailwind, explicit w/h */}
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+            }}
+          >
+            <source src="/video-demo.mp4" type="video/mp4" />
+          </video>
+          {/* Home bar */}
+          <div style={{
+            position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+            width: 88, height: 4, backgroundColor: 'rgba(255,255,255,0.20)', borderRadius: 2, zIndex: 20,
+          }} />
+        </div>
+        {/* Side buttons */}
+        <div style={{ position: 'absolute', right: -3, top: 100, width: 3, height: 60, background: '#1a2e1e', borderRadius: '0 3px 3px 0' }} />
+        <div style={{ position: 'absolute', left: -3, top: 84,  width: 3, height: 34, background: '#1a2e1e', borderRadius: '3px 0 0 3px' }} />
+        <div style={{ position: 'absolute', left: -3, top: 128, width: 3, height: 34, background: '#1a2e1e', borderRadius: '3px 0 0 3px' }} />
+      </div>
+    </div>
+  )
+}
+
+function VideoSection() {
+  return (
+    <section className="section-pad bg-cream-50 overflow-hidden">
+      <div className="page-container">
+        <div className="flex flex-col lg:flex-row items-center gap-14 lg:gap-20">
+          {/* Text */}
+          <div className="flex-1 max-w-lg text-center lg:text-left">
+            <p className="eyebrow mb-3">Verdia en action</p>
+            <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+              60 secondes.<br /><span className="text-gradient">Un jardin transformé.</span>
+            </h2>
+            <p className="text-midnight/50 text-[15px] leading-relaxed mb-8">
+              Regardez comment Verdia transforme une simple photo de jardin en rendu photoréaliste. Aussi simple que de prendre un selfie.
+            </p>
+            <div className="flex flex-col gap-3 text-sm text-midnight/60 items-center lg:items-start">
+              {['Photographiez votre terrain', 'Choisissez votre style', 'Recevez votre rendu en 60s'].map((step, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-sage-100 border border-sage-200 flex items-center justify-center text-xs font-bold text-sage-600 shrink-0">
+                    {i + 1}
+                  </div>
+                  {step}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div className="flex justify-center" style={{ paddingTop: 20, paddingBottom: 20 }}>
+            <PhoneVideoPlayer />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── CALENDLY ─────────────────────────────────────────────────────────────────
+function CalendlySection() {
+  return (
+    <section id="rendez-vous" className="section-pad bg-white">
+      <div className="page-container max-w-5xl">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+          {/* Left: text */}
+          <div className="lg:w-[380px] shrink-0">
+            <p className="eyebrow mb-3">Démo personnalisée</p>
+            <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+              Parlons de votre<br /><span className="text-gradient">activité.</span>
+            </h2>
+            <p className="text-midnight/50 text-[15px] leading-relaxed mb-8">
+              Réservez 20 minutes avec moi pour découvrir comment Verdia peut transformer votre façon de présenter vos projets paysagers.
+            </p>
+            <div className="flex flex-col gap-3 mb-8">
+              {[
+                'Démo sur un de vos projets réels',
+                'Conseils personnalisés pour votre activité',
+                'Sans engagement, sans carte bancaire',
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3 text-sm text-midnight/60">
+                  <Check className="w-4 h-4 text-sage-500 shrink-0 mt-0.5" />
+                  {item}
+                </div>
+              ))}
+            </div>
+            <div className="card-light rounded-2xl p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-400 to-sage-600" />
+                <div>
+                  <p className="text-sm font-semibold text-midnight">Antoine R.</p>
+                  <p className="text-xs text-midnight/45">Fondateur de Verdia</p>
+                </div>
+              </div>
+              <p className="text-xs text-midnight/50 leading-relaxed">
+                &ldquo;Je réponds personnellement à chaque demande. Montrez-moi votre terrain et on voit ensemble ce que Verdia peut faire.&rdquo;
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Calendly inline widget */}
+          <div className="flex-1 w-full rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card">
+            <div
+              className="calendly-inline-widget"
+              data-url="https://calendly.com/verdia-rendus/nouvelle-reunion"
+              style={{ minWidth: 320, height: 700 }}
+            />
+            <Script
+              src="https://assets.calendly.com/assets/external/widget.js"
+              strategy="lazyOnload"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── HOW IT WORKS ─────────────────────────────────────────────────────────────
 function HowItWorksSection() {
   const steps = [
     { num: '01', emoji: '📷', title: 'Photographiez le terrain',
       desc: "Prenez 1 à 3 photos du jardin avec votre téléphone. Aucun matériel spécial requis — une bonne lumière naturelle suffit." },
     { num: '02', emoji: '🎨', title: 'Choisissez un style',
-      desc: "Sélectionnez parmi 6 styles paysagers : gazon fleuri, méditerranéen, contemporain, naturel, zen ou potager." },
+      desc: "Choisissez parmi nos styles paysagers — gazon fleuri, méditerranéen, contemporain, naturel, zen, potager — ou décrivez le rendu de vos rêves en texte libre." },
     { num: '03', emoji: '✨', title: 'Recevez votre rendu',
       desc: "Notre IA génère un visuel photoréaliste en 60 secondes. Téléchargez et partagez directement avec votre client." },
   ]
@@ -288,7 +457,7 @@ function StylesSection() {
     <section className="section-pad bg-cream-50">
       <div className="page-container">
         <div className="text-center max-w-xl mx-auto mb-14">
-          <p className="eyebrow mb-3">6 styles disponibles</p>
+          <p className="eyebrow mb-3">Styles paysagers</p>
           <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
             Chaque projet mérite<br /><span className="text-gradient">son ambiance.</span>
           </h2>
@@ -335,7 +504,7 @@ function OfferSection() {
             {[
               { label: 'Rendu offert', sub: 'Sans carte bancaire' },
               { label: '60 secondes',  sub: 'Résultat immédiat' },
-              { label: '6 styles',     sub: 'Au choix, HD' },
+              { label: '∞ styles',     sub: 'Illimités, HD' },
             ].map(item => (
               <div key={item.label} className="rounded-2xl bg-offwhite/[0.05] border border-offwhite/[0.08] px-4 py-3 text-center">
                 <p className="text-base font-bold text-sage-400 mb-0.5">{item.label}</p>
@@ -536,7 +705,7 @@ function FinalCTASection() {
           <ArrowRight className="w-5 h-5" />
         </Link>
         <p className="mt-4 text-xs text-offwhite/25">
-          Aucune carte bancaire · Résultat en 60 secondes · 6 styles de jardin
+          Aucune carte bancaire · Résultat en 60 secondes · Styles à l&apos;infini
         </p>
       </div>
     </section>
@@ -550,11 +719,13 @@ export default function HomePage() {
       <HeroSection />
       <ProofBand />
       <GallerySection />
+      <VideoSection />
       <HowItWorksSection />
       <StylesSection />
       <OfferSection />
       <TestimonialsSection />
       <PricingSection />
+      <CalendlySection />
       <FAQSection />
       <FinalCTASection />
     </>

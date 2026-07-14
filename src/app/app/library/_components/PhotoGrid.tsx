@@ -25,20 +25,20 @@ const STATUS_CLS: Record<string, string> = {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  ENHANCED:   'Enhanced',
-  PROCESSING: 'Processing',
-  QUEUED:     'Queued',
-  FAILED:     'Failed',
-  UPLOADED:   'Uploaded',
+  ENHANCED:   'Rendu',
+  PROCESSING: 'En cours',
+  QUEUED:     'En attente',
+  FAILED:     'Échec',
+  UPLOADED:   'Importé',
 }
 
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
-  if (s < 60)    return 'just now'
-  if (s < 3600)  return `${Math.floor(s / 60)}m ago`
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`
+  if (s < 60)    return 'à l\'instant'
+  if (s < 3600)  return `il y a ${Math.floor(s / 60)} min`
+  if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`
   const d = Math.floor(s / 86400)
-  return d === 1 ? 'yesterday' : `${d}d ago`
+  return d === 1 ? 'hier' : `il y a ${d} j`
 }
 
 export default function PhotoGrid({ photos }: { photos: Photo[] }) {
@@ -58,7 +58,6 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   const close = useCallback(() => setPreviewIdx(null), [])
 
-  // Keyboard navigation
   useEffect(() => {
     if (previewIdx === null) return
     const handler = (e: KeyboardEvent) => {
@@ -78,7 +77,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
         </div>
         <h2 className="font-display font-semibold text-lg text-offwhite mb-2">Aucun rendu encore</h2>
         <p className="text-offwhite/45 text-sm mb-6">
-          Téléchargez une photo de votre jardin et JardinAI génère un rendu photoréaliste en 60 secondes.
+          Téléchargez une photo de votre jardin et Verdia génère un rendu photoréaliste en 60 secondes.
         </p>
         <Link
           href="/app/editor"
@@ -105,7 +104,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={p.thumbnailUrl}
-                  alt={p.vehicleName ?? 'Photo'}
+                  alt={p.vehicleName ?? 'Rendu jardin'}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
@@ -128,7 +127,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   <div className="text-[13px] font-medium text-offwhite truncate">{p.vehicleName}</div>
                 )}
                 <div className="text-[11px] text-offwhite/50 mt-0.5 flex items-center gap-1.5">
-                  <span>{p.styleUsed ?? 'Custom'}</span>
+                  <span>{p.styleUsed ?? 'Personnalisé'}</span>
                   <span>·</span>
                   <span>{timeAgo(p.createdAt)}</span>
                 </div>
@@ -155,7 +154,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   <div className="text-sm font-medium text-offwhite truncate">{preview.vehicleName}</div>
                 )}
                 <div className="text-[12px] text-offwhite/50 flex items-center gap-1.5">
-                  <span>{preview.styleUsed ?? 'Custom'}</span>
+                  <span>{preview.styleUsed ?? 'Personnalisé'}</span>
                   <span>·</span>
                   <span>{timeAgo(preview.createdAt)}</span>
                   <span>·</span>
@@ -170,14 +169,14 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm transition-all"
                   >
-                    <Download className="w-4 h-4" strokeWidth={2} /> Download
+                    <Download className="w-4 h-4" strokeWidth={2} /> Télécharger
                     <ExternalLink className="w-3 h-3 opacity-60" strokeWidth={2} />
                   </a>
                 )}
                 <button
                   onClick={close}
                   className="w-9 h-9 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] flex items-center justify-center text-offwhite/70 hover:text-offwhite transition-colors"
-                  aria-label="Close"
+                  aria-label="Fermer"
                 >
                   <X className="w-4 h-4" strokeWidth={2} />
                 </button>
@@ -197,7 +196,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                     ? 'text-offwhite hover:bg-white/[0.12] hover:border-white/[0.25] cursor-pointer'
                     : 'text-offwhite/20 cursor-not-allowed'
                 )}
-                aria-label="Previous photo"
+                aria-label="Rendu précédent"
               >
                 <ChevronLeft className="w-5 h-5" strokeWidth={2} />
               </button>
@@ -209,7 +208,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   <img
                     key={preview.id}
                     src={preview.fullUrl}
-                    alt={preview.vehicleName ?? 'Enhanced photo'}
+                    alt={preview.vehicleName ?? 'Rendu jardin'}
                     className="max-h-[75vh] w-auto object-contain"
                   />
                 ) : (
@@ -230,7 +229,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                     ? 'text-offwhite hover:bg-white/[0.12] hover:border-white/[0.25] cursor-pointer'
                     : 'text-offwhite/20 cursor-not-allowed'
                 )}
-                aria-label="Next photo"
+                aria-label="Rendu suivant"
               >
                 <ChevronRight className="w-5 h-5" strokeWidth={2} />
               </button>
