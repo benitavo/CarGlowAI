@@ -22,9 +22,9 @@ const PAIRS = [
 
 // ─── BEFORE / AFTER SLIDER ───────────────────────────────────────────────────
 function BeforeAfterSlider({
-  before, after, className,
-}: { before: string; after: string; className?: string }) {
-  const [pos, setPos]           = useState(45)
+  before, after, className, initialPos = 45,
+}: { before: string; after: string; className?: string; initialPos?: number }) {
+  const [pos, setPos]           = useState(initialPos)
   const [dragging, setDragging] = useState(false)
   const containerRef            = useRef<HTMLDivElement>(null)
 
@@ -175,54 +175,51 @@ function GallerySection() {
   return (
     <section id="galerie" className="section-pad bg-cream-50">
       <div className="page-container">
-        <div className="text-center max-w-xl mx-auto mb-14">
-          <p className="eyebrow mb-3">Exemples réels</p>
-          <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-            6 transformations<br /><span className="text-gradient">en 60 secondes.</span>
-          </h2>
-          <p className="text-midnight/45 text-[15px]">
-            Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple
-            photo de jardin. Glissez pour comparer avant et après.
-          </p>
-        </div>
+        <div className="grid lg:grid-cols-[1fr_1.6fr] gap-10 lg:gap-16 items-start">
 
-        {/* Main slider */}
-        <div className="max-w-[860px] mx-auto mb-6">
-          <BeforeAfterSlider
-            key={active}
-            before={PAIRS[active].before}
-            after={PAIRS[active].after}
-            className="aspect-[16/9] w-full"
-          />
-          <p className="text-center text-xs text-midnight/30 mt-3 flex items-center justify-center gap-2">
-            <ChevronLeft className="w-3 h-3" />
-            Glissez pour comparer avant / après
-            <ChevronRight className="w-3 h-3" />
-          </p>
-        </div>
+          {/* Gauche : texte */}
+          <div className="lg:pt-4">
+            <p className="eyebrow mb-3">Exemples réels</p>
+            <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+              6 transformations<br /><span className="text-gradient">en 60 secondes.</span>
+            </h2>
+            <p className="text-midnight/45 text-[15px] leading-relaxed mb-6">
+              Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple photo de jardin.
+            </p>
+            <p className="text-xs text-midnight/30 flex items-center gap-2">
+              <ChevronLeft className="w-3 h-3" />
+              Glissez pour comparer avant / après
+              <ChevronRight className="w-3 h-3" />
+            </p>
+          </div>
 
-        {/* Thumbnail strip */}
-        <div className="grid grid-cols-6 gap-3 max-w-[860px] mx-auto">
-          {PAIRS.map((pair, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              className={cn(
-                'relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all',
-                i === active
-                  ? 'border-sage-500 shadow-sage-sm scale-[1.05]'
-                  : 'border-transparent opacity-60 hover:opacity-90 hover:border-sage-300',
-              )}
-            >
-              <Image
-                src={pair.after}
-                alt={`Rendu ${i + 1}`}
-                fill
-                className="object-cover"
-                sizes="120px"
-              />
-            </button>
-          ))}
+          {/* Droite : slider + vignettes */}
+          <div>
+            <BeforeAfterSlider
+              key={active}
+              before={PAIRS[active].before}
+              after={PAIRS[active].after}
+              className="aspect-[4/3] w-full mb-3"
+              initialPos={25}
+            />
+            <div className="grid grid-cols-6 gap-2">
+              {PAIRS.map((pair, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={cn(
+                    'relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all',
+                    i === active
+                      ? 'border-sage-500 shadow-sage-sm scale-[1.05]'
+                      : 'border-transparent opacity-55 hover:opacity-85 hover:border-sage-300',
+                  )}
+                >
+                  <Image src={pair.after} alt={`Rendu ${i + 1}`} fill className="object-cover" sizes="80px" />
+                </button>
+              ))}
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
