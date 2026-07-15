@@ -35,6 +35,6 @@ export const config = {
     '/forgot-password',
     '/verify',
     // Apply next-intl to marketing routes (exclude api, assets, auth pages)
-    '/((?!api|_next/static|_next/image|app|signin|signup|verify|forgot-password|auth|onboarding|favicon\\.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|txt|xml)).*)',
+    '/((?!api|_next/static|_next/image|app|signin|signup|verify|forgot-password|auth|onboarding|favicon\\.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|txt|xml|mp4|webm|mov|ogg)).*)',
   ],
 }
