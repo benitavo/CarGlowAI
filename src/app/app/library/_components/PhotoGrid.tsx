@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Download, ImageIcon, ArrowRight, X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Download, ImageIcon, ArrowRight, X, ExternalLink, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Photo {
@@ -14,6 +14,7 @@ interface Photo {
   status:       string
   createdAt:    string
   processingMs: number | null
+  isVideo:      boolean
 }
 
 const STATUS_CLS: Record<string, string> = {
@@ -115,6 +116,14 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
               <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/90 via-midnight-900/10 to-midnight-900/30" />
 
+              {p.isVideo && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-midnight-900/60 backdrop-blur-md flex items-center justify-center">
+                    <Play className="w-4 h-4 text-offwhite fill-offwhite" strokeWidth={0} />
+                  </div>
+                </div>
+              )}
+
               <div className={cn(
                 'absolute top-2 right-2 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border backdrop-blur-md',
                 STATUS_CLS[p.status] ?? STATUS_CLS.UPLOADED
@@ -204,13 +213,24 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
               {/* Image */}
               <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-midnight-900 flex items-center justify-center w-full">
                 {preview.fullUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={preview.id}
-                    src={preview.fullUrl}
-                    alt={preview.vehicleName ?? 'Rendu jardin'}
-                    className="max-h-[75vh] w-auto object-contain"
-                  />
+                  preview.isVideo ? (
+                    <video
+                      key={preview.id}
+                      src={preview.fullUrl}
+                      controls
+                      autoPlay
+                      loop
+                      className="max-h-[75vh] w-auto object-contain"
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={preview.id}
+                      src={preview.fullUrl}
+                      alt={preview.vehicleName ?? 'Rendu jardin'}
+                      className="max-h-[75vh] w-auto object-contain"
+                    />
+                  )
                 ) : (
                   <div className="h-64 flex items-center justify-center">
                     <ImageIcon className="w-10 h-10 text-offwhite/20" strokeWidth={1.5} />

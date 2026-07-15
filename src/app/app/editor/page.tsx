@@ -85,12 +85,18 @@ export default function EditorPage() {
     }
   }, [file, session, styleSlug, characteristics, mode])
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!gen.resultUrl) return
+    const res = await fetch(gen.resultUrl)
+    const blob = await res.blob()
+    const blobUrl = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = gen.resultUrl
+    a.href = blobUrl
     a.download = `verdia-${styleSlug}-${Date.now()}.${mode === 'video' ? 'mp4' : 'png'}`
+    document.body.appendChild(a)
     a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(blobUrl)
   }
 
   const canGenerate = !!file && gen.status !== 'loading'

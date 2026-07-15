@@ -66,6 +66,7 @@ export default async function LibraryPage() {
         status:       p.status,
         createdAt:    p.createdAt.toISOString(),
         processingMs: p.processingMs ?? null,
+        isVideo:      Array.isArray(p.toolsUsed) && p.toolsUsed.includes('veo_video_generation'),
       }))} />
     </div>
   )
