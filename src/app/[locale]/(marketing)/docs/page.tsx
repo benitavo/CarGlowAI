@@ -44,13 +44,13 @@ export default function DocsPage() {
 
         {/* Quick start */}
         <section className="mb-16">
-          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-5">
+          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-5">
             Quick start
           </h2>
           <div className="grid md:grid-cols-3 gap-4">
             {QUICK_START.map((q) => (
               <div key={q.step} className="rounded-2xl border border-white/[0.06] bg-white/[0.015] card-noise p-5">
-                <div className="text-glow-400 font-display font-bold text-3xl mb-2">{q.step}</div>
+                <div className="text-sage-400 font-display font-bold text-3xl mb-2">{q.step}</div>
                 <h3 className="font-display font-semibold text-base mb-1">{q.title}</h3>
                 <p className="text-sm text-offwhite/55">{q.desc}</p>
               </div>
@@ -84,7 +84,7 @@ export default function DocsPage() {
 
         {/* Section grid */}
         <section className="mb-16">
-          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-5">
+          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-5">
             Browse the reference
           </h2>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -97,12 +97,12 @@ export default function DocsPage() {
                   className="group rounded-2xl border border-white/[0.06] bg-white/[0.015] hover:border-white/[0.14] hover:bg-white/[0.025] transition-colors p-5 flex items-start gap-4"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4 h-4 text-glow-400" strokeWidth={1.75} />
+                    <Icon className="w-4 h-4 text-sage-400" strokeWidth={1.75} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-display font-semibold flex items-center gap-1.5">
                       {s.title}
-                      <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-glow-400" strokeWidth={2} />
+                      <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-sage-400" strokeWidth={2} />
                     </h3>
                     <p className="text-sm text-offwhite/55 mt-1">{s.desc}</p>
                   </div>
@@ -114,7 +114,7 @@ export default function DocsPage() {
 
         {/* SDKs */}
         <section className="mb-16">
-          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-5">
+          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-5">
             Official SDKs
           </h2>
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.012] overflow-hidden">
@@ -127,7 +127,7 @@ export default function DocsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-offwhite/45 tabular-nums">v{s.ver}</span>
-                  <a href="#" className="text-xs text-glow-400 hover:text-glow-300 flex items-center gap-1">
+                  <a href="#" className="text-xs text-sage-400 hover:text-sage-300 flex items-center gap-1">
                     GitHub <ExternalLink className="w-3 h-3" strokeWidth={1.75} />
                   </a>
                 </div>
@@ -137,7 +137,7 @@ export default function DocsPage() {
         </section>
 
         {/* Help CTA */}
-        <section className="rounded-2xl border border-glow-500/20 bg-glow-500/[0.04] p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <section className="rounded-2xl border border-sage-500/20 bg-sage-500/[0.04] p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-display font-semibold text-lg">Need a hand?</h3>
             <p className="text-sm text-offwhite/65 mt-0.5">
@@ -153,7 +153,7 @@ export default function DocsPage() {
             </Link>
             <Link
               href="/contact"
-              className="rounded-lg bg-glow-500 hover:bg-glow-400 text-midnight px-4 py-2 text-sm font-semibold flex items-center gap-1.5"
+              className="rounded-lg bg-sage-500 hover:bg-sage-600 text-midnight px-4 py-2 text-sm font-semibold flex items-center gap-1.5"
             >
               <Zap className="w-3.5 h-3.5" strokeWidth={2.5} />
               Talk to support

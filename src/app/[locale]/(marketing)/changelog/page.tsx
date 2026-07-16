@@ -60,7 +60,7 @@ const ENTRIES = [
 ]
 
 const TAG_STYLES: Record<string, string> = {
-  Major: 'bg-glow-500/15 text-glow-300 border-glow-500/30',
+  Major: 'bg-sage-500/15 text-sage-300 border-sage-500/30',
   Minor: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
   Patch: 'bg-white/[0.04] text-offwhite/65 border-white/[0.1]',
 }
@@ -75,18 +75,18 @@ export default function ChangelogPage() {
         </h1>
         <p className="text-offwhite/55 mb-14 text-[15px]">
           Product updates, every two weeks. Follow us on{' '}
-          <a href="https://twitter.com/carglowai" className="text-glow-400 hover:text-glow-300">X</a>{' '}
+          <a href="https://twitter.com/carglowai" className="text-sage-400 hover:text-sage-300">X</a>{' '}
           to get notified.
         </p>
 
         <div className="space-y-12 relative">
           {/* Vertical timeline */}
-          <div className="absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-glow-500/30 via-white/[0.06] to-transparent" />
+          <div className="absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-sage-500/30 via-white/[0.06] to-transparent" />
 
           {ENTRIES.map((e) => (
             <article key={e.version} className="relative pl-12">
               {/* Dot */}
-              <div className="absolute left-2 top-2 w-3 h-3 rounded-full bg-glow-500 ring-4 ring-midnight shadow-glow-sm" />
+              <div className="absolute left-2 top-2 w-3 h-3 rounded-full bg-sage-500 ring-4 ring-midnight shadow-sage-sm" />
 
               <div className="flex items-baseline gap-3 flex-wrap">
                 <span className="font-mono text-sm text-offwhite/45">v{e.version}</span>
@@ -103,7 +103,7 @@ export default function ChangelogPage() {
                   const Icon = item.icon
                   return (
                     <li key={i} className="flex items-start gap-2.5 text-[15px] text-offwhite/75">
-                      <Icon className="w-4 h-4 text-glow-400 mt-1 flex-shrink-0" strokeWidth={1.75} />
+                      <Icon className="w-4 h-4 text-sage-400 mt-1 flex-shrink-0" strokeWidth={1.75} />
                       <span>{item.text}</span>
                     </li>
                   )
@@ -114,7 +114,7 @@ export default function ChangelogPage() {
         </div>
 
         <div className="mt-16 text-center text-sm text-offwhite/45">
-          Want something next? <Link href="/contact" className="text-glow-400 hover:text-glow-300">Tell us</Link>.
+          Want something next? <Link href="/contact" className="text-sage-400 hover:text-sage-300">Tell us</Link>.
         </div>
       </div>
     </div>

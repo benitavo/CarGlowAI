@@ -9,11 +9,11 @@ export default function DealershipsPage() {
       <p className="text-lg text-offwhite/50 max-w-xl mb-10">CarGlow replaces your photographer. Upload from anywhere — no studio, no appointment, no editing skills. Your listings look professional from day one.</p>
       <div className="grid sm:grid-cols-2 gap-4 mb-10">
         {['Professional photos from your phone','Background removed automatically','Studio lighting added in seconds','Plate masking for privacy','4K downloads, no watermark','Direct publish to 150+ marketplaces'].map(f => (
-          <div key={f} className="flex items-center gap-3 text-sm text-offwhite/70"><Check className="w-4 h-4 text-glow-500 shrink-0"/>{f}</div>
+          <div key={f} className="flex items-center gap-3 text-sm text-offwhite/70"><Check className="w-4 h-4 text-sage-500 shrink-0"/>{f}</div>
         ))}
       </div>
       <div className="flex gap-3">
-        <RouteLink href="/signup" className="px-6 py-3 rounded-2xl bg-glow-500 text-midnight font-semibold text-sm">Start free trial →</RouteLink>
+        <RouteLink href="/signup" className="px-6 py-3 rounded-2xl bg-sage-500 text-midnight font-semibold text-sm">Start free trial →</RouteLink>
         <Link href="/pricing" className="px-6 py-3 rounded-2xl border border-white/[0.12] text-offwhite/70 text-sm">View pricing</Link>
       </div>
     </div>

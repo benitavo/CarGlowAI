@@ -57,22 +57,22 @@ export default function FeaturesPage() {
               }`}
             >
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-glow-500/10 border border-glow-500/20 flex items-center justify-center mb-6">
-                  <feat.icon className="w-5 h-5 text-glow-400" />
+                <div className="w-12 h-12 rounded-2xl bg-sage-500/10 border border-sage-500/20 flex items-center justify-center mb-6">
+                  <feat.icon className="w-5 h-5 text-sage-400" />
                 </div>
                 <h2 className="text-3xl font-display font-bold text-offwhite mb-4">{feat.title}</h2>
                 <p className="text-offwhite/60 leading-relaxed mb-6">{feat.desc}</p>
                 <ul className="flex flex-col gap-2.5">
                   {feat.details.map((d) => (
                     <li key={d} className="flex items-start gap-3 text-sm text-offwhite/60">
-                      <Check className="w-4 h-4 text-glow-500 mt-0.5 shrink-0" />
+                      <Check className="w-4 h-4 text-sage-500 mt-0.5 shrink-0" />
                       {d}
                     </li>
                   ))}
                 </ul>
               </div>
               {/* Visual placeholder */}
-              <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-glow-500/[0.08] to-midnight-600/50 border border-white/[0.06] flex items-center justify-center">
+              <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-sage-500/[0.08] to-midnight-600/50 border border-white/[0.06] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4 text-offwhite/20">
                   <feat.icon className="w-12 h-12" />
                   <span className="text-sm font-medium">{feat.title} demo</span>

@@ -19,12 +19,12 @@ export default function BlogPage() {
         <div className="flex flex-col gap-6">
           {POSTS.map(post => (
             <Link key={post.slug} href={`/blog/${post.slug}`}
-              className="group card-noise rounded-2xl p-6 hover:border-glow-500/20 transition-all">
+              className="group card-noise rounded-2xl p-6 hover:border-sage-500/20 transition-all">
               <div className="flex items-center gap-3 mb-3">
-                <span className="px-2 py-0.5 rounded-md bg-glow-500/10 text-glow-400 text-xs font-semibold">{post.tag}</span>
+                <span className="px-2 py-0.5 rounded-md bg-sage-500/10 text-sage-400 text-xs font-semibold">{post.tag}</span>
                 <span className="text-xs text-offwhite/30">{post.date} · {post.mins} min read</span>
               </div>
-              <h2 className="text-lg font-display font-semibold text-offwhite group-hover:text-glow-300 transition-colors">{post.title}</h2>
+              <h2 className="text-lg font-display font-semibold text-offwhite group-hover:text-sage-300 transition-colors">{post.title}</h2>
             </Link>
           ))}
         </div>

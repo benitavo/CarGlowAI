@@ -22,12 +22,12 @@ export function Footer() {
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <Link href="/#rendez-vous"
+            <Link href="/contact"
               className="px-5 py-2.5 rounded-xl border border-offwhite/[0.12] text-sm font-medium text-offwhite/70 hover:text-offwhite hover:bg-offwhite/[0.05] transition-all">
               {t('ctaSecondary')}
             </Link>
             <RouteLink href="/signup"
-              className="px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-sm font-semibold text-midnight shadow-glow-sm hover:shadow-glow-md transition-all">
+              className="px-5 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-sm font-semibold text-white shadow-sage-sm hover:shadow-sage-md transition-all">
               {t('ctaButton')} →
             </RouteLink>
           </div>

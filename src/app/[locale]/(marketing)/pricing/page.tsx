@@ -125,7 +125,7 @@ export default function PricingPage() {
             onClick={() => setYearly(true)}
             className={cn('px-5 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2', yearly ? 'bg-sage-500 text-white' : 'text-midnight/45 hover:text-midnight/70')}>
             Annuel
-            <span className="px-1.5 py-0.5 rounded-md bg-glow-100 text-glow-600 text-[10px] font-bold">2 mois offerts</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-sage-100 text-sage-600 text-[10px] font-bold">2 mois offerts</span>
           </button>
         </div>
       </div>
@@ -164,7 +164,7 @@ export default function PricingPage() {
                 className={cn(
                   'mb-8 text-center py-3 rounded-2xl text-sm font-semibold transition-all',
                   plan.highlight
-                    ? 'bg-glow-500 hover:bg-glow-400 text-white shadow-glow-sm'
+                    ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm'
                     : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600'
                 )}>
                 {plan.cta}
@@ -184,7 +184,7 @@ export default function PricingPage() {
             <Link href="/contact?type=enterprise" className="px-6 py-3 rounded-2xl border border-midnight/[0.12] text-sm font-medium text-midnight/70 hover:text-midnight hover:border-midnight/[0.25] transition-all">
               Contacter l&apos;équipe
             </Link>
-            <Link href="/book-a-demo" className="px-6 py-3 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white text-sm font-semibold shadow-glow-sm transition-all">
+            <Link href="/book-a-demo" className="px-6 py-3 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white text-sm font-semibold shadow-sage-sm transition-all">
               Réserver une démo <ArrowRight className="w-4 h-4 inline ml-1" />
             </Link>
           </div>

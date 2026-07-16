@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import Image from 'next/image'
@@ -19,7 +19,7 @@ export default function VehiclesPage() {
 
   return (
     <div className="pb-24 lg:pb-12">
-      <section className="border-b border-white/[0.04] bg-gradient-to-b from-glow-500/[0.025] to-transparent">
+      <section className="border-b border-white/[0.04] bg-gradient-to-b from-sage-500/[0.025] to-transparent">
         <div className="px-6 lg:px-10 py-8 max-w-[1480px]">
           <div className="flex items-end justify-between gap-4">
             <div>

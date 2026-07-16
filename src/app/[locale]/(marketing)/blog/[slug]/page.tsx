@@ -152,7 +152,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* Title */}
         <div className="flex items-center gap-3 mb-4">
-          <span className="px-2 py-0.5 rounded-md bg-glow-500/10 text-glow-400 text-xs font-semibold">{post.tag}</span>
+          <span className="px-2 py-0.5 rounded-md bg-sage-500/10 text-sage-400 text-xs font-semibold">{post.tag}</span>
           <span className="text-xs text-offwhite/45 flex items-center gap-1">
             <Calendar className="w-3 h-3" strokeWidth={1.75} />
             {post.date}
@@ -189,12 +189,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <div className="prose-custom">
           {post.body.map((block, i) => {
             if (block.h2)    return <h2 key={i} className="font-display font-bold text-2xl text-offwhite mt-10 mb-4">{block.h2}</h2>
-            if (block.quote) return <blockquote key={i} className="my-6 pl-5 border-l-2 border-glow-500/50 text-[17px] text-offwhite/80 italic leading-relaxed">{block.quote}</blockquote>
+            if (block.quote) return <blockquote key={i} className="my-6 pl-5 border-l-2 border-sage-500/50 text-[17px] text-offwhite/80 italic leading-relaxed">{block.quote}</blockquote>
             if (block.list)  return (
               <ul key={i} className="space-y-2 my-5 text-[16px] text-offwhite/75">
                 {block.list.map((li, j) => (
                   <li key={j} className="flex items-start gap-2.5">
-                    <span className="text-glow-400 mt-0.5">·</span>
+                    <span className="text-sage-400 mt-0.5">·</span>
                     <span>{li}</span>
                   </li>
                 ))}
@@ -205,12 +205,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* CTA */}
-        <div className="mt-12 rounded-2xl border border-glow-500/20 bg-glow-500/[0.04] p-6 text-center">
+        <div className="mt-12 rounded-2xl border border-sage-500/20 bg-sage-500/[0.04] p-6 text-center">
           <h3 className="font-display font-semibold text-lg">Try CarGlow free for 30 days</h3>
           <p className="text-sm text-offwhite/65 mt-1 mb-4">3 free photos. No card required. Cancel anytime.</p>
           <RouteLink
             href="/signup"
-            className="inline-block rounded-lg bg-glow-500 hover:bg-glow-400 text-midnight px-5 py-2 text-sm font-semibold"
+            className="inline-block rounded-lg bg-sage-500 hover:bg-sage-600 text-midnight px-5 py-2 text-sm font-semibold"
           >
             Start free trial
           </RouteLink>
@@ -219,7 +219,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {/* Related */}
         {related.length > 0 && (
           <div className="mt-16">
-            <h3 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-4">
+            <h3 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-4">
               Keep reading
             </h3>
             <div className="grid sm:grid-cols-2 gap-3">
@@ -229,8 +229,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   href={`/blog/${p.slug}`}
                   className="group rounded-2xl border border-white/[0.06] bg-white/[0.015] hover:border-white/[0.14] hover:bg-white/[0.025] transition-colors p-5"
                 >
-                  <span className="px-2 py-0.5 rounded-md bg-glow-500/10 text-glow-400 text-xs font-semibold">{p.tag}</span>
-                  <h4 className="font-display font-semibold mt-3 group-hover:text-glow-300 transition-colors">{p.title}</h4>
+                  <span className="px-2 py-0.5 rounded-md bg-sage-500/10 text-sage-400 text-xs font-semibold">{p.tag}</span>
+                  <h4 className="font-display font-semibold mt-3 group-hover:text-sage-300 transition-colors">{p.title}</h4>
                   <div className="text-xs text-offwhite/45 mt-2">{p.date} · {p.mins} min read</div>
                 </Link>
               ))}

@@ -71,7 +71,7 @@ export function Nav() {
                 Connexion
               </RouteLink>
               <RouteLink href="/signup"
-                className="px-4 py-2 text-sm font-semibold text-white bg-glow-500 hover:bg-glow-400 rounded-xl shadow-glow-sm transition-all">
+                className="px-4 py-2 text-sm font-semibold text-white bg-sage-500 hover:bg-sage-600 rounded-xl shadow-sage-sm transition-all">
                 Essai gratuit
               </RouteLink>
             </>
@@ -116,7 +116,7 @@ export function Nav() {
                     Connexion
                   </RouteLink>
                   <RouteLink href="/signup" onClick={() => setMobileOpen(false)}
-                    className="text-center py-3 rounded-xl bg-glow-500 text-sm font-semibold text-white">
+                    className="text-center py-3 rounded-xl bg-sage-500 text-sm font-semibold text-white">
                     Essai gratuit
                   </RouteLink>
                 </>

@@ -110,7 +110,8 @@ export default function EditorPage() {
           <span>Tableau de bord</span>
         </Link>
         <Link href="/">
-          <Image src="/logo%20verdia%20without%20background.png" alt="Verdia" height={36} width={120} className="h-9 w-auto object-contain" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo%20verdia%20without%20background.png" alt="Verdia" className="h-9 w-auto object-contain" />
         </Link>
         <div className="w-28" />
       </header>

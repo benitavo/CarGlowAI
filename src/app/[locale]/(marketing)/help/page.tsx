@@ -67,14 +67,14 @@ export default function HelpPage() {
             <input
               type="text"
               placeholder="Search articles, guides, or paste an error message…"
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-12 pr-4 py-3.5 text-[15px] placeholder:text-offwhite/35 focus:outline-none focus:border-glow-500/50 focus:bg-white/[0.05] transition-colors"
+              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-12 pr-4 py-3.5 text-[15px] placeholder:text-offwhite/35 focus:outline-none focus:border-sage-500/50 focus:bg-white/[0.05] transition-colors"
             />
           </div>
         </div>
 
         {/* Categories */}
         <section className="mb-14">
-          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-5">
+          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-5">
             Browse by topic
           </h2>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -87,7 +87,7 @@ export default function HelpPage() {
                   className="group rounded-2xl border border-white/[0.06] bg-white/[0.015] hover:border-white/[0.14] hover:bg-white/[0.025] transition-colors p-5"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-3">
-                    <Icon className="w-4 h-4 text-glow-400" strokeWidth={1.75} />
+                    <Icon className="w-4 h-4 text-sage-400" strokeWidth={1.75} />
                   </div>
                   <h3 className="font-display font-semibold">{c.title}</h3>
                   <p className="text-sm text-offwhite/55 mt-1 line-clamp-2">{c.desc}</p>
@@ -103,7 +103,7 @@ export default function HelpPage() {
 
         {/* Popular */}
         <section className="mb-14">
-          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-5">
+          <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-5">
             Popular this week
           </h2>
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.012] overflow-hidden">
@@ -117,15 +117,15 @@ export default function HelpPage() {
                   <HelpCircle className="w-3.5 h-3.5 text-offwhite/35 flex-shrink-0" strokeWidth={1.75} />
                   <span className="text-sm text-offwhite/85 truncate">{q}</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-offwhite/30 group-hover:text-glow-400 group-hover:translate-x-0.5 transition-all" strokeWidth={1.75} />
+                <ArrowRight className="w-3.5 h-3.5 text-offwhite/30 group-hover:text-sage-400 group-hover:translate-x-0.5 transition-all" strokeWidth={1.75} />
               </a>
             ))}
           </div>
         </section>
 
         {/* Contact */}
-        <section className="rounded-2xl border border-glow-500/20 bg-glow-500/[0.04] p-6 text-center">
-          <MessageCircle className="w-7 h-7 text-glow-400 mx-auto mb-3" strokeWidth={1.5} />
+        <section className="rounded-2xl border border-sage-500/20 bg-sage-500/[0.04] p-6 text-center">
+          <MessageCircle className="w-7 h-7 text-sage-400 mx-auto mb-3" strokeWidth={1.5} />
           <h3 className="font-display font-semibold text-lg">Can&apos;t find what you need?</h3>
           <p className="text-sm text-offwhite/65 mt-1 mb-5 max-w-md mx-auto">
             Our support team responds within an hour during EU business hours. Pro+ plans get priority.
@@ -133,7 +133,7 @@ export default function HelpPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <Link
               href="/contact"
-              className="rounded-lg bg-glow-500 hover:bg-glow-400 text-midnight px-5 py-2 text-sm font-semibold"
+              className="rounded-lg bg-sage-500 hover:bg-sage-600 text-midnight px-5 py-2 text-sm font-semibold"
             >
               Contact support
             </Link>

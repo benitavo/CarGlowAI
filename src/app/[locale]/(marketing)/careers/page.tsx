@@ -54,15 +54,15 @@ export default function CareersPage() {
 
         <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-offwhite/55">
           <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-glow-400" strokeWidth={1.75} />
+            <Globe className="w-4 h-4 text-sage-400" strokeWidth={1.75} />
             <span><span className="text-offwhite font-semibold">11</span> countries</span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-glow-400" strokeWidth={1.75} />
+            <Users className="w-4 h-4 text-sage-400" strokeWidth={1.75} />
             <span><span className="text-offwhite font-semibold">51</span> teammates</span>
           </div>
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-glow-400" strokeWidth={1.75} />
+            <TrendingUp className="w-4 h-4 text-sage-400" strokeWidth={1.75} />
             <span>Series B · <span className="text-offwhite font-semibold">€42M</span> raised</span>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function CareersPage() {
 
       {/* Values */}
       <section className="max-w-5xl mx-auto mb-20">
-        <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-6 text-center">
+        <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-6 text-center">
           How we work
         </h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -78,8 +78,8 @@ export default function CareersPage() {
             const Icon = v.icon
             return (
               <div key={v.title} className="rounded-2xl border border-white/[0.06] bg-white/[0.015] card-noise p-5">
-                <div className="w-9 h-9 rounded-lg bg-glow-500/15 border border-glow-500/25 flex items-center justify-center mb-3">
-                  <Icon className="w-4 h-4 text-glow-300" strokeWidth={1.75} />
+                <div className="w-9 h-9 rounded-lg bg-sage-500/15 border border-sage-500/25 flex items-center justify-center mb-3">
+                  <Icon className="w-4 h-4 text-sage-300" strokeWidth={1.75} />
                 </div>
                 <h3 className="font-display font-semibold">{v.title}</h3>
                 <p className="text-sm text-offwhite/55 mt-1.5">{v.desc}</p>
@@ -107,24 +107,24 @@ export default function CareersPage() {
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-glow-300 bg-glow-500/15 border border-glow-500/30 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-sage-300 bg-sage-500/15 border border-sage-500/30 px-1.5 py-0.5 rounded">
                     {r.team}
                   </span>
                   <span className="text-[11px] text-offwhite/45">{r.type}</span>
                 </div>
-                <h3 className="font-medium text-offwhite group-hover:text-glow-300 transition-colors">{r.title}</h3>
+                <h3 className="font-medium text-offwhite group-hover:text-sage-300 transition-colors">{r.title}</h3>
                 <div className="flex items-center gap-1.5 text-xs text-offwhite/55 mt-1">
                   <MapPin className="w-3 h-3" strokeWidth={1.75} />
                   {r.location}
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-offwhite/35 group-hover:text-glow-400 group-hover:translate-x-1 transition-all flex-shrink-0" strokeWidth={1.75} />
+              <ArrowRight className="w-4 h-4 text-offwhite/35 group-hover:text-sage-400 group-hover:translate-x-1 transition-all flex-shrink-0" strokeWidth={1.75} />
             </a>
           ))}
         </div>
 
         <p className="text-center text-sm text-offwhite/45 mt-6">
-          Don&apos;t see your role? <Link href="/contact" className="text-glow-400 hover:text-glow-300">Pitch us anyway</Link> — we hire great people opportunistically.
+          Don&apos;t see your role? <Link href="/contact" className="text-sage-400 hover:text-sage-300">Pitch us anyway</Link> — we hire great people opportunistically.
         </p>
       </section>
 
@@ -137,8 +137,8 @@ export default function CareersPage() {
           <div className="grid sm:grid-cols-2 gap-3">
             {PERKS.map((p) => (
               <div key={p} className="flex items-start gap-2.5 text-sm text-offwhite/80">
-                <div className="w-4 h-4 rounded-full bg-glow-500/20 border border-glow-500/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <div className="w-1 h-1 rounded-full bg-glow-400" />
+                <div className="w-4 h-4 rounded-full bg-sage-500/20 border border-sage-500/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-1 h-1 rounded-full bg-sage-400" />
                 </div>
                 <span>{p}</span>
               </div>

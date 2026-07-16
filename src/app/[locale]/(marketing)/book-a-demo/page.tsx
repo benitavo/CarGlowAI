@@ -15,7 +15,7 @@ export default function BookADemoPage() {
             <p className="text-sm font-medium">Cal.com embed</p>
             <p className="text-xs text-offwhite/20">Replace with: &lt;Cal namespace="demo" /&gt;</p>
             <a href="https://cal.com" target="_blank" rel="noopener noreferrer"
-              className="px-4 py-2 rounded-xl bg-glow-500 text-midnight text-sm font-semibold hover:bg-glow-400 transition-all">
+              className="px-4 py-2 rounded-xl bg-sage-500 text-midnight text-sm font-semibold hover:bg-sage-600 transition-all">
               Book on Cal.com →
             </a>
           </div>

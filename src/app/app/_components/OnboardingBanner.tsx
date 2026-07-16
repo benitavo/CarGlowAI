@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -27,7 +27,7 @@ export default function OnboardingBanner({ photoCount, memberCount }: Props) {
   if (dismissed || pct >= 100) return null
 
   return (
-    <div className="rounded-2xl border border-sage-500/25 bg-gradient-to-br from-glow-500/[0.06] to-transparent overflow-hidden">
+    <div className="rounded-2xl border border-sage-500/25 bg-gradient-to-br from-sage-500/[0.06] to-transparent overflow-hidden">
       <header className="flex items-start justify-between p-5 pb-3">
         <div>
           <div className="text-[11px] font-semibold tracking-widest uppercase text-sage-400 mb-1">Getting started</div>
@@ -44,7 +44,7 @@ export default function OnboardingBanner({ photoCount, memberCount }: Props) {
           <span className="text-sage-400 font-semibold tabular-nums">{Math.round(pct)}%</span>
         </div>
         <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-glow-500 to-glow-300 transition-all" style={{ width: `${pct}%` }} />
+          <div className="h-full bg-gradient-to-r from-sage-500 to-sage-300 transition-all" style={{ width: `${pct}%` }} />
         </div>
       </div>
 

@@ -19,7 +19,7 @@ interface Photo {
 
 const STATUS_CLS: Record<string, string> = {
   ENHANCED:   'bg-sage-500 text-white border-sage-500',
-  PROCESSING: 'bg-glow-500 text-white border-glow-500',
+  PROCESSING: 'bg-sage-500 text-white border-sage-500',
   QUEUED:     'bg-white/90 text-midnight border-white/90',
   FAILED:     'bg-rose-500 text-white border-rose-500',
   UPLOADED:   'bg-midnight-900/60 text-offwhite border-white/15',

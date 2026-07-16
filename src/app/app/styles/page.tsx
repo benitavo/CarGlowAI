@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import Image from 'next/image'
@@ -16,7 +16,7 @@ export default function StylesPage() {
 
   return (
     <div className="pb-24 lg:pb-12">
-      <section className="border-b border-white/[0.04] bg-gradient-to-b from-glow-500/[0.025] to-transparent">
+      <section className="border-b border-white/[0.04] bg-gradient-to-b from-sage-500/[0.025] to-transparent">
         <div className="px-6 lg:px-10 py-8 max-w-[1480px]">
           <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-2">Styles</div>
           <h1 className="font-display font-bold text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.1]">Pick a background.</h1>

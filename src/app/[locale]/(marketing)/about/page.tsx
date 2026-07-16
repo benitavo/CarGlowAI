@@ -47,7 +47,7 @@ export default function AboutPage() {
         </div>
 
         <div className="flex gap-4">
-          <Link href="/contact" className="px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-white font-semibold text-sm transition-all">
+          <Link href="/contact" className="px-5 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-semibold text-sm transition-all">
             Nous contacter
           </Link>
           <Link href="/pricing" className="px-5 py-2.5 rounded-xl border border-midnight/[0.12] text-midnight/70 hover:text-midnight hover:border-midnight/[0.25] text-sm transition-all">
