@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
@@ -8,7 +8,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       <header className="border-b border-white/[0.04] bg-midnight/80 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-6 lg:px-10 h-14 flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-glow-500 flex items-center justify-center shadow-glow-sm">
+            <div className="w-7 h-7 rounded-md bg-sage-500 flex items-center justify-center shadow-sage-sm">
               <Sparkles className="w-3.5 h-3.5 text-midnight" strokeWidth={2.5} />
             </div>
             <span className="font-display font-bold text-base tracking-tight">CarGlow</span>

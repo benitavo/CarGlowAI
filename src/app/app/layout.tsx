@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import Image from 'next/image'
 import {
   LayoutDashboard, Wand2, FolderOpen,
-  CreditCard, LogOut, Leaf,
+  CreditCard, LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -66,13 +67,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden lg:flex w-[210px] shrink-0 flex-col border-r border-sage-100 bg-white">
         {/* Logo */}
-        <Link href="/app" className="flex items-center gap-2 h-16 px-5 border-b border-sage-100 group">
-          <div className="w-7 h-7 rounded-lg bg-sage-500 flex items-center justify-center shrink-0">
-            <Leaf className="w-3.5 h-3.5 text-white" fill="currentColor" />
-          </div>
-          <span className="font-display font-bold text-midnight text-[1.05rem] tracking-tight">
-            Ver<span className="text-sage-500">dia</span>
-          </span>
+        <Link href="/" className="flex items-center h-16 px-5 border-b border-sage-100">
+          <Image src="/logo%20verdia%20without%20background.png" alt="Verdia" height={36} width={120} className="h-9 w-auto object-contain" />
         </Link>
 
         {/* Nav */}

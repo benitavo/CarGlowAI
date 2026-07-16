@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
-import Script from 'next/script'
 import { Link } from '@/i18n/routing'
 import {
   ArrowRight, Check, ChevronDown, ChevronUp,
@@ -127,7 +126,7 @@ function HeroSection() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <Link href="/signup"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
+            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Recevoir mon rendu offert
             <ArrowRight className="w-5 h-5" />
           </Link>
@@ -363,16 +362,14 @@ function CalendlySection() {
             </div>
           </div>
 
-          {/* Right: Calendly inline widget */}
+          {/* Right: Calendly iframe embed */}
           <div className="flex-1 w-full rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card">
-            <div
-              className="calendly-inline-widget"
-              data-url="https://calendly.com/verdia-rendus/nouvelle-reunion"
-              style={{ minWidth: 320, height: 700 }}
-            />
-            <Script
-              src="https://assets.calendly.com/assets/external/widget.js"
-              strategy="lazyOnload"
+            <iframe
+              src="https://calendly.com/verdia-rendus/nouvelle-reunion?embed_type=Inline&hide_gdpr_banner=1&background_color=fafaf7&text_color=0d1f11&primary_color=52b788"
+              width="100%"
+              height="700"
+              style={{ border: 'none' }}
+              title="Réserver une démo Verdia"
             />
           </div>
         </div>
@@ -498,7 +495,7 @@ function OfferSection() {
           </div>
 
           <Link href="/signup"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
+            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Créer mon compte gratuit
             <ArrowRight className="w-5 h-5" />
           </Link>
@@ -614,7 +611,7 @@ function PricingSection() {
               </ul>
               <Link href={plan.href} className={cn(
                 'text-center py-3 rounded-2xl text-sm font-semibold transition-all',
-                plan.highlight ? 'bg-glow-500 hover:bg-glow-400 text-white shadow-glow-sm' : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
+                plan.highlight ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm' :'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
               )}>{plan.cta}</Link>
             </div>
           ))}
@@ -684,7 +681,7 @@ function FinalCTASection() {
         </p>
 
         <Link href="/signup"
-          className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
+          className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
           Recevoir mon rendu offert
           <ArrowRight className="w-5 h-5" />
         </Link>

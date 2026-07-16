@@ -11,11 +11,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <header className="px-6 lg:px-10 py-6 border-b border-midnight/[0.06]">
           <Link href="/" className="inline-flex items-center">
             <Image
-              src="/logo-verdia.jpg"
+              src="/logo%20verdia%20without%20background.png"
               alt="Verdia"
-              width={120}
-              height={36}
-              className="h-9 w-auto object-contain"
+              width={150}
+              height={46}
+              className="h-11 w-auto object-contain"
               priority
             />
           </Link>

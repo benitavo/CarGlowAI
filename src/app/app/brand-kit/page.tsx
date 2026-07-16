@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
@@ -8,7 +8,7 @@ import { currentWorkspace } from '@/lib/mock-data'
 export default function BrandKitPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [logo, setLogo] = useState<string | null>(null)
-  const [color, setColor] = useState('#FF8A3D')
+  const [color, setColor] = useState('#35A070')
   const [position, setPosition] = useState<'tl' | 'tr' | 'bl' | 'br'>('br')
   const [saved, setSaved] = useState(false)
 
@@ -33,7 +33,7 @@ export default function BrandKitPage() {
     <div className="pb-24 lg:pb-12">
       <section className="border-b border-white/[0.04] bg-gradient-to-b from-glow-500/[0.025] to-transparent">
         <div className="px-6 lg:px-10 py-8 max-w-[900px]">
-          <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-2">Brand kit</div>
+          <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-2">Brand kit</div>
           <h1 className="font-display font-bold text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.1]">Your brand.</h1>
           <p className="text-offwhite/55 mt-2 text-[15px]">Applied automatically to every enhanced photo.</p>
         </div>
@@ -46,7 +46,7 @@ export default function BrandKitPage() {
           <h2 className="font-display font-semibold text-base mb-4">Dealership logo</h2>
           <div className="flex items-center gap-5">
             <button onClick={() => fileRef.current?.click()}
-              className="w-24 h-24 rounded-xl border-2 border-dashed border-white/[0.12] hover:border-glow-500/40 flex items-center justify-center bg-white/[0.02] hover:bg-glow-500/[0.04] transition-all shrink-0">
+              className="w-24 h-24 rounded-xl border-2 border-dashed border-white/[0.12] hover:border-sage-500/40 flex items-center justify-center bg-white/[0.02] hover:bg-sage-600/[0.04] transition-all shrink-0">
               {logo
                 ? <Image src={logo} alt="" width={80} height={80} className="max-w-[80px] max-h-[80px] object-contain" unoptimized />
                 : <Upload className="w-6 h-6 text-offwhite/40" strokeWidth={1.5} />
@@ -55,7 +55,7 @@ export default function BrandKitPage() {
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden"
               onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
             <div>
-              <button onClick={() => fileRef.current?.click()} className="text-sm font-medium text-glow-400 hover:text-glow-300">
+              <button onClick={() => fileRef.current?.click()} className="text-sm font-medium text-sage-400 hover:text-sage-300">
                 {logo ? 'Replace logo' : 'Upload logo'}
               </button>
               <p className="text-xs text-offwhite/40 mt-1">PNG with transparent background recommended · min 512×512</p>
@@ -73,7 +73,7 @@ export default function BrandKitPage() {
             <input type="color" value={color} onChange={e => setColor(e.target.value)}
               className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-0 p-0" />
             <input type="text" value={color} onChange={e => setColor(e.target.value)}
-              className="w-32 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-glow-500/50" />
+              className="w-32 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-sage-500/50" />
             <span className="text-sm text-offwhite/45">Used in watermarks and plate frames</span>
           </div>
         </div>
@@ -86,7 +86,7 @@ export default function BrandKitPage() {
               <button key={p.id} onClick={() => setPosition(p.id)}
                 className={`h-12 rounded-xl border text-xs font-medium transition-all ${
                   position === p.id
-                    ? 'border-glow-500/50 bg-glow-500/15 text-glow-300'
+                    ? 'border-sage-500/50 bg-sage-500/15 text-sage-300'
                     : 'border-white/[0.08] text-offwhite/55 hover:border-white/[0.16] hover:text-offwhite'
                 }`}>
                 {p.label}
@@ -116,7 +116,7 @@ export default function BrandKitPage() {
         </div>
 
         <button onClick={save}
-          className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm shadow-glow-sm transition-all">
+          className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-sage-500 hover:bg-sage-600 text-midnight font-semibold text-sm shadow-sage-sm transition-all">
           {saved ? <><Check className="w-4 h-4" strokeWidth={2.5} /> Saved!</> : 'Save brand kit'}
         </button>
       </div>

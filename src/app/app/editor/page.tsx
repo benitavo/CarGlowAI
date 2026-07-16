@@ -109,10 +109,9 @@ export default function EditorPage() {
           <ArrowLeft className="w-4 h-4" />
           <span>Tableau de bord</span>
         </Link>
-        <div className="flex items-center gap-2">
-          <Leaf className="w-4 h-4 text-sage-500" />
-          <span className="font-display font-semibold text-sm text-midnight">Générateur de jardin</span>
-        </div>
+        <Link href="/">
+          <Image src="/logo%20verdia%20without%20background.png" alt="Verdia" height={36} width={120} className="h-9 w-auto object-contain" />
+        </Link>
         <div className="w-28" />
       </header>
 
@@ -242,6 +241,50 @@ export default function EditorPage() {
             </div>
           )}
 
+          {/* Characteristics */}
+          <div className="rounded-2xl border border-sage-100 bg-white overflow-hidden shadow-sm">
+            <div className="px-5 py-4 border-b border-sage-100 flex items-center gap-2">
+              <PenLine className="w-4 h-4 text-sage-500" strokeWidth={1.75} />
+              <div>
+                <h2 className="font-display font-semibold text-[15px] text-midnight">Caractéristiques</h2>
+                <p className="text-xs text-midnight/40 mt-0.5">Précisez votre projet — optionnel</p>
+              </div>
+            </div>
+            <div className="p-4">
+              <textarea
+                value={characteristics}
+                onChange={e => setCharacteristics(e.target.value)}
+                placeholder="Ex : ajouter une pergola en bois naturel, conserver les rosiers en facade, prévoir un espace pour les enfants, fontaine en pierre, budget intermédiaire, éviter les espèces invasives…"
+                rows={4}
+                className="w-full bg-cream-50 border border-sage-200 rounded-xl px-4 py-3 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 resize-none transition-all"
+              />
+              <p className="text-xs text-midnight/30 mt-2">
+                Ces précisions seront transmises à l&apos;IA pour personnaliser le rendu.
+              </p>
+            </div>
+          </div>
+
+          {/* Tips */}
+          <div className="rounded-2xl border border-sage-100 bg-cream-50 p-5">
+            <p className="text-[11px] font-semibold text-midnight/35 uppercase tracking-widest mb-3">
+              Conseils photo
+            </p>
+            <ul className="flex flex-col gap-2.5 text-xs text-midnight/50 leading-relaxed">
+              <li className="flex items-start gap-2">
+                <span>📸</span>
+                <span>Photographiez depuis un angle montrant l&apos;ensemble du jardin</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span>☀️</span>
+                <span>La lumière naturelle du jour donne les meilleurs résultats</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span>🏠</span>
+                <span>Incluez murs, clôtures et terrasse pour un rendu plus réaliste</span>
+              </li>
+            </ul>
+          </div>
+
           {gen.status === 'error' && (
             <div className="rounded-2xl bg-rose-50 border border-rose-200 px-5 py-4 text-sm text-rose-700">
               {gen.error}
@@ -249,7 +292,7 @@ export default function EditorPage() {
           )}
         </div>
 
-        {/* Right: mode + style + characteristics + generate */}
+        {/* Right: mode + style + generate */}
         <div className="flex flex-col gap-4">
 
           {/* Mode switch */}
@@ -320,29 +363,6 @@ export default function EditorPage() {
             </div>
           </div>
 
-          {/* Characteristics */}
-          <div className="rounded-2xl border border-sage-100 bg-white overflow-hidden shadow-sm">
-            <div className="px-5 py-4 border-b border-sage-100 flex items-center gap-2">
-              <PenLine className="w-4 h-4 text-sage-500" strokeWidth={1.75} />
-              <div>
-                <h2 className="font-display font-semibold text-[15px] text-midnight">Caractéristiques</h2>
-                <p className="text-xs text-midnight/40 mt-0.5">Précisez votre projet — optionnel</p>
-              </div>
-            </div>
-            <div className="p-4">
-              <textarea
-                value={characteristics}
-                onChange={e => setCharacteristics(e.target.value)}
-                placeholder="Ex : ajouter une pergola en bois naturel, conserver les rosiers en facade, prévoir un espace pour les enfants, fontaine en pierre, budget intermédiaire, éviter les espèces invasives…"
-                rows={4}
-                className="w-full bg-cream-50 border border-sage-200 rounded-xl px-4 py-3 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 resize-none transition-all"
-              />
-              <p className="text-xs text-midnight/30 mt-2">
-                Ces précisions seront transmises à l&apos;IA pour personnaliser le rendu.
-              </p>
-            </div>
-          </div>
-
           {/* Generate */}
           <button
             onClick={handleGenerate}
@@ -381,27 +401,6 @@ export default function EditorPage() {
               Téléchargez d&apos;abord une photo de votre jardin
             </p>
           )}
-
-          {/* Tips */}
-          <div className="rounded-2xl border border-sage-100 bg-cream-50 p-5">
-            <p className="text-[11px] font-semibold text-midnight/35 uppercase tracking-widest mb-3">
-              Conseils photo
-            </p>
-            <ul className="flex flex-col gap-2.5 text-xs text-midnight/50 leading-relaxed">
-              <li className="flex items-start gap-2">
-                <span>📸</span>
-                <span>Photographiez depuis un angle montrant l&apos;ensemble du jardin</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span>☀️</span>
-                <span>La lumière naturelle du jour donne les meilleurs résultats</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span>🏠</span>
-                <span>Incluez murs, clôtures et terrasse pour un rendu plus réaliste</span>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>

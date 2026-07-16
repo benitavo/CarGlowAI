@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
@@ -19,7 +19,7 @@ interface Photo {
 
 const STATUS_CLS: Record<string, string> = {
   ENHANCED:   'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  PROCESSING: 'bg-glow-500/15 text-glow-300 border-glow-500/30',
+  PROCESSING: 'bg-sage-500/15 text-sage-300 border-sage-500/30',
   QUEUED:     'bg-sky-500/15 text-sky-300 border-sky-500/30',
   FAILED:     'bg-rose-500/15 text-rose-300 border-rose-500/30',
   UPLOADED:   'bg-white/10 text-offwhite/70 border-white/15',
@@ -82,7 +82,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
         </p>
         <Link
           href="/app/editor"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-midnight font-semibold text-sm transition-all"
         >
           Générer mon premier rendu <ArrowRight className="w-4 h-4" />
         </Link>
@@ -176,7 +176,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                     href={preview.fullUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm transition-all"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-midnight font-semibold text-sm transition-all"
                   >
                     <Download className="w-4 h-4" strokeWidth={2} /> Télécharger
                     <ExternalLink className="w-3 h-3 opacity-60" strokeWidth={2} />

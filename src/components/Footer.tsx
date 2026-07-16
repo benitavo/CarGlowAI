@@ -1,8 +1,7 @@
-'use client'
+﻿'use client'
 
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { Leaf } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 
 export function Footer() {
@@ -27,7 +26,7 @@ export function Footer() {
               {t('ctaSecondary')}
             </Link>
             <Link href="/signup"
-              className="px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-sm font-semibold text-midnight shadow-glow-sm hover:shadow-glow-md transition-all">
+              className="px-5 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-sm font-semibold text-midnight shadow-sage-sm hover:shadow-sage-md transition-all">
               {t('ctaButton')} →
             </Link>
           </div>
@@ -39,13 +38,14 @@ export function Footer() {
         <div className="flex flex-col md:flex-row gap-12 md:gap-8 justify-between">
           {/* Brand */}
           <div className="shrink-0">
-            <Link href="/" className="flex items-center gap-2 mb-4 group">
-              <div className="w-7 h-7 rounded-lg bg-sage-500 flex items-center justify-center shrink-0">
-                <Leaf className="w-3.5 h-3.5 text-white" fill="currentColor" />
-              </div>
-              <span className="font-display font-bold text-offwhite text-lg">
-                Ver<span className="text-sage-400">dia</span>
-              </span>
+            <Link href="/" className="inline-flex mb-4">
+              <Image
+                src="/logo%20verdia%20without%20background.png"
+                alt="Verdia"
+                width={140}
+                height={42}
+                className="h-10 w-auto object-contain brightness-0 invert"
+              />
             </Link>
             <p className="text-xs text-offwhite/40 leading-relaxed max-w-[200px]">
               {t('tagline')}

@@ -1,62 +1,115 @@
 'use client'
+
 import { useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, CheckCircle, Loader2 } from 'lucide-react'
+
+type Status = 'idle' | 'loading' | 'success' | 'error'
 
 export default function ContactPage() {
-  const [sent, setSent] = useState(false)
-  return (
-    <div className="pt-32 pb-20 page-container">
-      <div className="max-w-2xl mx-auto">
-        <p className="eyebrow mb-4">Contact</p>
-        <h1 className="text-[clamp(2rem,4vw,3.5rem)] font-display font-bold text-offwhite mb-4">
-          We'd love to<br /><span className="text-gradient">hear from you.</span>
-        </h1>
-        <p className="text-offwhite/50 mb-10">Sales enquiry, technical support, or press? We'll get back within one business day.</p>
+  const [prenom,  setPrenom]  = useState('')
+  const [nom,     setNom]     = useState('')
+  const [email,   setEmail]   = useState('')
+  const [sujet,   setSujet]   = useState('')
+  const [message, setMessage] = useState('')
+  const [status,  setStatus]  = useState<Status>('idle')
+  const [errMsg,  setErrMsg]  = useState('')
 
-        {sent ? (
-          <div className="card-noise rounded-3xl p-10 text-center">
-            <div className="text-4xl mb-4">✓</div>
-            <h2 className="text-xl font-display font-semibold text-offwhite mb-2">Message sent!</h2>
-            <p className="text-offwhite/50 text-sm">We'll reply within one business day.</p>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setStatus('loading')
+    try {
+      const res = await fetch('/api/contact', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ prenom, nom, email, sujet, message }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error ?? 'Erreur inconnue')
+      }
+      setStatus('success')
+    } catch (err) {
+      setErrMsg(err instanceof Error ? err.message : 'Erreur inconnue')
+      setStatus('error')
+    }
+  }
+
+  const inputCls = 'w-full bg-cream-50 border border-sage-200 rounded-xl px-4 py-3 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 transition-all'
+  const labelCls = 'text-xs font-semibold text-midnight/50 uppercase tracking-widest mb-1.5 block'
+
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="page-container max-w-2xl py-32">
+
+        <p className="eyebrow mb-3">Contact</p>
+        <h1 className="font-display font-bold text-midnight mb-3" style={{ fontSize: 'clamp(2rem,4vw,3rem)' }}>
+          Une question ?<br /><span className="text-gradient">Écrivez-nous.</span>
+        </h1>
+        <p className="text-midnight/50 text-[15px] leading-relaxed mb-10">
+          Demande commerciale, support technique ou partenariat — nous répondons sous 24h.
+        </p>
+
+        {status === 'success' ? (
+          <div className="rounded-3xl border border-sage-200 bg-sage-50 p-10 text-center">
+            <CheckCircle className="w-12 h-12 text-sage-500 mx-auto mb-4" strokeWidth={1.5} />
+            <h2 className="font-display font-semibold text-xl text-midnight mb-2">Message envoyé !</h2>
+            <p className="text-midnight/50 text-sm">Nous vous répondrons dans les 24h.</p>
           </div>
         ) : (
-          <div className="card-noise rounded-3xl p-8">
-            <div className="flex flex-col gap-5">
-              <div className="grid sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="text-xs text-offwhite/40 uppercase tracking-widest font-semibold mb-2 block">First name</label>
-                  <input className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-glow-500/50" placeholder="Alex" />
-                </div>
-                <div>
-                  <label className="text-xs text-offwhite/40 uppercase tracking-widest font-semibold mb-2 block">Last name</label>
-                  <input className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-glow-500/50" placeholder="Moreau" />
-                </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="grid sm:grid-cols-2 gap-5">
+              <div>
+                <label className={labelCls}>Prénom *</label>
+                <input required value={prenom} onChange={e => setPrenom(e.target.value)}
+                  className={inputCls} placeholder="Antoine" />
               </div>
               <div>
-                <label className="text-xs text-offwhite/40 uppercase tracking-widest font-semibold mb-2 block">Email</label>
-                <input type="email" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-glow-500/50" placeholder="alex@dealership.com" />
+                <label className={labelCls}>Nom</label>
+                <input value={nom} onChange={e => setNom(e.target.value)}
+                  className={inputCls} placeholder="Dupont" />
               </div>
-              <div>
-                <label className="text-xs text-offwhite/40 uppercase tracking-widest font-semibold mb-2 block">Topic</label>
-                <select className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-offwhite/70 focus:outline-none focus:border-glow-500/50">
-                  <option value="">Select a topic…</option>
-                  <option>Sales enquiry</option>
-                  <option>Technical support</option>
-                  <option>Enterprise / OEM</option>
-                  <option>Press & media</option>
-                  <option>Partnership</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-offwhite/40 uppercase tracking-widest font-semibold mb-2 block">Message</label>
-                <textarea rows={4} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-offwhite focus:outline-none focus:border-glow-500/50 resize-none" placeholder="Tell us how we can help…" />
-              </div>
-              <button onClick={() => setSent(true)} className="w-full py-3.5 rounded-2xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm transition-all flex items-center justify-center gap-2">
-                Send message <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
-          </div>
+
+            <div>
+              <label className={labelCls}>Email *</label>
+              <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
+                className={inputCls} placeholder="vous@exemple.com" />
+            </div>
+
+            <div>
+              <label className={labelCls}>Sujet</label>
+              <select value={sujet} onChange={e => setSujet(e.target.value)} className={inputCls}>
+                <option value="">Choisissez un sujet…</option>
+                <option>Demande commerciale</option>
+                <option>Support technique</option>
+                <option>Partenariat</option>
+                <option>Presse & médias</option>
+                <option>Autre</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={labelCls}>Message *</label>
+              <textarea required rows={5} value={message} onChange={e => setMessage(e.target.value)}
+                className={inputCls + ' resize-none'}
+                placeholder="Décrivez votre demande…" />
+            </div>
+
+            {status === 'error' && (
+              <p className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
+                {errMsg}
+              </p>
+            )}
+
+            <button type="submit" disabled={status === 'loading'}
+              className="inline-flex items-center justify-center gap-2 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-semibold text-sm shadow-sage-sm hover:shadow-sage-md transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+              {status === 'loading' ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Envoi en cours…</>
+              ) : (
+                <>Envoyer le message <ArrowRight className="w-4 h-4" /></>
+              )}
+            </button>
+          </form>
         )}
       </div>
     </div>

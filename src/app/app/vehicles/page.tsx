@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Image from 'next/image'
@@ -11,7 +11,7 @@ const STATUS_CLS: Record<Vehicle['status'], string> = {
   Draft:  'bg-white/[0.04] text-offwhite/70 border-white/15',
   Ready:  'bg-sky-500/15 text-sky-300 border-sky-500/30',
   Listed: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  Sold:   'bg-glow-500/15 text-glow-300 border-glow-500/30',
+  Sold:   'bg-sage-500/15 text-sage-300 border-sage-500/30',
 }
 
 export default function VehiclesPage() {
@@ -23,11 +23,11 @@ export default function VehiclesPage() {
         <div className="px-6 lg:px-10 py-8 max-w-[1480px]">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-2">Vehicles</div>
+              <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-2">Vehicles</div>
               <h1 className="font-display font-bold text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.1]">Your inventory.</h1>
               <p className="text-offwhite/55 mt-2 text-[15px]">{vehicles.length} vehicles</p>
             </div>
-            <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm shadow-glow-sm transition-all">
+            <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-midnight font-semibold text-sm shadow-sage-sm transition-all">
               <Plus className="w-4 h-4" strokeWidth={2.5} /> Add vehicle
             </button>
           </div>
@@ -56,7 +56,7 @@ export default function VehiclesPage() {
               </span>
               <div className="flex items-center gap-1 shrink-0">
                 <Link href={`/app/editor?vehicle=${v.id}`}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-offwhite/50 hover:text-glow-400 hover:bg-white/[0.05] transition-colors"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-offwhite/50 hover:text-sage-400 hover:bg-white/[0.05] transition-colors"
                   title="Enhance photos">
                   <Wand2 className="w-4 h-4" strokeWidth={1.75} />
                 </Link>

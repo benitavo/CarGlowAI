@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -27,10 +27,10 @@ export default function OnboardingBanner({ photoCount, memberCount }: Props) {
   if (dismissed || pct >= 100) return null
 
   return (
-    <div className="rounded-2xl border border-glow-500/25 bg-gradient-to-br from-glow-500/[0.06] to-transparent overflow-hidden">
+    <div className="rounded-2xl border border-sage-500/25 bg-gradient-to-br from-glow-500/[0.06] to-transparent overflow-hidden">
       <header className="flex items-start justify-between p-5 pb-3">
         <div>
-          <div className="text-[11px] font-semibold tracking-widest uppercase text-glow-400 mb-1">Getting started</div>
+          <div className="text-[11px] font-semibold tracking-widest uppercase text-sage-400 mb-1">Getting started</div>
           <h3 className="font-display font-semibold text-[15px]">Finish setup</h3>
         </div>
         <button onClick={() => setDismissed(true)} className="text-offwhite/40 hover:text-offwhite p-1">
@@ -41,7 +41,7 @@ export default function OnboardingBanner({ photoCount, memberCount }: Props) {
       <div className="px-5 pb-3">
         <div className="flex items-center justify-between text-[11px] mb-1.5">
           <span className="text-offwhite/55">{completed} of {steps.length} complete</span>
-          <span className="text-glow-400 font-semibold tabular-nums">{Math.round(pct)}%</span>
+          <span className="text-sage-400 font-semibold tabular-nums">{Math.round(pct)}%</span>
         </div>
         <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden">
           <div className="h-full bg-gradient-to-r from-glow-500 to-glow-300 transition-all" style={{ width: `${pct}%` }} />
@@ -60,7 +60,7 @@ export default function OnboardingBanner({ photoCount, memberCount }: Props) {
             >
               <span className={cn(
                 'w-4 h-4 shrink-0 rounded-full flex items-center justify-center border',
-                step.done ? 'border-glow-500/60 bg-glow-500/20 text-glow-400' : 'border-white/[0.15]'
+                step.done ? 'border-sage-500/60 bg-sage-500/20 text-sage-400' : 'border-white/[0.15]'
               )}>
                 {step.done && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
               </span>

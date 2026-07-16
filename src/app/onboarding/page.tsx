@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -55,7 +55,7 @@ export default function OnboardingPage() {
     workspaceName: '',
     businessType: '',
     monthlyVolume: '',
-    primaryColor: '#FF8A3D',
+    primaryColor: '#35A070',
     logo: null,
     defaultStyleId: null,
     invites: [],
@@ -106,8 +106,8 @@ export default function OnboardingPage() {
                   <div className="flex items-center gap-2">
                     <div className={cn(
                       'w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold tabular-nums transition-colors',
-                      done && 'bg-glow-500 text-midnight',
-                      active && 'bg-glow-500/15 text-glow-300 ring-2 ring-glow-500/40',
+                      done && 'bg-sage-500 text-midnight',
+                      active && 'bg-sage-500/15 text-sage-300 ring-2 ring-sage-500/40',
                       !done && !active && 'bg-white/[0.04] text-offwhite/40 border border-white/[0.08]',
                     )}>
                       {done ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : i + 1}
@@ -122,7 +122,7 @@ export default function OnboardingPage() {
                   {i < STEPS.length - 1 && (
                     <div className={cn(
                       'flex-1 h-px mx-3 transition-colors',
-                      done ? 'bg-glow-500/40' : 'bg-white/[0.05]',
+                      done ? 'bg-sage-500/40' : 'bg-white/[0.05]',
                     )} />
                   )}
                 </div>
@@ -133,7 +133,7 @@ export default function OnboardingPage() {
           {/* Progress bar (mobile-friendly fallback) */}
           <div className="sm:hidden h-1 bg-white/[0.04] rounded-full overflow-hidden">
             <div
-              className="h-full bg-glow-500 rounded-full transition-all"
+              className="h-full bg-sage-500 rounded-full transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -176,7 +176,7 @@ export default function OnboardingPage() {
                 onClick={next}
                 disabled={!canAdvance}
                 className={cn(
-                  'rounded-lg bg-glow-500 hover:bg-glow-400 disabled:opacity-50 disabled:cursor-not-allowed text-midnight px-5 py-2.5 text-sm font-semibold shadow-glow-md transition-colors flex items-center gap-1.5',
+                  'rounded-lg bg-sage-500 hover:bg-sage-600 disabled:opacity-50 disabled:cursor-not-allowed text-midnight px-5 py-2.5 text-sm font-semibold shadow-sage-md transition-colors flex items-center gap-1.5',
                 )}
               >
                 {stepIdx === STEPS.length - 1 ? 'Enter CarGlow' : 'Continue'}
@@ -212,7 +212,7 @@ function WorkspaceStep({ state, update }: StepProps) {
               value={state.workspaceName}
               onChange={(e) => update({ workspaceName: e.target.value })}
               placeholder="Summit Auto Group"
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-glow-500/50"
+              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-sage-500/50"
             />
           </div>
           <div className="text-[11px] text-offwhite/45 mt-1.5">Usually your dealership or company name</div>
@@ -227,7 +227,7 @@ function WorkspaceStep({ state, update }: StepProps) {
                 className={cn(
                   'rounded-xl border p-4 text-left transition-colors',
                   state.businessType === t.id
-                    ? 'border-glow-500/40 bg-glow-500/[0.08]'
+                    ? 'border-sage-500/40 bg-sage-500/[0.08]'
                     : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]',
                 )}
               >
@@ -247,7 +247,7 @@ function WorkspaceStep({ state, update }: StepProps) {
                 className={cn(
                   'px-3 py-1.5 rounded-full text-xs border transition-colors',
                   state.monthlyVolume === v
-                    ? 'border-glow-500/40 bg-glow-500/15 text-glow-300'
+                    ? 'border-sage-500/40 bg-sage-500/15 text-sage-300'
                     : 'border-white/[0.08] bg-white/[0.02] text-offwhite/70 hover:border-white/[0.14]',
                 )}
               >
@@ -294,7 +294,7 @@ function BrandStep({ state, update }: StepProps) {
               className={cn(
                 'w-24 h-24 rounded-xl border-2 border-dashed flex items-center justify-center transition-colors flex-shrink-0',
                 state.logo
-                  ? 'border-glow-500/30 bg-glow-500/[0.05]'
+                  ? 'border-sage-500/30 bg-sage-500/[0.05]'
                   : 'border-white/[0.12] bg-white/[0.02] hover:border-white/[0.2] hover:bg-white/[0.04]',
               )}
             >
@@ -326,7 +326,7 @@ function BrandStep({ state, update }: StepProps) {
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={() => fileRef.current?.click()}
-                      className="text-xs text-glow-400 hover:text-glow-300"
+                      className="text-xs text-sage-400 hover:text-sage-300"
                     >
                       Replace
                     </button>
@@ -441,7 +441,7 @@ function StyleStep({ state, update }: StepProps) {
             className={cn(
               'group relative aspect-[4/5] rounded-xl overflow-hidden ring-1 transition-all text-left',
               state.defaultStyleId === s.id
-                ? 'ring-glow-500 ring-2'
+                ? 'ring-sage-500 ring-2'
                 : 'ring-white/[0.06] hover:ring-white/[0.14]',
             )}
           >
@@ -455,13 +455,13 @@ function StyleStep({ state, update }: StepProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/90 via-midnight-900/20 to-transparent" />
 
             {state.defaultStyleId === s.id && (
-              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-glow-500 flex items-center justify-center shadow-glow-sm">
+              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-sage-500 flex items-center justify-center shadow-sage-sm">
                 <Check className="w-3 h-3 text-midnight" strokeWidth={3} />
               </div>
             )}
 
             <div className="absolute bottom-0 left-0 right-0 p-3">
-              <div className="text-[9px] font-semibold tracking-widest uppercase text-glow-400/80 mb-0.5">
+              <div className="text-[9px] font-semibold tracking-widest uppercase text-sage-400/80 mb-0.5">
                 {s.category}
               </div>
               <div className="font-display font-semibold text-sm leading-tight">{s.name}</div>
@@ -509,7 +509,7 @@ function TeamStep({ state, update }: StepProps) {
               onChange={(e) => update({ inviteInput: e.target.value })}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addInvite())}
               placeholder="teammate@dealership.com"
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-glow-500/50"
+              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-sage-500/50"
             />
           </div>
           <button
@@ -601,10 +601,10 @@ function FirstPhotoStep({ state, update }: StepProps) {
           {/* Dropzone */}
           <button
             onClick={() => fileRef.current?.click()}
-            className="w-full aspect-[16/9] rounded-2xl border-2 border-dashed border-white/[0.12] hover:border-glow-500/40 hover:bg-glow-500/[0.04] transition-colors flex flex-col items-center justify-center gap-3 group"
+            className="w-full aspect-[16/9] rounded-2xl border-2 border-dashed border-white/[0.12] hover:border-sage-500/40 hover:bg-sage-600/[0.04] transition-colors flex flex-col items-center justify-center gap-3 group"
           >
-            <div className="w-14 h-14 rounded-2xl bg-white/[0.04] group-hover:bg-glow-500/15 flex items-center justify-center transition-colors">
-              <Upload className="w-6 h-6 text-offwhite/50 group-hover:text-glow-300" strokeWidth={1.5} />
+            <div className="w-14 h-14 rounded-2xl bg-white/[0.04] group-hover:bg-sage-600/15 flex items-center justify-center transition-colors">
+              <Upload className="w-6 h-6 text-offwhite/50 group-hover:text-sage-300" strokeWidth={1.5} />
             </div>
             <div>
               <div className="font-medium">Drop a photo or click to upload</div>
@@ -630,7 +630,7 @@ function FirstPhotoStep({ state, update }: StepProps) {
             onClick={startUpload}
             className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] px-4 py-3 text-sm font-medium flex items-center justify-center gap-2"
           >
-            <Wand2 className="w-4 h-4 text-glow-400" strokeWidth={1.75} />
+            <Wand2 className="w-4 h-4 text-sage-400" strokeWidth={1.75} />
             Try with our sample photo
           </button>
         </div>
@@ -641,7 +641,7 @@ function FirstPhotoStep({ state, update }: StepProps) {
             <Image src={SAMPLE_BEFORE} alt="" fill className="object-cover blur-sm" />
             <div className="absolute inset-0 bg-midnight-900/60" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-              <Loader2 className="w-8 h-8 text-glow-400 animate-spin" strokeWidth={1.75} />
+              <Loader2 className="w-8 h-8 text-sage-400 animate-spin" strokeWidth={1.75} />
               <div className="text-sm font-medium">Enhancing your photo…</div>
               <div className="text-xs text-offwhite/55">Removing background, balancing lighting, adding watermark</div>
             </div>
@@ -649,10 +649,10 @@ function FirstPhotoStep({ state, update }: StepProps) {
         </div>
       ) : (
         // Done state — before/after slider
-        <div className="rounded-2xl border border-glow-500/30 bg-glow-500/[0.04] p-5 lg:p-6">
+        <div className="rounded-2xl border border-sage-500/30 bg-sage-500/[0.04] p-5 lg:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-glow-500 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full bg-sage-500 flex items-center justify-center">
                 <Check className="w-3.5 h-3.5 text-midnight" strokeWidth={3} />
               </div>
               <div>
@@ -682,15 +682,15 @@ function FirstPhotoStep({ state, update }: StepProps) {
             <div className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-wider bg-midnight-900/80 backdrop-blur-md text-white px-2 py-0.5 rounded">
               Before
             </div>
-            <div className="absolute top-3 right-3 text-[10px] font-semibold uppercase tracking-wider bg-glow-500 text-midnight px-2 py-0.5 rounded">
+            <div className="absolute top-3 right-3 text-[10px] font-semibold uppercase tracking-wider bg-sage-500 text-midnight px-2 py-0.5 rounded">
               After
             </div>
             {/* Slider handle */}
             <div
-              className="absolute top-0 bottom-0 w-0.5 bg-glow-500 pointer-events-none"
+              className="absolute top-0 bottom-0 w-0.5 bg-sage-500 pointer-events-none"
               style={{ left: `${sliderPos}%` }}
             >
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-glow-500 shadow-glow-md flex items-center justify-center">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-sage-500 shadow-sage-md flex items-center justify-center">
                 <div className="flex items-center text-midnight">
                   <ArrowLeft className="w-3 h-3" strokeWidth={3} />
                   <ArrowRight className="w-3 h-3 -ml-1" strokeWidth={3} />
@@ -709,10 +709,10 @@ function FirstPhotoStep({ state, update }: StepProps) {
 
           <div className="mt-4 flex items-center justify-between text-xs">
             <div className="flex items-center gap-1.5 text-offwhite/65">
-              <Sparkles className="w-3.5 h-3.5 text-glow-400" strokeWidth={1.75} />
+              <Sparkles className="w-3.5 h-3.5 text-sage-400" strokeWidth={1.75} />
               You&apos;ve got <span className="text-offwhite font-medium">3 free photos</span> to start.
             </div>
-            <div className="text-glow-400 font-medium">You&apos;re ready →</div>
+            <div className="text-sage-400 font-medium">You&apos;re ready →</div>
           </div>
         </div>
       )}
@@ -732,7 +732,7 @@ type StepProps = {
 function StepHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div className="mb-8">
-      <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-2">
+      <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-2">
         {eyebrow}
       </div>
       <h1 className="font-display font-bold tracking-tight text-[clamp(1.7rem,3.5vw,2.2rem)] leading-[1.1]">

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Suspense } from 'react'
 import Link from 'next/link'
@@ -82,7 +82,7 @@ function ErrorContent() {
       <div className="mt-8 flex flex-col gap-2">
         <Link
           href="/signin"
-          className="rounded-lg bg-glow-500 hover:bg-glow-400 text-midnight px-4 py-2.5 text-sm font-semibold shadow-glow-md inline-flex items-center justify-center gap-1.5"
+          className="rounded-lg bg-sage-500 hover:bg-sage-600 text-midnight px-4 py-2.5 text-sm font-semibold shadow-sage-md inline-flex items-center justify-center gap-1.5"
         >
           <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
           Back to sign in

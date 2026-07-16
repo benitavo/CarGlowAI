@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -68,8 +68,8 @@
 
   /* Glow borders */
   .glow-border {
-    border: 1px solid rgba(255, 138, 61, 0.25);
-    box-shadow: 0 0 20px -5px rgba(255, 138, 61, 0.12);
+    border: 1px solid rgba(82, 183, 136, 0.30);
+    box-shadow: 0 0 20px -5px rgba(82, 183, 136, 0.12);
   }
   .sage-border {
     border: 1px solid rgba(82, 183, 136, 0.30);
@@ -93,7 +93,7 @@
 
   /* Text gradients */
   .text-gradient {
-    background: linear-gradient(135deg, #35A070 0%, #52B788 40%, #FF8A3D 100%);
+    background: linear-gradient(135deg, #1E7035 0%, #52B788 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -114,8 +114,8 @@
   }
 
   /* Section spacing */
-  .section-pad    { padding: clamp(64px, 10vw, 128px) 0; }
-  .section-pad-sm { padding: clamp(40px, 6vw, 80px) 0; }
+  .section-pad    { padding: clamp(20px, 3vw, 40px) 0; }
+  .section-pad-sm { padding: clamp(14px, 2vw, 28px) 0; }
 
   /* Container */
   .page-container {
@@ -174,10 +174,8 @@
   .animation-delay-400 { animation-delay: 400ms; }
   .animation-delay-500 { animation-delay: 500ms; }
 
-  .fill-glow-300  { fill: #FFBC8C; }
-  .fill-glow-400  { fill: #FFA666; }
-  .fill-glow-500  { fill: #FF8A3D; }
-  .fill-sage-400  { fill: #63B48E; }
+  .fill-sage-300  { fill: #74C8A0; }
+  .fill-sage-400  { fill: #52B788; }
   .fill-sage-500  { fill: #35A070; }
   .fill-offwhite  { fill: #EEF9F0; }
 }

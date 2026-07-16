@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { teamMembers, pendingInvites } from '@/lib/mock-data'
 
 const ROLE_CLS = {
-  Owner:  'bg-glow-500/15 text-glow-300 border-glow-500/30',
+  Owner:  'bg-sage-500/15 text-sage-300 border-sage-500/30',
   Admin:  'bg-purple-500/15 text-purple-300 border-purple-500/30',
   Editor: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
   Viewer: 'bg-white/[0.06] text-offwhite/60 border-white/15',
@@ -62,7 +62,7 @@ export default function TeamPage() {
     <div className="pb-24 lg:pb-12">
       <section className="border-b border-white/[0.04] bg-gradient-to-b from-glow-500/[0.025] to-transparent">
         <div className="px-6 lg:px-10 py-8 max-w-[800px]">
-          <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-glow-400/90 mb-2">Team</div>
+          <div className="text-[11px] font-semibold tracking-[0.16em] uppercase text-sage-400/90 mb-2">Team</div>
           <h1 className="font-display font-bold text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.1]">Your team.</h1>
           <p className="text-offwhite/55 mt-2 text-[15px]">{teamMembers.length} members on {workspaceName}</p>
         </div>
@@ -79,10 +79,10 @@ export default function TeamPage() {
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && invite()}
                 placeholder="colleague@dealership.com"
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-glow-500/50" />
+                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-sage-500/50" />
             </div>
             <button onClick={invite} disabled={!email || inviting || !workspaceId}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-glow-500 hover:bg-glow-400 disabled:opacity-50 text-midnight font-semibold text-sm transition-all">
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-sage-500 hover:bg-sage-600 disabled:opacity-50 text-midnight font-semibold text-sm transition-all">
               {inviting
                 ? <Loader2 className="w-4 h-4 animate-spin" />
                 : <Plus className="w-4 h-4" strokeWidth={2.5} />
@@ -90,7 +90,7 @@ export default function TeamPage() {
               Invite
             </button>
           </div>
-          {sent && <p className="text-sm text-glow-400 mt-2">Invite sent!</p>}
+          {sent && <p className="text-sm text-sage-400 mt-2">Invite sent!</p>}
           {inviteError && <p className="text-sm text-rose-400 mt-2">{inviteError}</p>}
           <p className="text-xs text-offwhite/40 mt-2">New members get Editor role by default</p>
         </div>

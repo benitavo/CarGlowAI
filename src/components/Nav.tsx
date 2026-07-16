@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -30,11 +30,11 @@ export function Nav() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
-            src="/logo-verdia.jpg"
+            src="/logo%20verdia%20without%20background.png"
             alt="Verdia"
-            width={120}
-            height={36}
-            className="h-9 w-auto object-contain"
+            width={150}
+            height={46}
+            className="h-11 w-auto object-contain"
             priority
           />
         </Link>
@@ -70,7 +70,7 @@ export function Nav() {
                 Connexion
               </Link>
               <Link href="/signup"
-                className="px-4 py-2 text-sm font-semibold text-white bg-glow-500 hover:bg-glow-400 rounded-xl shadow-glow-sm transition-all">
+                className="px-4 py-2 text-sm font-semibold text-white bg-sage-500 hover:bg-sage-600 rounded-xl shadow-sage-sm transition-all">
                 Essai gratuit
               </Link>
             </>
@@ -115,7 +115,7 @@ export function Nav() {
                     Connexion
                   </Link>
                   <Link href="/signup" onClick={() => setMobileOpen(false)}
-                    className="text-center py-3 rounded-xl bg-glow-500 text-sm font-semibold text-white">
+                    className="text-center py-3 rounded-xl bg-sage-500 text-sm font-semibold text-white">
                     Essai gratuit
                   </Link>
                 </>
