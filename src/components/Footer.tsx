@@ -45,7 +45,7 @@ export function Footer() {
                 alt="Verdia"
                 width={261}
                 height={80}
-                className="h-20 w-auto object-contain brightness-0 invert"
+                className="h-20 w-auto object-contain rounded-xl"
               />
             </Link>
             <p className="text-xs text-offwhite/40 leading-relaxed max-w-[200px]">
@@ -60,12 +60,14 @@ export function Footer() {
               <ul className="flex flex-col gap-2.5">
                 <li><Link href="/#comment-ca-marche" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Comment ça marche</Link></li>
                 <li><Link href="/#tarifs" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Tarifs</Link></li>
+                <li><Link href="/guide" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Guide utilisateur</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Entreprise</h4>
               <ul className="flex flex-col gap-2.5">
                 <li><Link href="/about" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">À propos</Link></li>
+                <li><Link href="/blog" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Blog</Link></li>
                 <li><Link href="/contact" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Contact</Link></li>
               </ul>
             </div>

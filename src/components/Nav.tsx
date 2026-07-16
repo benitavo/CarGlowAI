@@ -43,6 +43,8 @@ export function Nav() {
           {[
             { label: 'Comment ça marche', href: '/#comment-ca-marche' },
             { label: 'Tarifs',            href: '/#tarifs' },
+            { label: 'Guide',             href: '/guide' },
+            { label: 'Blog',              href: '/blog' },
             { label: 'À propos',          href: '/about' },
           ].map(item => (
             <li key={item.href}>
