@@ -6,6 +6,7 @@ import Link from 'next/link'
 import {
   Upload, Loader2, Download, ArrowLeft, Sparkles,
   Leaf, RotateCcw, Video, Image as ImageIcon, PenLine,
+  Wand2, RefreshCw, Palette, Send,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -27,6 +28,14 @@ interface GenState {
   processingMs?: number
 }
 
+interface Version {
+  id: string
+  url: string
+  mode: Mode
+  kind: 'generate' | 'retouch'
+  processingMs?: number
+}
+
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -34,6 +43,12 @@ async function fileToBase64(file: File): Promise<string> {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+function splitDataUrl(dataUrl: string): { base64: string; mimeType: string } {
+  const match = dataUrl.match(/^data:(.+);base64,(.+)$/)
+  if (!match) throw new Error('Format image invalide')
+  return { mimeType: match[1], base64: match[2] }
 }
 
 export default function EditorPage() {
@@ -47,12 +62,40 @@ export default function EditorPage() {
   const [gen, setGen]                        = useState<GenState>({ status: 'idle' })
   const fileInputRef                         = useRef<HTMLInputElement>(null)
 
+  const [versions, setVersions]     = useState<Version[]>([])
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
+  const [retouchText, setRetouchText]     = useState('')
+  const [retouchStatus, setRetouchStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [retouchError, setRetouchError]   = useState<string | undefined>()
+  const styleSectionRef   = useRef<HTMLDivElement>(null)
+  const characteristicsRef = useRef<HTMLTextAreaElement>(null)
+  const retouchInputRef    = useRef<HTMLInputElement>(null)
+
+  const selected = selectedIdx !== null ? versions[selectedIdx] : null
+
+  const pushVersion = useCallback((v: Version) => {
+    setVersions(prev => {
+      const next = [...prev, v]
+      setSelectedIdx(next.length - 1)
+      return next
+    })
+  }, [])
+
   const loadFile = useCallback((f: File) => {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setFile(f)
     setPreviewUrl(URL.createObjectURL(f))
     setGen({ status: 'idle' })
+    setVersions([])
+    setSelectedIdx(null)
   }, [previewUrl])
+
+  const focusAndScroll = (ref: React.RefObject<HTMLElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (ref.current instanceof HTMLInputElement || ref.current instanceof HTMLTextAreaElement) {
+      window.setTimeout(() => ref.current?.focus(), 300)
+    }
+  }
 
   const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -79,20 +122,51 @@ export default function EditorPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Erreur inconnue')
-      setGen({ status: 'done', resultUrl: data.enhancedUrl ?? data.videoUrl, processingMs: data.processingMs })
+      const url = data.enhancedUrl ?? data.videoUrl
+      pushVersion({ id: data.photoId ?? `${Date.now()}`, url, mode, kind: 'generate', processingMs: data.processingMs })
+      setGen({ status: 'done', resultUrl: url, processingMs: data.processingMs })
     } catch (err) {
       setGen({ status: 'error', error: err instanceof Error ? err.message : 'Erreur inconnue' })
     }
-  }, [file, session, styleSlug, characteristics, mode])
+  }, [file, session, styleSlug, characteristics, mode, pushVersion])
+
+  const handleRetouch = useCallback(async () => {
+    if (!retouchText.trim() || !selected || selected.mode !== 'image' || !session?.user?.workspaceId) return
+    setRetouchStatus('loading')
+    setRetouchError(undefined)
+    try {
+      const { base64, mimeType } = splitDataUrl(selected.url)
+      const res = await fetch('/api/retouch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData:   base64,
+          mimeType,
+          instruction: retouchText.trim(),
+          workspaceId: session.user.workspaceId,
+          styleSlug,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Erreur inconnue')
+      pushVersion({ id: data.photoId, url: data.enhancedUrl, mode: 'image', kind: 'retouch', processingMs: data.processingMs })
+      setRetouchText('')
+      setRetouchStatus('idle')
+    } catch (err) {
+      setRetouchError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setRetouchStatus('error')
+    }
+  }, [retouchText, selected, session, styleSlug, pushVersion])
 
   const handleDownload = async () => {
-    if (!gen.resultUrl) return
-    const res = await fetch(gen.resultUrl)
+    const url = selected?.url ?? gen.resultUrl
+    if (!url) return
+    const res = await fetch(url)
     const blob = await res.blob()
     const blobUrl = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = blobUrl
-    a.download = `verdia-${styleSlug}-${Date.now()}.${mode === 'video' ? 'mp4' : 'png'}`
+    a.download = `verdia-${styleSlug}-${Date.now()}.${(selected?.mode ?? mode) === 'video' ? 'mp4' : 'png'}`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -100,6 +174,7 @@ export default function EditorPage() {
   }
 
   const canGenerate = !!file && gen.status !== 'loading'
+  const canRetouch  = !!selected && selected.mode === 'image' && retouchStatus !== 'loading'
 
   return (
     <div className="min-h-screen bg-cream-50 text-midnight">
@@ -179,16 +254,20 @@ export default function EditorPage() {
             onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }}
           />
 
-          {/* Result — image */}
-          {gen.status === 'done' && gen.resultUrl && mode === 'image' && (
+          {/* Result */}
+          {selected && (
             <div className="rounded-3xl border border-sage-200 bg-white overflow-hidden shadow-sm">
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-sage-100">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-sage-500" />
-                  <span className="font-semibold text-sm text-sage-700">Rendu généré</span>
-                  {gen.processingMs && (
+                  {selected.mode === 'video'
+                    ? <Video className="w-4 h-4 text-sage-500" />
+                    : <Sparkles className="w-4 h-4 text-sage-500" />}
+                  <span className="font-semibold text-sm text-sage-700">
+                    {selected.kind === 'retouch' ? 'Retouche appliquée' : selected.mode === 'video' ? 'Vidéo générée' : 'Rendu généré'}
+                  </span>
+                  {selected.processingMs && (
                     <span className="text-xs text-midnight/30 ml-1">
-                      {(gen.processingMs / 1000).toFixed(1)}s
+                      {(selected.processingMs / 1000).toFixed(1)}s
                     </span>
                   )}
                 </div>
@@ -200,45 +279,113 @@ export default function EditorPage() {
                   Télécharger
                 </button>
               </div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={gen.resultUrl}
-                alt="Jardin généré"
-                className="w-full object-contain"
-                style={{ maxHeight: 520 }}
-              />
-            </div>
-          )}
 
-          {/* Result — video */}
-          {gen.status === 'done' && gen.resultUrl && mode === 'video' && (
-            <div className="rounded-3xl border border-sage-200 bg-white overflow-hidden shadow-sm">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-sage-100">
-                <div className="flex items-center gap-2">
-                  <Video className="w-4 h-4 text-sage-500" />
-                  <span className="font-semibold text-sm text-sage-700">Vidéo générée</span>
-                  {gen.processingMs && (
-                    <span className="text-xs text-midnight/30 ml-1">
-                      {(gen.processingMs / 1000).toFixed(1)}s
-                    </span>
+              <div className="flex">
+                {/* Quick actions rail */}
+                <div className="hidden sm:flex flex-col shrink-0 w-36 border-r border-sage-100 py-2">
+                  {[
+                    { label: 'Changer le style',  icon: Palette,    onClick: () => focusAndScroll(styleSectionRef),        disabled: false },
+                    { label: 'Modifier le prompt', icon: PenLine,   onClick: () => focusAndScroll(characteristicsRef),     disabled: false },
+                    { label: 'Regénérer',          icon: RefreshCw, onClick: () => { if (canGenerate) handleGenerate() },  disabled: !canGenerate },
+                    { label: 'Retoucher',          icon: Wand2,     onClick: () => focusAndScroll(retouchInputRef),        disabled: selected.mode !== 'image' },
+                  ].map(action => (
+                    <button
+                      key={action.label}
+                      onClick={action.onClick}
+                      disabled={action.disabled}
+                      className={cn(
+                        'flex items-center gap-2 px-4 py-3 text-left text-[13px] font-medium border-b border-sage-50 last:border-b-0 transition-colors',
+                        action.disabled ? 'text-midnight/20 cursor-not-allowed' : 'text-midnight/60 hover:text-sage-700 hover:bg-sage-50',
+                      )}
+                    >
+                      <action.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Main result + version thumbnails */}
+                <div className="flex-1 flex min-w-0">
+                  <div className="flex-1 min-w-0 bg-cream-50 flex items-center justify-center">
+                    {selected.mode === 'video' ? (
+                      <video
+                        key={selected.id}
+                        src={selected.url}
+                        controls
+                        autoPlay
+                        loop
+                        className="w-full"
+                        style={{ maxHeight: 520 }}
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={selected.id}
+                        src={selected.url}
+                        alt="Jardin généré"
+                        className="w-full object-contain"
+                        style={{ maxHeight: 520 }}
+                      />
+                    )}
+                  </div>
+
+                  {versions.length > 1 && (
+                    <div className="w-24 shrink-0 border-l border-sage-100 overflow-y-auto py-3 px-2 flex flex-col gap-2" style={{ maxHeight: 520 }}>
+                      {versions.map((v, i) => (
+                        <button
+                          key={v.id}
+                          onClick={() => setSelectedIdx(i)}
+                          className={cn(
+                            'rounded-xl overflow-hidden border-2 transition-all text-left',
+                            i === selectedIdx ? 'border-sage-500 ring-2 ring-sage-200' : 'border-transparent hover:border-sage-200',
+                          )}
+                        >
+                          {v.mode === 'video' ? (
+                            <video src={v.url} className="w-full aspect-[4/3] object-cover pointer-events-none" muted />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={v.url} alt="" className="w-full aspect-[4/3] object-cover" />
+                          )}
+                          <p className="text-[10px] text-center text-midnight/45 py-1 truncate px-1">Version {i + 1}</p>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold transition-all"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Télécharger
-                </button>
               </div>
-              <video
-                src={gen.resultUrl}
-                controls
-                autoPlay
-                loop
-                className="w-full"
-                style={{ maxHeight: 520 }}
-              />
+
+              {/* Retouch bar */}
+              {selected.mode === 'image' && (
+                <div className="border-t border-sage-100 px-4 py-3 flex items-center gap-2 bg-cream-50/60">
+                  <input
+                    ref={retouchInputRef}
+                    type="text"
+                    value={retouchText}
+                    onChange={e => setRetouchText(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && canRetouch && retouchText.trim()) handleRetouch() }}
+                    placeholder="Ex : agrandir la terrasse en bois et ajouter un éclairage extérieur…"
+                    className="flex-1 min-w-0 bg-white border border-sage-200 rounded-xl px-4 py-2.5 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 transition-all"
+                  />
+                  <button
+                    onClick={handleRetouch}
+                    disabled={!canRetouch || !retouchText.trim()}
+                    className={cn(
+                      'flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shrink-0',
+                      canRetouch && retouchText.trim()
+                        ? 'bg-glow-500 hover:bg-glow-400 text-white cursor-pointer'
+                        : 'bg-sage-100 text-sage-300 cursor-not-allowed',
+                    )}
+                  >
+                    {retouchStatus === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    Appliquer
+                  </button>
+                </div>
+              )}
+              {retouchStatus === 'error' && retouchError && (
+                <div className="px-4 pb-3 -mt-1">
+                  <p className="text-xs text-rose-600">{retouchError}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -253,6 +400,7 @@ export default function EditorPage() {
             </div>
             <div className="p-4">
               <textarea
+                ref={characteristicsRef}
                 value={characteristics}
                 onChange={e => setCharacteristics(e.target.value)}
                 placeholder="Ex : ajouter une pergola en bois naturel, conserver les rosiers en facade, prévoir un espace pour les enfants, fontaine en pierre, budget intermédiaire, éviter les espèces invasives…"
@@ -332,7 +480,7 @@ export default function EditorPage() {
           )}
 
           {/* Style picker */}
-          <div className="rounded-2xl border border-sage-100 bg-white overflow-hidden shadow-sm">
+          <div ref={styleSectionRef} className="rounded-2xl border border-sage-100 bg-white overflow-hidden shadow-sm">
             <div className="px-5 py-4 border-b border-sage-100">
               <h2 className="font-display font-semibold text-[15px] text-midnight">Style de jardin</h2>
               <p className="text-xs text-midnight/40 mt-0.5">Choisissez l&apos;ambiance de votre rendu</p>

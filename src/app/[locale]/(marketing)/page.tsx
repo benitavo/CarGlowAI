@@ -5,21 +5,22 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import {
   ArrowRight, Check, ChevronDown, ChevronUp,
-  ChevronLeft, ChevronRight, Star, Leaf, PlayCircle, X, ShieldCheck,
+  ChevronLeft, ChevronRight, Star, Leaf, PlayCircle, X,
+  Phone, Wallet, Clock, ScanSearch, Layers, Wand2, PackageCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // ─── AVATAR (cropped from a 5x2 face-grid image via background-position) ─────
 function GridAvatar({
-  src, col, row, cols = 5, rows = 2, className,
-}: { src: string; col: number; row: number; cols?: number; rows?: number; className?: string }) {
+  col, row, className,
+}: { col: number; row: number; className?: string }) {
   return (
     <div
       className={className}
       style={{
-        backgroundImage: `url(${src})`,
-        backgroundSize: `${cols * 100}% ${rows * 100}%`,
-        backgroundPosition: `${(col / (cols - 1)) * 100}% ${(row / (rows - 1)) * 100}%`,
+        backgroundImage: `url(/avatars/face-${row}-${col}.jpg)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     />
   )
@@ -172,47 +173,32 @@ function HeroSection() {
   )
 }
 
-// ─── PROJECT TYPE CHIPS ───────────────────────────────────────────────────────
-const PROJECT_CHIPS = [
-  'Pelouse & gazon', 'Massifs & haies', 'Terrasse bois & composite',
-  'Allées & pas japonais', 'Piscine & abords', 'Clôture & portail',
-  'Potager & verger', 'Éclairage extérieur',
+// ─── STATS ────────────────────────────────────────────────────────────────────
+const STATS = [
+  { icon: Phone,  value: '3x',  title: 'plus de devis signés',
+    desc: "Les clients qui voient leur futur jardin avant travaux valident un devis 3 fois plus vite qu'avec un plan seul." },
+  { icon: Wallet, value: '90%', title: 'moins cher',
+    desc: "À partir de 1,50€ par rendu, contre 500 à 2 000€ pour une maquette 3D ou un architecte paysagiste." },
+  { icon: Clock,  value: '60s', title: 'par rendu',
+    desc: "Uploadez une photo, choisissez un style, recevez un rendu photoréaliste en 60 secondes." },
 ]
 
-function ChipsSection() {
+function StatsSection() {
   return (
-    <section className="pt-2 pb-10 bg-cream-50">
-      <div className="page-container max-w-[860px]">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-midnight/35 mb-4">
-          Tous vos types de chantiers
-        </p>
-        <div className="flex flex-wrap justify-center gap-2.5">
-          {PROJECT_CHIPS.map(chip => (
-            <span key={chip}
-              className="text-sm font-semibold text-sage-700 bg-white border border-midnight/[0.08] rounded-full px-4 py-2 shadow-sm">
-              {chip}
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── SOCIAL PROOF BAND ────────────────────────────────────────────────────────
-function ProofBand() {
-  const items = ['Paysagistes', 'Architectes paysagistes', 'Aménageurs', 'Jardiniers professionnels', 'Agents immobiliers', 'Promoteurs']
-  return (
-    <section className="border-y border-midnight/[0.07] bg-white py-5 overflow-hidden">
-      <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-        <div className="flex animate-marquee whitespace-nowrap gap-12">
-          {[...items, ...items].map((name, i) => (
-            <span key={i} className="text-sm font-medium text-midnight/35 flex items-center gap-2 shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-sage-400" />
-              {name}
-            </span>
+    <section className="py-16 md:py-20 bg-cream-50">
+      <div className="page-container max-w-4xl">
+        <div className="grid sm:grid-cols-3 gap-10 sm:gap-6 text-center">
+          {STATS.map(stat => (
+            <div key={stat.title}>
+              <div className="w-12 h-12 rounded-full bg-sage-50 flex items-center justify-center mx-auto mb-4">
+                <stat.icon className="w-5 h-5 text-sage-500" strokeWidth={1.75} />
+              </div>
+              <p className="font-display font-extrabold text-gradient leading-none mb-2" style={{ fontSize: 'clamp(2.25rem,4vw,2.75rem)' }}>
+                {stat.value}
+              </p>
+              <h3 className="font-display font-bold text-midnight text-lg mb-3">{stat.title}</h3>
+              <p className="text-midnight/50 text-sm leading-relaxed max-w-[260px] mx-auto">{stat.desc}</p>
+            </div>
           ))}
         </div>
       </div>
@@ -227,27 +213,11 @@ function GallerySection() {
   const pair = PAIRS[active]
 
   return (
-    <section id="galerie" className="section-pad bg-cream-50">
+    <section id="galerie" className="section-pad bg-cream-50 pt-32">
       <div className="page-container">
-        <div className="grid lg:grid-cols-[1fr_1.6fr] gap-10 lg:gap-16 items-start">
+        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-10 lg:gap-16 items-start">
 
-          {/* Gauche : texte */}
-          <div className="lg:pt-4">
-            <p className="eyebrow mb-3">Exemples réels</p>
-            <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-              {PAIRS.length} transformations<br /><span className="text-gradient">en 60 secondes.</span>
-            </h2>
-            <p className="text-midnight/45 text-[15px] leading-relaxed mb-6">
-              Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple photo de jardin.
-            </p>
-            <p className="text-xs text-midnight/30 flex items-center gap-2">
-              <ChevronLeft className="w-3 h-3" />
-              Glissez pour comparer avant / après
-              <ChevronRight className="w-3 h-3" />
-            </p>
-          </div>
-
-          {/* Droite : slider + vignettes */}
+          {/* Image : slider + vignettes */}
           <div>
             {showVideo && pair.video ? (
               <div className="relative aspect-[4/3] w-full mb-3 rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card bg-midnight">
@@ -298,6 +268,47 @@ function GallerySection() {
                   )}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Texte */}
+          <div className="lg:pt-4">
+            <p className="eyebrow mb-3">Exemples réels</p>
+            <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+              {PAIRS.length} transformations<br /><span className="text-gradient">en 60 secondes.</span>
+            </h2>
+            <p className="text-midnight/45 text-[15px] leading-relaxed mb-7">
+              Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple photo de jardin.
+            </p>
+
+            <Link href="/signup"
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all mb-3">
+              Essayer gratuitement
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-xs text-midnight/35 mb-6">Sans carte bancaire · Résultat en 60 secondes</p>
+
+            <p className="text-xs text-midnight/30 flex items-center gap-2 mb-6">
+              <ChevronLeft className="w-3 h-3" />
+              Glissez pour comparer avant / après
+              <ChevronRight className="w-3 h-3" />
+            </p>
+
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2.5">
+                {[{ col: 0, row: 0 }, { col: 2, row: 0 }, { col: 4, row: 1 }, { col: 1, row: 1 }].map((a, i) => (
+                  <GridAvatar key={i} col={a.col} row={a.row}
+                    className="w-11 h-11 rounded-full ring-2 ring-white bg-sage-100 shrink-0" />
+                ))}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-midnight">100+ paysagistes l&apos;utilisent déjà</p>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 text-sage-500 fill-sage-500" />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -432,7 +443,7 @@ function CalendlySection() {
             </div>
             <div className="card-light rounded-2xl p-5">
               <div className="flex items-center gap-3 mb-3">
-                <GridAvatar src="/grid-1.jpeg" col={0} row={1}
+                <GridAvatar col={0} row={1}
                   className="w-10 h-10 rounded-full shrink-0 bg-sage-200" />
                 <div>
                   <p className="text-sm font-semibold text-midnight">Antoine R.</p>
@@ -461,15 +472,48 @@ function CalendlySection() {
   )
 }
 
+// ─── SCROLLING GALLERY ────────────────────────────────────────────────────────
+const SCROLL_GALLERY = [
+  { src: '/scroll-garden-1.jpeg', label: 'Terrasse méditerranéenne' },
+  { src: '/scroll-garden-2.jpeg', label: 'Prairie fleurie naturelle' },
+  { src: '/scroll-garden-3.jpeg', label: 'Jardin zen & mousse' },
+  { src: '/scroll-garden-4.jpeg', label: 'Jardin zen minéral' },
+  { src: '/scroll-garden-5.jpeg', label: 'Potager surélevé' },
+  { src: '/scroll-garden-6.jpeg', label: 'Jardin zen contemporain' },
+]
+
+function ScrollingGallerySection() {
+  return (
+    <section className="py-14 bg-white overflow-hidden">
+      <div className="page-container mb-8">
+        <p className="eyebrow text-center">Rendus générés par Verdia</p>
+      </div>
+      <div className="relative">
+        <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+        <div className="flex w-max gap-5 animate-marquee" style={{ animationDuration: '38s' }}>
+          {[...SCROLL_GALLERY, ...SCROLL_GALLERY].map((item, i) => (
+            <div key={i} className="relative w-[280px] sm:w-[360px] aspect-video rounded-2xl overflow-hidden border border-midnight/[0.08] shadow-card shrink-0">
+              <Image src={item.src} alt={item.label} fill className="object-cover" sizes="360px" />
+              <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/70 via-transparent to-transparent" />
+              <p className="absolute bottom-3 left-4 text-white text-sm font-semibold">{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── HOW IT WORKS ─────────────────────────────────────────────────────────────
 function HowItWorksSection() {
   const steps = [
-    { num: '01', emoji: '📷', title: 'Photographiez le terrain',
-      desc: "Prenez 1 à 3 photos du jardin avec votre téléphone. Aucun matériel spécial requis — une bonne lumière naturelle suffit." },
-    { num: '02', emoji: '🎨', title: 'Choisissez un style',
-      desc: "Choisissez parmi nos styles paysagers — gazon fleuri, méditerranéen, contemporain, naturel, zen, potager — ou décrivez le rendu de vos rêves en texte libre." },
-    { num: '03', emoji: '✨', title: 'Recevez votre rendu',
-      desc: "Notre IA génère un visuel photoréaliste en 60 secondes. Téléchargez et partagez directement avec votre client." },
+    { num: '1', title: 'Importez vos photos', img: '/howitworks-import-crop.png',
+      desc: "Uploadez les photos du jardin ou du terrain. Jusqu'à 3 photos par projet, tous les formats acceptés." },
+    { num: '2', title: "L'IA applique le rendu paysager", img: '/howitworks-generate-crop.png',
+      desc: "Choisissez un style parmi nos options. L'IA transforme automatiquement chaque photo en rendu photoréaliste professionnel." },
+    { num: '3', title: 'Retouchez en illimité', img: '/howitworks-retouch-crop.png',
+      desc: "Affinez chaque rendu dans l'éditeur intégré. Changez de style, ajustez les détails, sans limite de retouches." },
   ]
 
   return (
@@ -482,21 +526,29 @@ function HowItWorksSection() {
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-8 md:gap-6">
           {steps.map((step, i) => (
-            <div key={step.num} className="relative">
-              {i < steps.length - 1 && (
-                <div className="hidden md:block absolute right-0 top-12 translate-x-1/2 z-10">
-                  <ArrowRight className="w-5 h-5 text-sage-300" strokeWidth={1.5} />
+            <div key={step.num} className="relative flex flex-col">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-full bg-sage-500 text-white font-display font-bold text-sm flex items-center justify-center shrink-0">
+                  {step.num}
                 </div>
-              )}
-              <div className="card-light rounded-3xl p-8">
-                <div className="w-12 h-12 rounded-2xl bg-sage-50 border border-sage-200/60 flex items-center justify-center text-xl mb-5">
-                  {step.emoji}
-                </div>
-                <div className="text-3xl font-display font-bold text-sage-200 mb-4 leading-none">{step.num}</div>
-                <h3 className="font-display font-semibold text-midnight text-lg mb-3">{step.title}</h3>
-                <p className="text-midnight/50 text-[15px] leading-relaxed">{step.desc}</p>
+                {i < steps.length - 1 && (
+                  <div className="hidden md:block absolute right-0 top-2 translate-x-1/2 z-10">
+                    <ArrowRight className="w-4 h-4 text-sage-300" strokeWidth={2} />
+                  </div>
+                )}
+              </div>
+              <h3 className="font-display font-semibold text-midnight text-lg mb-2">{step.title}</h3>
+              <p className="text-midnight/50 text-[14px] leading-relaxed mb-6">{step.desc}</p>
+              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-sage-100 shadow-card bg-white mt-auto">
+                <Image
+                  src={step.img}
+                  alt={step.title}
+                  fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  className="object-contain"
+                />
               </div>
             </div>
           ))}
@@ -548,6 +600,74 @@ const GARDEN_STYLES = [
   { emoji: '🥬', name: 'Potager',           desc: 'Carrés potagers, aromates, arbres fruitiers',          color: 'bg-sage-50 border-sage-200/60' },
 ]
 
+// ─── AUTOMATION ───────────────────────────────────────────────────────────────
+const AUTOMATION_STEPS = [
+  { icon: ScanSearch, title: 'Analyse intelligente', time: '~10 secondes',
+    desc: "L'IA détecte le terrain, l'exposition et les éléments existants (murs, arbres, mobilier) et suggère le style le plus adapté au jardin." },
+  { icon: Layers, title: 'Génération multi-styles', time: '~60 s pour 3 styles',
+    desc: "Générez plusieurs styles en parallèle sur la même photo — méditerranéen, contemporain, zen — pour laisser le client choisir." },
+  { icon: Wand2, title: 'Retouche en illimité', time: '~15 secondes',
+    desc: "Affinez chaque rendu directement dans l'éditeur : changez de style, précisez un détail, régénérez sans repartir de zéro." },
+  { icon: PackageCheck, title: 'Kit client prêt à l’emploi', time: '~5 secondes',
+    desc: "Téléchargez le rendu HD et le comparatif avant/après, prêts à présenter à vos clients ou à joindre à votre devis." },
+]
+
+function AutomationSection() {
+  return (
+    <section className="section-pad bg-white">
+      <div className="page-container max-w-3xl">
+        <div className="text-center max-w-xl mx-auto mb-14">
+          <p className="eyebrow mb-3">Automatisation</p>
+          <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+            Gagnez des heures avec<br /><span className="text-gradient">votre IA paysagère.</span>
+          </h2>
+          <p className="text-midnight/50 text-[15px] leading-relaxed">
+            Verdia traite vos photos automatiquement, suggère le style adapté et prépare vos visuels — vous n&apos;avez plus qu&apos;à présenter.
+          </p>
+        </div>
+
+        <div className="relative">
+          <div
+            className="absolute left-6 top-6 bottom-6 w-px hidden sm:block"
+            style={{ backgroundImage: 'repeating-linear-gradient(to bottom, rgba(82,183,136,0.45) 0 4px, transparent 4px 9px)' }}
+          />
+          <div className="flex flex-col gap-4">
+            {AUTOMATION_STEPS.map(step => (
+              <div key={step.title} className="relative flex gap-5 items-start">
+                <div className="w-12 h-12 rounded-2xl bg-sage-50 border border-sage-200/60 flex items-center justify-center shrink-0 z-10">
+                  <step.icon className="w-5 h-5 text-sage-500" strokeWidth={1.75} />
+                </div>
+                <div className="card-light rounded-2xl p-5 flex-1">
+                  <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
+                    <h3 className="font-display font-semibold text-midnight text-[15px]">{step.title}</h3>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sage-50 text-sage-600 text-[11px] font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sage-400" /> {step.time}
+                    </span>
+                  </div>
+                  <p className="text-midnight/50 text-[13.5px] leading-relaxed">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-3 mt-10">
+          {[
+            { icon: Clock,  text: '60 secondes par rendu' },
+            { icon: Layers, text: 'Styles illimités' },
+            { icon: Wand2,  text: 'Retouche en illimité incluse' },
+          ].map(pill => (
+            <div key={pill.text} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sage-50 border border-sage-200/60 text-sage-700 text-sm font-medium">
+              <pill.icon className="w-4 h-4 text-sage-500" strokeWidth={1.75} />
+              {pill.text}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function StylesSection() {
   return (
     <section className="section-pad bg-cream-50">
@@ -566,72 +686,6 @@ function StylesSection() {
               <p className="text-xs text-midnight/45 leading-relaxed">{s.desc}</p>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── OFFER ────────────────────────────────────────────────────────────────────
-function OfferSection() {
-  return (
-    <section id="commander" className="section-pad bg-midnight relative overflow-hidden">
-      <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-sage-600/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] bg-petal-500/10 rounded-full blur-[100px] pointer-events-none" />
-
-      <div className="page-container relative max-w-xl">
-        <div
-          className="relative rounded-3xl border border-sage-400/25 p-8 md:p-11 shadow-[0_24px_60px_-24px_rgba(13,31,17,0.6)]"
-          style={{ background: 'linear-gradient(160deg, #1E3D29 0%, #122417 100%)' }}
-        >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-[1px] bg-gradient-to-r from-transparent via-sage-400/60 to-transparent" />
-
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage-500/15 border border-sage-400/25 text-sage-300 text-xs font-semibold mb-6 uppercase tracking-wide">
-            <Leaf className="w-3.5 h-3.5 text-sage-400" fill="currentColor" />
-            Offre de lancement
-          </div>
-
-          <h2 className="font-display font-bold text-offwhite mb-2 leading-tight" style={{ fontSize: 'clamp(1.5rem,3vw,2.25rem)' }}>
-            Votre premier rendu<br />est entièrement offert.
-          </h2>
-
-          <div className="flex items-baseline gap-2 mt-5 mb-1">
-            <span className="text-sage-400 font-display font-extrabold" style={{ fontSize: 'clamp(2.25rem,5vw,3rem)' }}>Gratuit</span>
-            <span className="text-offwhite/45 text-sm">1er rendu, sans carte bancaire</span>
-          </div>
-          <p className="text-offwhite/50 text-[14px] leading-relaxed mb-6">
-            Ensuite, à partir de 29&nbsp;€/mois pour un usage illimité sur tous vos chantiers.
-          </p>
-
-          <ul className="text-left space-y-2.5 mb-8">
-            {[
-              'Rendu photoréaliste en 60 secondes',
-              'Styles illimités — méditerranéen, moderne, potager…',
-              'Avant/après en HD, prêt à montrer au client',
-              'Aucune carte bancaire requise',
-            ].map(item => (
-              <li key={item} className="flex items-start gap-2.5 text-[14.5px] text-offwhite/80">
-                <Check className="w-4 h-4 text-sage-400 shrink-0 mt-0.5" strokeWidth={2.5} />
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          <Link href="/signup"
-            className="w-full inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
-            Créer mon compte gratuit
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <p className="mt-3 text-xs text-offwhite/25 text-center">Aucune carte bancaire · Résiliation à tout moment</p>
-
-          <div className="flex items-start gap-3 mt-6 pt-6 border-t border-offwhite/[0.12]">
-            <ShieldCheck className="w-5 h-5 text-sage-400 shrink-0 mt-0.5" strokeWidth={1.75} />
-            <p className="text-[13px] text-offwhite/50 leading-relaxed">
-              <strong className="text-offwhite/80 font-semibold">Faites le calcul :</strong> un aménagement moyen se vend 8&nbsp;000 à 25&nbsp;000&nbsp;€.
-              À moins de 1,50&nbsp;€ le rendu avec le forfait Essentiel, si un seul client hésitant signe grâce à lui dans l&apos;année,
-              il s&apos;est remboursé plusieurs centaines de fois.
-            </p>
-          </div>
         </div>
       </div>
     </section>
@@ -677,7 +731,7 @@ function TestimonialsSection() {
           </div>
           <p className="text-lg md:text-xl text-midnight/70 leading-relaxed mb-8 max-w-xl mx-auto">&ldquo;{t.quote}&rdquo;</p>
           <div className="flex items-center justify-center gap-3">
-            <GridAvatar src="/grid-1.jpeg" col={t.avatar.col} row={t.avatar.row}
+            <GridAvatar col={t.avatar.col} row={t.avatar.row}
               className="w-10 h-10 rounded-full shrink-0 bg-sage-200" />
             <div className="text-left">
               <p className="text-sm font-semibold text-midnight">{t.name}</p>
@@ -881,16 +935,16 @@ function StickyMobileCTA() {
 export default function HomePage() {
   return (
     <>
-      <HeroSection />
-      <ChipsSection />
-      <ProofBand />
       <GallerySection />
+      <HeroSection />
+      <ScrollingGallerySection />
       <VideoSection />
+      <StatsSection />
       <HowItWorksSection />
       <ArgumentsSection />
+      <AutomationSection />
       <StylesSection />
       <TestimonialsSection />
-      <OfferSection />
       <PricingSection />
       <CalendlySection />
       <FAQSection />

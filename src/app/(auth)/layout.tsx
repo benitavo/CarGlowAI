@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Quote } from 'lucide-react'
+import { AuthVisualCarousel } from '@/components/AuthVisualCarousel'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -41,14 +42,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* ── Visual column ───────────────────────────────────────────── */}
       <aside className="hidden lg:block lg:w-[44%] xl:w-[48%] relative overflow-hidden">
-        {/* Background image — garden */}
-        <Image
-          src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=85"
-          alt="Jardin paysagé"
-          fill
-          priority
-          className="object-cover"
-        />
+        {/* Scrolling background — real Verdia renders */}
+        <AuthVisualCarousel />
         {/* Forest green overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-br from-midnight/80 via-midnight/60 to-midnight/90" />
         <div className="absolute inset-0 bg-gradient-to-t from-midnight-900/90 via-transparent to-transparent" />
@@ -84,9 +79,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <div
                 className="w-9 h-9 rounded-full shrink-0 bg-sage-700 ring-1 ring-white/15"
                 style={{
-                  backgroundImage: 'url(/grid-1.jpeg)',
-                  backgroundSize: '500% 200%',
-                  backgroundPosition: '50% 0%',
+                  backgroundImage: 'url(/avatars/face-0-2.jpg)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
                 }}
               />
               <div>

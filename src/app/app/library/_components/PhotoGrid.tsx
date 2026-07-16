@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Download, ImageIcon, ArrowRight, X, ExternalLink, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import { Download, ImageIcon, ArrowRight, X, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Photo {
@@ -174,12 +174,10 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 {preview.fullUrl && (
                   <a
                     href={preview.fullUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    download={`verdia-${preview.vehicleName ?? preview.id}.${preview.isVideo ? 'mp4' : 'png'}`}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-midnight font-semibold text-sm transition-all"
                   >
                     <Download className="w-4 h-4" strokeWidth={2} /> Télécharger
-                    <ExternalLink className="w-3 h-3 opacity-60" strokeWidth={2} />
                   </a>
                 )}
                 <button

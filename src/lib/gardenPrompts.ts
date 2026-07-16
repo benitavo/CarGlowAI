@@ -96,6 +96,31 @@ OUTPUT: a single photorealistic image, same resolution/aspect ratio as the
 input photo.`
 }
 
+export function buildRetouchPrompt(instruction: string) {
+  return `Edit this already-rendered garden image with one specific, targeted change.
+
+INSTRUCTION FROM THE USER:
+"${instruction.trim()}"
+
+SCOPE: Apply only the change described above. Keep everything else in the
+image — camera angle, framing, hardscape, existing plantings, lighting,
+and overall composition — exactly as it is in the provided image.
+
+MOOD: Match the photorealistic style, lighting, and quality already present
+in the source image. The edit must blend in seamlessly, as if it were part
+of the original rendering.
+
+CONSTRAINTS:
+- Do not regenerate or restyle areas unrelated to the instruction.
+- Do not resize, add, or remove structural elements (walls, steps, fences)
+  unless explicitly asked.
+- No hallucinated objects, impossible proportions, or elements that would
+  break the client's trust in the rendering.
+
+OUTPUT: a single photorealistic image, same resolution/aspect ratio as the
+input image.`
+}
+
 export function buildVideoPrompt(characteristics?: string) {
   const userText = characteristics?.trim() || 'Aucune demande particulière.'
 

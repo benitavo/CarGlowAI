@@ -22,10 +22,8 @@ export function Nav() {
 
   return (
     <header className={cn(
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-      scrolled
-        ? 'bg-white/90 backdrop-blur-xl border-b border-midnight/[0.07] shadow-sm py-3'
-        : 'bg-transparent py-5'
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-xl border-b border-midnight/[0.07]',
+      scrolled ? 'shadow-sm py-2.5' : 'py-4'
     )}>
       <nav className="page-container flex items-center justify-between gap-6">
         {/* Logo */}
@@ -33,9 +31,9 @@ export function Nav() {
           <Image
             src="/logo%20verdia%20without%20background.png"
             alt="Verdia"
-            width={150}
-            height={46}
-            className="h-11 w-auto object-contain"
+            width={190}
+            height={58}
+            className="h-14 w-auto object-contain"
             priority
           />
         </Link>

@@ -1,19 +1,11 @@
-import { GardenStyle, buildImagePrompt } from './gardenPrompts'
+import { GardenStyle, buildImagePrompt, buildRetouchPrompt } from './gardenPrompts'
 
 export interface StyledImage {
   base64: string
   mimeType: string
 }
 
-export async function generateStyledImage(
-  apiKey: string,
-  imageData: string,
-  mimeType: string,
-  style: GardenStyle,
-  characteristics?: string,
-): Promise<StyledImage> {
-  const prompt = buildImagePrompt(style, characteristics)
-
+async function callGeminiImage(apiKey: string, prompt: string, imageData: string, mimeType: string): Promise<StyledImage> {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`,
     {
@@ -49,4 +41,23 @@ export async function generateStyledImage(
     base64: imgPart.inlineData.data,
     mimeType: imgPart.inlineData.mimeType ?? 'image/png',
   }
+}
+
+export async function generateStyledImage(
+  apiKey: string,
+  imageData: string,
+  mimeType: string,
+  style: GardenStyle,
+  characteristics?: string,
+): Promise<StyledImage> {
+  return callGeminiImage(apiKey, buildImagePrompt(style, characteristics), imageData, mimeType)
+}
+
+export async function retouchImage(
+  apiKey: string,
+  imageData: string,
+  mimeType: string,
+  instruction: string,
+): Promise<StyledImage> {
+  return callGeminiImage(apiKey, buildRetouchPrompt(instruction), imageData, mimeType)
 }

@@ -25,9 +25,9 @@ export default function AboutPage() {
           <div
             className="w-16 h-16 rounded-full shrink-0 bg-sage-200"
             style={{
-              backgroundImage: 'url(/grid-1.jpeg)',
-              backgroundSize: '500% 200%',
-              backgroundPosition: '0% 100%',
+              backgroundImage: 'url(/avatars/face-1-0.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
             }}
           />
           <div>
