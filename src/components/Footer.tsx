@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { Leaf } from 'lucide-react'
 import { Link } from '@/i18n/routing'
+import RouteLink from 'next/link'
 
 export function Footer() {
   const t = useTranslations('footer')
@@ -26,10 +27,10 @@ export function Footer() {
               className="px-5 py-2.5 rounded-xl border border-offwhite/[0.12] text-sm font-medium text-offwhite/70 hover:text-offwhite hover:bg-offwhite/[0.05] transition-all">
               {t('ctaSecondary')}
             </Link>
-            <Link href="/signup"
+            <RouteLink href="/signup"
               className="px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-sm font-semibold text-midnight shadow-glow-sm hover:shadow-glow-md transition-all">
               {t('ctaButton')} →
-            </Link>
+            </RouteLink>
           </div>
         </div>
       </div>
@@ -57,8 +58,8 @@ export function Footer() {
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Produit</h4>
               <ul className="flex flex-col gap-2.5">
-                <li><Link href="#comment-ca-marche" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Comment ça marche</Link></li>
-                <li><Link href="#tarifs" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Tarifs</Link></li>
+                <li><Link href="/#comment-ca-marche" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Comment ça marche</Link></li>
+                <li><Link href="/#tarifs" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Tarifs</Link></li>
               </ul>
             </div>
             <div>

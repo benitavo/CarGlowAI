@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/routing'
+import RouteLink from 'next/link'
 import { notFound } from 'next/navigation'
 import { Calendar, Clock, ArrowLeft, Share2, Twitter, Linkedin, Link as LinkIcon } from 'lucide-react'
 
@@ -207,12 +208,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <div className="mt-12 rounded-2xl border border-glow-500/20 bg-glow-500/[0.04] p-6 text-center">
           <h3 className="font-display font-semibold text-lg">Try CarGlow free for 30 days</h3>
           <p className="text-sm text-offwhite/65 mt-1 mb-4">3 free photos. No card required. Cancel anytime.</p>
-          <Link
+          <RouteLink
             href="/signup"
             className="inline-block rounded-lg bg-glow-500 hover:bg-glow-400 text-midnight px-5 py-2 text-sm font-semibold"
           >
             Start free trial
-          </Link>
+          </RouteLink>
         </div>
 
         {/* Related */}

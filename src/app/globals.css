@@ -114,8 +114,8 @@
   }
 
   /* Section spacing */
-  .section-pad    { padding: clamp(64px, 10vw, 128px) 0; }
-  .section-pad-sm { padding: clamp(40px, 6vw, 80px) 0; }
+  .section-pad    { padding: clamp(48px, 7vw, 96px) 0; }
+  .section-pad-sm { padding: clamp(32px, 5vw, 64px) 0; }
 
   /* Container */
   .page-container {

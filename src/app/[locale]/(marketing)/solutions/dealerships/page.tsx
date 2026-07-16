@@ -1,4 +1,4 @@
-import { Link } from '@/i18n/routing'; import { ArrowRight, Check } from 'lucide-react'
+import { Link } from '@/i18n/routing'; import RouteLink from 'next/link'; import { ArrowRight, Check } from 'lucide-react'
 export default function DealershipsPage() {
   return (
     <div className="pt-32 pb-20 page-container max-w-4xl">
@@ -13,7 +13,7 @@ export default function DealershipsPage() {
         ))}
       </div>
       <div className="flex gap-3">
-        <Link href="/signup" className="px-6 py-3 rounded-2xl bg-glow-500 text-midnight font-semibold text-sm">Start free trial →</Link>
+        <RouteLink href="/signup" className="px-6 py-3 rounded-2xl bg-glow-500 text-midnight font-semibold text-sm">Start free trial →</RouteLink>
         <Link href="/pricing" className="px-6 py-3 rounded-2xl border border-white/[0.12] text-offwhite/70 text-sm">View pricing</Link>
       </div>
     </div>

@@ -1,49 +1,58 @@
 import { Link } from '@/i18n/routing'
-import { ArrowRight, Zap } from 'lucide-react'
-
-const TEAM = [
-  { name: 'Alex Moreau',   role: 'CEO & Co-founder',      bg: 'from-blue-500 to-indigo-600' },
-  { name: 'Clara Fischer', role: 'CTO & Co-founder',      bg: 'from-purple-500 to-pink-600' },
-  { name: 'Marco Santos',  role: 'Head of Product',       bg: 'from-glow-500 to-orange-600' },
-  { name: 'Yuki Tanaka',   role: 'Head of ML',            bg: 'from-green-500 to-teal-600' },
-  { name: 'Priya Nair',    role: 'Head of Sales',         bg: 'from-red-500 to-rose-600' },
-  { name: 'Ben Walker',    role: 'Head of Partnerships',  bg: 'from-amber-500 to-yellow-600' },
-]
+import { Leaf } from 'lucide-react'
 
 export default function AboutPage() {
   return (
-    <div className="pt-32 pb-20">
+    <div className="pt-32 pb-20 bg-cream-50">
       <div className="page-container max-w-4xl">
-        <p className="eyebrow mb-4">About CarGlow</p>
-        <h1 className="text-[clamp(2.5rem,5vw,4rem)] font-display font-bold text-offwhite mb-6 leading-tight">
-          We started because<br />
-          <span className="text-gradient">listings deserved better.</span>
+        <p className="eyebrow mb-4">À propos</p>
+        <h1 className="text-[clamp(2.5rem,5vw,4rem)] font-display font-bold text-midnight mb-6 leading-tight">
+          Nous croyons que chaque jardin<br />
+          <span className="text-gradient">mérite d&apos;être visualisé avant d&apos;être planté.</span>
         </h1>
-        <p className="text-lg text-offwhite/60 leading-relaxed mb-6 max-w-2xl">
-          CarGlow was founded in 2023 by a team with deep roots in automotive and computer vision. We watched dealers lose sales every day because their photos didn't reflect the quality of the cars they were selling.
+        <p className="text-lg text-midnight/55 leading-relaxed mb-6 max-w-2xl">
+          Verdia est né d&apos;un constat simple : les paysagistes perdent des clients non pas à cause
+          de la qualité de leur travail, mais parce que leurs clients n&apos;arrivaient pas à se projeter
+          sur un plan papier ou un devis. Le jardin fini restait abstrait jusqu&apos;au premier coup de pelle.
         </p>
-        <p className="text-lg text-offwhite/60 leading-relaxed mb-12 max-w-2xl">
-          We built CarGlow to fix that. Today, over 1,200 dealerships across Europe and North America use CarGlow to make every listing look like it was shot in a studio — because it was. An AI studio.
+        <p className="text-lg text-midnight/55 leading-relaxed mb-12 max-w-2xl">
+          Nous avons construit Verdia pour combler ce fossé. Aujourd&apos;hui, des paysagistes et
+          architectes paysagistes utilisent Verdia pour transformer une simple photo de jardin
+          en rendu photoréaliste en 60 secondes — et signer plus vite.
         </p>
 
-        <div className="card-noise rounded-3xl p-8 mb-16">
-          <h2 className="text-2xl font-display font-bold text-offwhite mb-6">The team</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {TEAM.map((member) => (
-              <div key={member.name} className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.05]">
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${member.bg} shrink-0`} />
-                <div>
-                  <p className="text-sm font-semibold text-offwhite">{member.name}</p>
-                  <p className="text-xs text-offwhite/40">{member.role}</p>
-                </div>
-              </div>
-            ))}
+        <div className="card-light rounded-3xl p-8 mb-16 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div
+            className="w-16 h-16 rounded-full shrink-0 bg-sage-200"
+            style={{
+              backgroundImage: 'url(/grid-1.jpeg)',
+              backgroundSize: '500% 200%',
+              backgroundPosition: '0% 100%',
+            }}
+          />
+          <div>
+            <p className="font-display font-semibold text-midnight text-lg">Antoine R.</p>
+            <p className="text-sm text-sage-600 font-medium mb-2">Fondateur de Verdia</p>
+            <p className="text-sm text-midnight/50 leading-relaxed max-w-lg">
+              &ldquo;Je réponds personnellement à chaque demande. Verdia est encore une petite équipe —
+              c&apos;est ce qui nous permet d&apos;aller vite et de rester à l&apos;écoute des paysagistes
+              qui l&apos;utilisent tous les jours.&rdquo;
+            </p>
           </div>
         </div>
 
+        <div className="flex items-center gap-2 text-sm text-midnight/40 mb-10">
+          <Leaf className="w-4 h-4 text-sage-500" fill="currentColor" />
+          Conçu en France · Conforme RGPD
+        </div>
+
         <div className="flex gap-4">
-          <Link href="/careers" className="px-5 py-2.5 rounded-xl bg-glow-500 text-midnight font-semibold text-sm">Join the team →</Link>
-          <Link href="/contact" className="px-5 py-2.5 rounded-xl border border-white/[0.12] text-offwhite/70 text-sm">Contact us</Link>
+          <Link href="/contact" className="px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-white font-semibold text-sm transition-all">
+            Nous contacter
+          </Link>
+          <Link href="/pricing" className="px-5 py-2.5 rounded-xl border border-midnight/[0.12] text-midnight/70 hover:text-midnight hover:border-midnight/[0.25] text-sm transition-all">
+            Voir les tarifs
+          </Link>
         </div>
       </div>
     </div>

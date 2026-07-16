@@ -18,11 +18,11 @@ interface Photo {
 }
 
 const STATUS_CLS: Record<string, string> = {
-  ENHANCED:   'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  PROCESSING: 'bg-glow-500/15 text-glow-300 border-glow-500/30',
-  QUEUED:     'bg-sky-500/15 text-sky-300 border-sky-500/30',
-  FAILED:     'bg-rose-500/15 text-rose-300 border-rose-500/30',
-  UPLOADED:   'bg-white/10 text-offwhite/70 border-white/15',
+  ENHANCED:   'bg-sage-500 text-white border-sage-500',
+  PROCESSING: 'bg-glow-500 text-white border-glow-500',
+  QUEUED:     'bg-white/90 text-midnight border-white/90',
+  FAILED:     'bg-rose-500 text-white border-rose-500',
+  UPLOADED:   'bg-midnight-900/60 text-offwhite border-white/15',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -73,16 +73,16 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   if (photos.length === 0) {
     return (
       <div className="px-6 lg:px-10 py-20 flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-        <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-5">
-          <ImageIcon className="w-7 h-7 text-offwhite/25" strokeWidth={1.5} />
+        <div className="w-16 h-16 rounded-2xl bg-sage-50 border border-sage-100 flex items-center justify-center mb-5">
+          <ImageIcon className="w-7 h-7 text-sage-500" strokeWidth={1.5} />
         </div>
-        <h2 className="font-display font-semibold text-lg text-offwhite mb-2">Aucun rendu encore</h2>
-        <p className="text-offwhite/45 text-sm mb-6">
+        <h2 className="font-display font-semibold text-lg text-midnight mb-2">Aucun rendu encore</h2>
+        <p className="text-midnight/50 text-sm mb-6">
           Téléchargez une photo de votre jardin et Verdia génère un rendu photoréaliste en 60 secondes.
         </p>
         <Link
           href="/app/editor"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-glow-500 hover:bg-glow-400 text-midnight font-semibold text-sm transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-semibold text-sm transition-all shadow-sm shadow-sage-500/20"
         >
           Générer mon premier rendu <ArrowRight className="w-4 h-4" />
         </Link>
@@ -99,7 +99,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             <button
               key={p.id}
               onClick={() => setPreviewIdx(idx)}
-              className="group relative aspect-[4/3] rounded-xl overflow-hidden ring-2 ring-transparent hover:ring-white/20 transition-all text-left"
+              className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-white border border-sage-100 ring-2 ring-transparent hover:ring-sage-300 hover:border-sage-300 shadow-sm hover:shadow-md hover:shadow-sage-500/10 transition-all text-left"
             >
               {p.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -109,8 +109,8 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
-                <div className="absolute inset-0 bg-midnight-900 flex items-center justify-center">
-                  <ImageIcon className="w-8 h-8 text-offwhite/20" strokeWidth={1.5} />
+                <div className="absolute inset-0 bg-sage-50 flex items-center justify-center">
+                  <ImageIcon className="w-8 h-8 text-sage-300" strokeWidth={1.5} />
                 </div>
               )}
 
