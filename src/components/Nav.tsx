@@ -6,6 +6,7 @@ import { Menu, X, LayoutDashboard } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Link } from '@/i18n/routing'
+import RouteLink from 'next/link'
 
 export function Nav() {
   const { data: session, status } = useSession()
@@ -42,8 +43,8 @@ export function Nav() {
         {/* Desktop links */}
         <ul className="hidden lg:flex items-center gap-1">
           {[
-            { label: 'Comment ça marche', href: '#comment-ca-marche' },
-            { label: 'Tarifs',            href: '#tarifs' },
+            { label: 'Comment ça marche', href: '/#comment-ca-marche' },
+            { label: 'Tarifs',            href: '/#tarifs' },
             { label: 'À propos',          href: '/about' },
           ].map(item => (
             <li key={item.href}>
@@ -58,21 +59,21 @@ export function Nav() {
         {/* Actions */}
         <div className="hidden lg:flex items-center gap-3">
           {isAuthenticated ? (
-            <Link href="/app"
+            <RouteLink href="/app"
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-sage-500 hover:bg-sage-600 rounded-xl shadow-sage-sm transition-all">
               <LayoutDashboard className="w-4 h-4" strokeWidth={2} />
               Mon espace
-            </Link>
+            </RouteLink>
           ) : (
             <>
-              <Link href="/signin"
+              <RouteLink href="/signin"
                 className="px-4 py-2 text-sm font-medium text-midnight/60 hover:text-midnight rounded-xl border border-midnight/[0.12] hover:border-midnight/[0.25] hover:bg-midnight/[0.04] transition-all">
                 Connexion
-              </Link>
-              <Link href="/signup"
-                className="px-4 py-2 text-sm font-semibold text-white bg-sage-500 hover:bg-sage-600 rounded-xl shadow-sage-sm transition-all">
+              </RouteLink>
+              <RouteLink href="/signup"
+                className="px-4 py-2 text-sm font-semibold text-white bg-glow-500 hover:bg-glow-400 rounded-xl shadow-glow-sm transition-all">
                 Essai gratuit
-              </Link>
+              </RouteLink>
             </>
           )}
         </div>
@@ -92,8 +93,8 @@ export function Nav() {
         <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-midnight/[0.07]">
           <div className="page-container py-6 flex flex-col gap-2">
             {[
-              { label: 'Comment ça marche', href: '#comment-ca-marche' },
-              { label: 'Tarifs',            href: '#tarifs' },
+              { label: 'Comment ça marche', href: '/#comment-ca-marche' },
+              { label: 'Tarifs',            href: '/#tarifs' },
               { label: 'À propos',          href: '/about' },
             ].map(item => (
               <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}
@@ -103,21 +104,21 @@ export function Nav() {
             ))}
             <div className="mt-4 pt-4 border-t border-midnight/[0.07] flex flex-col gap-3">
               {isAuthenticated ? (
-                <Link href="/app" onClick={() => setMobileOpen(false)}
+                <RouteLink href="/app" onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-center gap-2 py-3 rounded-xl bg-sage-500 text-sm font-semibold text-white">
                   <LayoutDashboard className="w-4 h-4" strokeWidth={2} />
                   Mon espace
-                </Link>
+                </RouteLink>
               ) : (
                 <>
-                  <Link href="/signin" onClick={() => setMobileOpen(false)}
+                  <RouteLink href="/signin" onClick={() => setMobileOpen(false)}
                     className="text-center py-3 rounded-xl border border-midnight/[0.12] text-sm font-medium text-midnight/70">
                     Connexion
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileOpen(false)}
-                    className="text-center py-3 rounded-xl bg-sage-500 text-sm font-semibold text-white">
+                  </RouteLink>
+                  <RouteLink href="/signup" onClick={() => setMobileOpen(false)}
+                    className="text-center py-3 rounded-xl bg-glow-500 text-sm font-semibold text-white">
                     Essai gratuit
-                  </Link>
+                  </RouteLink>
                 </>
               )}
             </div>

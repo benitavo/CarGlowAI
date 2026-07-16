@@ -3,20 +3,34 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
+import RouteLink from 'next/link'
 import {
   ArrowRight, Check, ChevronDown, ChevronUp,
-  ChevronLeft, ChevronRight, Star, Leaf,
+  ChevronLeft, ChevronRight, Star, Leaf, PlayCircle, X, ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// ─── AVATAR (cropped from a 5x2 face-grid image via background-position) ─────
+function GridAvatar({
+  src, col, row, cols = 5, rows = 2, className,
+}: { src: string; col: number; row: number; cols?: number; rows?: number; className?: string }) {
+  return (
+    <div
+      className={className}
+      style={{
+        backgroundImage: `url(${src})`,
+        backgroundSize: `${cols * 100}% ${rows * 100}%`,
+        backgroundPosition: `${(col / (cols - 1)) * 100}% ${(row / (rows - 1)) * 100}%`,
+      }}
+    />
+  )
+}
+
 // ─── PAIRS ────────────────────────────────────────────────────────────────────
-const PAIRS = [
-  { before: '/garden-before-1.jpg', after: '/garden-after-1.jpg' },
-  { before: '/garden-before-2.jpg', after: '/garden-after-2.jpg' },
-  { before: '/garden-before-3.jpg', after: '/garden-after-3.jpg' },
+const PAIRS: { before: string; after: string; video?: string }[] = [
+  { before: '/garden-before-7.jpg', after: '/garden-after-7.png', video: '/garden-video-7.mp4' },
   { before: '/garden-before-4.jpg', after: '/garden-after-4.jpg' },
   { before: '/garden-before-5.jpg', after: '/garden-after-5.jpg' },
-  { before: '/garden-before-6.jpg', after: '/garden-after-6.jpg' },
 ]
 
 // ─── BEFORE / AFTER SLIDER ───────────────────────────────────────────────────
@@ -32,6 +46,11 @@ function BeforeAfterSlider({
     if (!el) return
     const { left, width } = el.getBoundingClientRect()
     setPos(Math.min(97, Math.max(3, ((clientX - left) / width) * 100)))
+  }, [])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft')  { setPos(p => Math.max(3, p - 5)); e.preventDefault() }
+    if (e.key === 'ArrowRight') { setPos(p => Math.min(97, p + 5)); e.preventDefault() }
   }, [])
 
   useEffect(() => {
@@ -55,13 +74,21 @@ function BeforeAfterSlider({
   return (
     <div
       ref={containerRef}
+      role="slider"
+      aria-label="Comparateur avant / après. Utilisez les flèches gauche/droite pour révéler le rendu."
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(pos)}
+      tabIndex={0}
       className={cn(
         'relative overflow-hidden select-none rounded-3xl border border-midnight/[0.08] shadow-card bg-cream-100',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
         dragging ? 'cursor-ew-resize' : 'cursor-col-resize',
         className,
       )}
       onMouseDown={e => { e.preventDefault(); setDragging(true); updatePos(e.clientX) }}
       onTouchStart={e => { setDragging(true); updatePos(e.touches[0].clientX) }}
+      onKeyDown={handleKeyDown}
     >
       {/* AFTER */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -99,7 +126,7 @@ function BeforeAfterSlider({
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section className="relative min-h-[80vh] flex flex-col items-center justify-center pt-28 pb-20 overflow-hidden bg-cream-50">
+    <section className="relative flex flex-col items-center justify-center pt-36 pb-16 overflow-hidden bg-cream-50">
       <div className="absolute top-0 right-0 w-[600px] h-[500px] bg-sage-200/40 rounded-full blur-[140px] pointer-events-none -translate-y-1/4 translate-x-1/4" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-petal-100/50 rounded-full blur-[120px] pointer-events-none translate-y-1/4 -translate-x-1/4" />
 
@@ -125,11 +152,13 @@ function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+          <RouteLink href="/signup"
+            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
           <Link href="/signup"
             className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Recevoir mon rendu offert
             <ArrowRight className="w-5 h-5" />
-          </Link>
+          </RouteLink>
           <Link href="#galerie"
             className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-midnight/[0.12] text-midnight/65 hover:text-midnight hover:bg-midnight/[0.04] text-base font-medium transition-all">
             Voir les exemples
@@ -140,6 +169,33 @@ function HeroSection() {
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> Sans carte bancaire</span>
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> 60 secondes</span>
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> Styles illimités</span>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── PROJECT TYPE CHIPS ───────────────────────────────────────────────────────
+const PROJECT_CHIPS = [
+  'Pelouse & gazon', 'Massifs & haies', 'Terrasse bois & composite',
+  'Allées & pas japonais', 'Piscine & abords', 'Clôture & portail',
+  'Potager & verger', 'Éclairage extérieur',
+]
+
+function ChipsSection() {
+  return (
+    <section className="pt-2 pb-10 bg-cream-50">
+      <div className="page-container max-w-[860px]">
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-midnight/35 mb-4">
+          Tous vos types de chantiers
+        </p>
+        <div className="flex flex-wrap justify-center gap-2.5">
+          {PROJECT_CHIPS.map(chip => (
+            <span key={chip}
+              className="text-sm font-semibold text-sage-700 bg-white border border-midnight/[0.08] rounded-full px-4 py-2 shadow-sm">
+              {chip}
+            </span>
+          ))}
         </div>
       </div>
     </section>
@@ -169,7 +225,9 @@ function ProofBand() {
 
 // ─── BEFORE/AFTER GALLERY ─────────────────────────────────────────────────────
 function GallerySection() {
-  const [active, setActive] = useState(0)
+  const [active, setActive]       = useState(0)
+  const [showVideo, setShowVideo] = useState(false)
+  const pair = PAIRS[active]
 
   return (
     <section id="galerie" className="section-pad bg-cream-50">
@@ -180,7 +238,7 @@ function GallerySection() {
           <div className="lg:pt-4">
             <p className="eyebrow mb-3">Exemples réels</p>
             <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-              6 transformations<br /><span className="text-gradient">en 60 secondes.</span>
+              {PAIRS.length} transformations<br /><span className="text-gradient">en 60 secondes.</span>
             </h2>
             <p className="text-midnight/45 text-[15px] leading-relaxed mb-6">
               Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple photo de jardin.
@@ -194,18 +252,40 @@ function GallerySection() {
 
           {/* Droite : slider + vignettes */}
           <div>
-            <BeforeAfterSlider
-              key={active}
-              before={PAIRS[active].before}
-              after={PAIRS[active].after}
-              className="aspect-[4/3] w-full mb-3"
-              initialPos={25}
-            />
-            <div className="grid grid-cols-6 gap-2">
-              {PAIRS.map((pair, i) => (
+            {showVideo && pair.video ? (
+              <div className="relative aspect-[4/3] w-full mb-3 rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card bg-midnight">
+                <video src={pair.video} controls autoPlay className="absolute inset-0 w-full h-full object-cover" />
+                <button
+                  onClick={() => setShowVideo(false)}
+                  className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-midnight/60 backdrop-blur-sm text-xs font-semibold text-white border border-white/20 hover:bg-midnight/80 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" /> Fermer
+                </button>
+              </div>
+            ) : (
+              <BeforeAfterSlider
+                key={active}
+                before={pair.before}
+                after={pair.after}
+                className="aspect-[4/3] w-full mb-3"
+                initialPos={25}
+              />
+            )}
+
+            {pair.video && !showVideo && (
+              <button
+                onClick={() => setShowVideo(true)}
+                className="mb-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sage-50 border border-sage-200 text-sage-700 text-sm font-medium hover:bg-sage-100 transition-colors"
+              >
+                <PlayCircle className="w-4 h-4" /> Voir la visite en vidéo
+              </button>
+            )}
+
+            <div className="grid grid-cols-3 gap-2">
+              {PAIRS.map((p, i) => (
                 <button
                   key={i}
-                  onClick={() => setActive(i)}
+                  onClick={() => { setActive(i); setShowVideo(false) }}
                   className={cn(
                     'relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all',
                     i === active
@@ -213,7 +293,12 @@ function GallerySection() {
                       : 'border-transparent opacity-55 hover:opacity-85 hover:border-sage-300',
                   )}
                 >
-                  <Image src={pair.after} alt={`Rendu ${i + 1}`} fill className="object-cover" sizes="80px" />
+                  <Image src={p.after} alt={`Rendu ${i + 1}`} fill className="object-cover" sizes="80px" />
+                  {p.video && (
+                    <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-midnight/60 backdrop-blur-sm flex items-center justify-center">
+                      <PlayCircle className="w-3 h-3 text-white" strokeWidth={2.5} />
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -287,10 +372,10 @@ function TabletVideoPlayer() {
 
 function VideoSection() {
   return (
-    <section className="section-pad bg-cream-50 overflow-hidden">
+    <section className="section-pad bg-white overflow-hidden">
       <div className="page-container">
         {/* Text */}
-        <div className="text-center max-w-2xl mx-auto mb-12">
+        <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="eyebrow mb-3">Verdia en action</p>
           <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
             60 secondes.<br /><span className="text-gradient">Un jardin transformé.</span>
@@ -306,7 +391,7 @@ function VideoSection() {
         </div>
 
         {/* Étapes en dessous */}
-        <div className="flex flex-col sm:flex-row justify-center gap-8 mt-12 max-w-2xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-center gap-8 mt-10 max-w-2xl mx-auto">
           {['Photographiez votre terrain', 'Choisissez votre style', 'Recevez votre rendu en 60s'].map((step, i) => (
             <div key={i} className="flex items-center gap-3 text-sm text-midnight/60">
               <div className="w-7 h-7 rounded-full bg-sage-100 border border-sage-200 flex items-center justify-center text-xs font-bold text-sage-600 shrink-0">
@@ -350,7 +435,8 @@ function CalendlySection() {
             </div>
             <div className="card-light rounded-2xl p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-400 to-sage-600" />
+                <GridAvatar src="/grid-1.jpeg" col={0} row={1}
+                  className="w-10 h-10 rounded-full shrink-0 bg-sage-200" />
                 <div>
                   <p className="text-sm font-semibold text-midnight">Antoine R.</p>
                   <p className="text-xs text-midnight/45">Fondateur de Verdia</p>
@@ -390,9 +476,9 @@ function HowItWorksSection() {
   ]
 
   return (
-    <section id="comment-ca-marche" className="section-pad bg-white">
+    <section id="comment-ca-marche" className="section-pad bg-cream-50">
       <div className="page-container">
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="eyebrow mb-3">Comment ça marche</p>
           <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
             Simple comme<br /><span className="text-gradient">prendre une photo.</span>
@@ -423,6 +509,38 @@ function HowItWorksSection() {
   )
 }
 
+// ─── WHY IT CONVINCES ─────────────────────────────────────────────────────────
+const ARGUMENTS = [
+  { title: '« On a du mal à s’imaginer »', desc: "C'est la première cause de devis sans réponse. Le rendu supprime cette objection avant qu'elle n'existe." },
+  { title: 'Deux devis identiques sur la table', desc: 'Celui accompagné du futur jardin en photo gagne. Vos concurrents envoient un PDF de chiffres.' },
+  { title: 'Zéro logiciel à apprendre', desc: "Pas de 3D, pas de formation, pas d'abonnement complexe. Vous envoyez une photo, vous recevez une image." },
+]
+
+function ArgumentsSection() {
+  return (
+    <section className="section-pad bg-white">
+      <div className="page-container max-w-3xl">
+        <div className="text-center max-w-xl mx-auto mb-10">
+          <p className="eyebrow mb-3">Pourquoi ça change la vente</p>
+          <h2 className="font-display font-bold text-midnight" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+            Le rendu qui <span className="text-gradient">fait signer.</span>
+          </h2>
+        </div>
+        <div className="flex flex-col gap-3">
+          {ARGUMENTS.map(arg => (
+            <div key={arg.title} className="pl-5 pr-6 py-4 rounded-r-xl border-l-[3px] border-sage-500 bg-sage-50">
+              <p className="text-sm">
+                <strong className="text-midnight font-semibold">{arg.title}.</strong>{' '}
+                <span className="text-midnight/60">{arg.desc}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── STYLES GRID ──────────────────────────────────────────────────────────────
 const GARDEN_STYLES = [
   { emoji: '🌸', name: 'Gazon & Fleurs',    desc: 'Pelouse verte, massifs fleuris et bordures colorées', color: 'bg-petal-50 border-petal-200/60' },
@@ -437,7 +555,7 @@ function StylesSection() {
   return (
     <section className="section-pad bg-cream-50">
       <div className="page-container">
-        <div className="text-center max-w-xl mx-auto mb-14">
+        <div className="text-center max-w-xl mx-auto mb-10">
           <p className="eyebrow mb-3">Styles paysagers</p>
           <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
             Chaque projet mérite<br /><span className="text-gradient">son ambiance.</span>
@@ -464,42 +582,61 @@ function OfferSection() {
       <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-sage-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] bg-petal-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="page-container relative max-w-3xl">
-        <div className="relative rounded-3xl border border-offwhite/[0.08] bg-offwhite/[0.03] p-10 md:p-14 text-center">
+      <div className="page-container relative max-w-xl">
+        <div
+          className="relative rounded-3xl border border-sage-400/25 p-8 md:p-11 shadow-[0_24px_60px_-24px_rgba(13,31,17,0.6)]"
+          style={{ background: 'linear-gradient(160deg, #1E3D29 0%, #122417 100%)' }}
+        >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-[1px] bg-gradient-to-r from-transparent via-sage-400/60 to-transparent" />
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage-500/15 border border-sage-400/25 text-sage-300 text-sm font-semibold mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage-500/15 border border-sage-400/25 text-sage-300 text-xs font-semibold mb-6 uppercase tracking-wide">
             <Leaf className="w-3.5 h-3.5 text-sage-400" fill="currentColor" />
             Offre de lancement
           </div>
 
-          <h2 className="font-display font-bold text-offwhite mb-4 leading-tight" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+          <h2 className="font-display font-bold text-offwhite mb-2 leading-tight" style={{ fontSize: 'clamp(1.5rem,3vw,2.25rem)' }}>
             Votre premier rendu<br />est entièrement offert.
           </h2>
-          <p className="text-offwhite/55 text-[15px] leading-relaxed max-w-xl mx-auto mb-10">
-            Testez Verdia sur un projet réel. Uploadez une photo, choisissez un style,
-            et recevez un rendu photoréaliste en 60 secondes — gratuitement, sans carte bancaire.
+
+          <div className="flex items-baseline gap-2 mt-5 mb-1">
+            <span className="text-sage-400 font-display font-extrabold" style={{ fontSize: 'clamp(2.25rem,5vw,3rem)' }}>Gratuit</span>
+            <span className="text-offwhite/45 text-sm">1er rendu, sans carte bancaire</span>
+          </div>
+          <p className="text-offwhite/50 text-[14px] leading-relaxed mb-6">
+            Ensuite, à partir de 29&nbsp;€/mois pour un usage illimité sur tous vos chantiers.
           </p>
 
-          <div className="grid sm:grid-cols-3 gap-4 mb-10 max-w-lg mx-auto">
+          <ul className="text-left space-y-2.5 mb-8">
             {[
-              { label: 'Rendu offert', sub: 'Sans carte bancaire' },
-              { label: '60 secondes',  sub: 'Résultat immédiat' },
-              { label: '∞ styles',     sub: 'Illimités, HD' },
+              'Rendu photoréaliste en 60 secondes',
+              'Styles illimités — méditerranéen, moderne, potager…',
+              'Avant/après en HD, prêt à montrer au client',
+              'Aucune carte bancaire requise',
             ].map(item => (
-              <div key={item.label} className="rounded-2xl bg-offwhite/[0.05] border border-offwhite/[0.08] px-4 py-3 text-center">
-                <p className="text-base font-bold text-sage-400 mb-0.5">{item.label}</p>
-                <p className="text-xs text-offwhite/40">{item.sub}</p>
-              </div>
+              <li key={item} className="flex items-start gap-2.5 text-[14.5px] text-offwhite/80">
+                <Check className="w-4 h-4 text-sage-400 shrink-0 mt-0.5" strokeWidth={2.5} />
+                {item}
+              </li>
             ))}
-          </div>
+          </ul>
 
+          <RouteLink href="/signup"
+            className="w-full inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
           <Link href="/signup"
             className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Créer mon compte gratuit
             <ArrowRight className="w-5 h-5" />
-          </Link>
-          <p className="mt-4 text-xs text-offwhite/25">Aucune carte bancaire · Résiliation à tout moment</p>
+          </RouteLink>
+          <p className="mt-3 text-xs text-offwhite/25 text-center">Aucune carte bancaire · Résiliation à tout moment</p>
+
+          <div className="flex items-start gap-3 mt-6 pt-6 border-t border-offwhite/[0.12]">
+            <ShieldCheck className="w-5 h-5 text-sage-400 shrink-0 mt-0.5" strokeWidth={1.75} />
+            <p className="text-[13px] text-offwhite/50 leading-relaxed">
+              <strong className="text-offwhite/80 font-semibold">Faites le calcul :</strong> un aménagement moyen se vend 8&nbsp;000 à 25&nbsp;000&nbsp;€.
+              À moins de 1,50&nbsp;€ le rendu avec le forfait Essentiel, si un seul client hésitant signe grâce à lui dans l&apos;année,
+              il s&apos;est remboursé plusieurs centaines de fois.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -508,36 +645,45 @@ function OfferSection() {
 
 // ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
 const TESTIMONIALS = [
-  { quote: "J'ai montré le rendu à mes clients avant même de calculer le devis. Ils ont dit oui sur le champ. C'est devenu mon outil de vente numéro un.", name: 'Thomas B.', role: 'Paysagiste', location: 'Lyon, 69', stars: 5 },
-  { quote: "En 2 minutes, j'avais 6 versions différentes du futur jardin. Le client a choisi le style méditerranéen. Le chantier commence la semaine prochaine.", name: 'Sophie L.', role: 'Architecte paysagiste', location: 'Aix-en-Provence, 13', stars: 5 },
-  { quote: "Mes clients n'arrivent plus à se projeter sur les plans papier. Avec Verdia, ils voient exactement ce que ça va donner. Le taux de signature a explosé.", name: 'Marc D.', role: 'Aménageur extérieur', location: 'Bordeaux, 33', stars: 5 },
+  { quote: "J'ai montré le rendu à mes clients avant même de calculer le devis. Ils ont dit oui sur le champ. C'est devenu mon outil de vente numéro un.", name: 'Thomas B.', role: 'Paysagiste', location: 'Lyon, 69', stars: 5, avatar: { col: 2, row: 0 } },
+  { quote: "En 2 minutes, j'avais 6 versions différentes du futur jardin. Le client a choisi le style méditerranéen. Le chantier commence la semaine prochaine.", name: 'Sophie L.', role: 'Architecte paysagiste', location: 'Aix-en-Provence, 13', stars: 5, avatar: { col: 1, row: 0 } },
+  { quote: "Mes clients n'arrivent plus à se projeter sur les plans papier. Avec Verdia, ils voient exactement ce que ça va donner. Le taux de signature a explosé.", name: 'Marc D.', role: 'Aménageur extérieur', location: 'Bordeaux, 33', stars: 5, avatar: { col: 4, row: 0 } },
 ]
 
 function TestimonialsSection() {
   const [current, setCurrent] = useState(0)
+  const [paused, setPaused]   = useState(false)
+
   useEffect(() => {
+    if (paused) return
     const t = setInterval(() => setCurrent(c => (c + 1) % TESTIMONIALS.length), 5000)
     return () => clearInterval(t)
-  }, [])
+  }, [current, paused])
+
   const t = TESTIMONIALS[current]
 
   return (
     <section className="section-pad bg-white">
       <div className="page-container max-w-3xl">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <p className="eyebrow mb-3">Témoignages</p>
           <h2 className="font-display font-bold text-midnight" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
             Ils ont <span className="text-gradient">convaincu</span> leurs clients.
           </h2>
         </div>
 
-        <div className="card-light rounded-3xl p-10 md:p-14 text-center">
+        <div
+          className="card-light rounded-3xl p-10 md:p-14 text-center"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
           <div className="flex justify-center gap-1 mb-6">
             {Array.from({ length: t.stars }).map((_, i) => <Star key={i} className="w-4 h-4 text-glow-500 fill-glow-500" />)}
           </div>
           <p className="text-lg md:text-xl text-midnight/70 leading-relaxed mb-8 max-w-xl mx-auto">&ldquo;{t.quote}&rdquo;</p>
           <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-400 to-sage-600" />
+            <GridAvatar src="/grid-1.jpeg" col={t.avatar.col} row={t.avatar.row}
+              className="w-10 h-10 rounded-full shrink-0 bg-sage-200" />
             <div className="text-left">
               <p className="text-sm font-semibold text-midnight">{t.name}</p>
               <p className="text-xs text-midnight/45">{t.role} · {t.location}</p>
@@ -577,7 +723,7 @@ function PricingSection() {
   return (
     <section id="tarifs" className="section-pad bg-cream-50">
       <div className="page-container">
-        <div className="text-center max-w-xl mx-auto mb-14">
+        <div className="text-center max-w-xl mx-auto mb-10">
           <p className="eyebrow mb-3">Tarifs</p>
           <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
             Commencez gratuitement,<br /><span className="text-gradient">évoluez à votre rythme.</span>
@@ -609,8 +755,10 @@ function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <Link href={plan.href} className={cn(
+              <RouteLink href={plan.href} className={cn(
                 'text-center py-3 rounded-2xl text-sm font-semibold transition-all',
+                plan.highlight ? 'bg-glow-500 hover:bg-glow-400 text-white shadow-glow-sm' : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
+              )}>{plan.cta}</RouteLink>
                 plan.highlight ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm' :'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
               )}>{plan.cta}</Link>
             </div>
@@ -633,9 +781,9 @@ const FAQS = [
 function FAQSection() {
   const [open, setOpen] = useState<number | null>(null)
   return (
-    <section id="faq" className="section-pad bg-white">
+    <section id="faq" className="section-pad bg-cream-50">
       <div className="page-container max-w-3xl">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <p className="eyebrow mb-3">FAQ</p>
           <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
             Questions <span className="text-gradient">fréquentes.</span>
@@ -644,14 +792,22 @@ function FAQSection() {
         <div className="flex flex-col divide-y divide-midnight/[0.07]">
           {FAQS.map((faq, i) => (
             <div key={i} className="py-5">
-              <button onClick={() => setOpen(open === i ? null : i)}
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                aria-expanded={open === i}
+                aria-controls={`faq-panel-${i}`}
+                id={`faq-trigger-${i}`}
                 className="w-full flex items-start justify-between gap-4 text-left">
                 <span className={cn('font-medium text-base transition-colors', open === i ? 'text-sage-600' : 'text-midnight/75 hover:text-midnight')}>
                   {faq.q}
                 </span>
                 {open === i ? <ChevronUp className="w-5 h-5 text-sage-500 mt-0.5 shrink-0" /> : <ChevronDown className="w-5 h-5 text-midnight/30 mt-0.5 shrink-0" />}
               </button>
-              {open === i && <p className="mt-3 text-sm text-midnight/50 leading-relaxed">{faq.a}</p>}
+              {open === i && (
+                <p id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-trigger-${i}`} className="mt-3 text-sm text-midnight/50 leading-relaxed">
+                  {faq.a}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -680,11 +836,13 @@ function FinalCTASection() {
           photoréalistes avant de commencer les travaux.
         </p>
 
+        <RouteLink href="/signup"
+          className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
         <Link href="/signup"
           className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
           Recevoir mon rendu offert
           <ArrowRight className="w-5 h-5" />
-        </Link>
+        </RouteLink>
         <p className="mt-4 text-xs text-offwhite/25">
           Aucune carte bancaire · Résultat en 60 secondes · Styles à l&apos;infini
         </p>
@@ -693,22 +851,60 @@ function FinalCTASection() {
   )
 }
 
+// ─── STICKY MOBILE CTA ────────────────────────────────────────────────────────
+function StickyMobileCTA() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 560)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return (
+    <div
+      className={cn(
+        'lg:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3',
+        'bg-white/95 backdrop-blur-sm border-t border-midnight/[0.08] shadow-[0_-8px_24px_-8px_rgba(13,31,17,0.12)]',
+        'transition-transform duration-300',
+        visible ? 'translate-y-0' : 'translate-y-full',
+      )}
+      style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+    >
+      <div className="flex items-center gap-3 max-w-md mx-auto">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-midnight leading-tight">1er rendu offert</p>
+          <p className="text-[11px] text-midnight/45 leading-tight">Sans carte bancaire · 60 secondes</p>
+        </div>
+        <RouteLink href="/signup"
+          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-sm whitespace-nowrap transition-all shadow-glow-sm">
+          Recevoir <ArrowRight className="w-4 h-4" />
+        </RouteLink>
+      </div>
+    </div>
+  )
+}
+
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   return (
     <>
       <HeroSection />
+      <ChipsSection />
       <ProofBand />
       <GallerySection />
       <VideoSection />
       <HowItWorksSection />
+      <ArgumentsSection />
       <StylesSection />
-      <OfferSection />
       <TestimonialsSection />
+      <OfferSection />
       <PricingSection />
       <CalendlySection />
       <FAQSection />
       <FinalCTASection />
+      <StickyMobileCTA />
     </>
   )
 }

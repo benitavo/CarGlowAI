@@ -81,7 +81,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               Ils ont dit oui sur le champ. C&apos;est devenu mon outil de vente numéro un.
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sage-400 to-sage-700 ring-1 ring-white/15" />
+              <div
+                className="w-9 h-9 rounded-full shrink-0 bg-sage-700 ring-1 ring-white/15"
+                style={{
+                  backgroundImage: 'url(/grid-1.jpeg)',
+                  backgroundSize: '500% 200%',
+                  backgroundPosition: '50% 0%',
+                }}
+              />
               <div>
                 <div className="text-sm font-medium text-offwhite">Thomas B.</div>
                 <div className="text-xs text-offwhite/50">Paysagiste · Lyon, 69</div>
