@@ -43,9 +43,9 @@ export function Footer() {
               <Image
                 src="/logo%20verdia%20without%20background.png"
                 alt="Verdia"
-                width={140}
-                height={42}
-                className="h-10 w-auto object-contain brightness-0 invert"
+                width={261}
+                height={80}
+                className="h-20 w-auto object-contain brightness-0 invert"
               />
             </Link>
             <p className="text-xs text-offwhite/40 leading-relaxed max-w-[200px]">

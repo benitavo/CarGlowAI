@@ -179,14 +179,14 @@ export default function EditorPage() {
   return (
     <div className="min-h-screen bg-cream-50 text-midnight">
       {/* Topbar */}
-      <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-5 border-b border-sage-100 bg-white/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-10 flex items-center justify-between h-20 px-5 border-b border-sage-100 bg-white/95 backdrop-blur-xl">
         <Link href="/app" className="flex items-center gap-2 text-midnight/45 hover:text-midnight text-sm transition-colors">
           <ArrowLeft className="w-4 h-4" />
           <span>Tableau de bord</span>
         </Link>
         <Link href="/">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo%20verdia%20without%20background.png" alt="Verdia" className="h-9 w-auto object-contain" />
+          <img src="/logo%20verdia%20without%20background.png" alt="Verdia" className="h-14 w-auto object-contain" />
         </Link>
         <div className="w-28" />
       </header>

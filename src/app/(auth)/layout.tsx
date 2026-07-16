@@ -14,9 +14,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <Image
               src="/logo%20verdia%20without%20background.png"
               alt="Verdia"
-              width={150}
-              height={46}
-              className="h-11 w-auto object-contain"
+              width={261}
+              height={80}
+              className="h-20 w-auto object-contain"
               priority
             />
           </Link>

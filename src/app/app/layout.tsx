@@ -67,8 +67,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden lg:flex w-[210px] shrink-0 flex-col border-r border-sage-100 bg-white">
         {/* Logo */}
-        <Link href="/" className="flex items-center h-16 px-5 border-b border-sage-100">
-          <Image src="/logo%20verdia%20without%20background.png" alt="Verdia" height={36} width={120} className="h-9 w-auto object-contain" />
+        <Link href="/" className="flex items-center h-24 px-5 border-b border-sage-100">
+          <Image src="/logo%20verdia%20without%20background.png" alt="Verdia" height={64} width={209} className="h-16 w-auto object-contain" />
         </Link>
 
         {/* Nav */}

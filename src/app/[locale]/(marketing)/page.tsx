@@ -126,7 +126,7 @@ function BeforeAfterSlider({
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section className="relative flex flex-col items-center justify-center pt-36 pb-16 overflow-hidden bg-cream-50">
+    <section className="relative flex flex-col items-center justify-center pt-44 pb-16 overflow-hidden bg-cream-50">
       <div className="absolute top-0 right-0 w-[600px] h-[500px] bg-sage-200/40 rounded-full blur-[140px] pointer-events-none -translate-y-1/4 translate-x-1/4" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-petal-100/50 rounded-full blur-[120px] pointer-events-none translate-y-1/4 -translate-x-1/4" />
 
@@ -213,7 +213,7 @@ function GallerySection() {
   const pair = PAIRS[active]
 
   return (
-    <section id="galerie" className="section-pad bg-cream-50 pt-32">
+    <section id="galerie" className="section-pad bg-cream-50 pt-40">
       <div className="page-container">
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-10 lg:gap-16 items-start">
 
