@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
-import RouteLink from 'next/link'
 import {
   ArrowRight, Check, ChevronDown, ChevronUp,
   ChevronLeft, ChevronRight, Star, Leaf, PlayCircle, X, ShieldCheck,
@@ -152,13 +151,11 @@ function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-          <RouteLink href="/signup"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
           <Link href="/signup"
             className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Recevoir mon rendu offert
             <ArrowRight className="w-5 h-5" />
-          </RouteLink>
+          </Link>
           <Link href="#galerie"
             className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-midnight/[0.12] text-midnight/65 hover:text-midnight hover:bg-midnight/[0.04] text-base font-medium transition-all">
             Voir les exemples
@@ -620,13 +617,11 @@ function OfferSection() {
             ))}
           </ul>
 
-          <RouteLink href="/signup"
-            className="w-full inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
           <Link href="/signup"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
+            className="w-full inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Créer mon compte gratuit
             <ArrowRight className="w-5 h-5" />
-          </RouteLink>
+          </Link>
           <p className="mt-3 text-xs text-offwhite/25 text-center">Aucune carte bancaire · Résiliation à tout moment</p>
 
           <div className="flex items-start gap-3 mt-6 pt-6 border-t border-offwhite/[0.12]">
@@ -678,7 +673,7 @@ function TestimonialsSection() {
           onMouseLeave={() => setPaused(false)}
         >
           <div className="flex justify-center gap-1 mb-6">
-            {Array.from({ length: t.stars }).map((_, i) => <Star key={i} className="w-4 h-4 text-glow-500 fill-glow-500" />)}
+            {Array.from({ length: t.stars }).map((_, i) => <Star key={i} className="w-4 h-4 text-sage-500 fill-sage-500" />)}
           </div>
           <p className="text-lg md:text-xl text-midnight/70 leading-relaxed mb-8 max-w-xl mx-auto">&ldquo;{t.quote}&rdquo;</p>
           <div className="flex items-center justify-center gap-3">
@@ -755,11 +750,9 @@ function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <RouteLink href={plan.href} className={cn(
+              <Link href={plan.href} className={cn(
                 'text-center py-3 rounded-2xl text-sm font-semibold transition-all',
-                plan.highlight ? 'bg-glow-500 hover:bg-glow-400 text-white shadow-glow-sm' : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
-              )}>{plan.cta}</RouteLink>
-                plan.highlight ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm' :'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
+                plan.highlight ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm' : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
               )}>{plan.cta}</Link>
             </div>
           ))}
@@ -836,13 +829,11 @@ function FinalCTASection() {
           photoréalistes avant de commencer les travaux.
         </p>
 
-        <RouteLink href="/signup"
-          className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
         <Link href="/signup"
           className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
           Recevoir mon rendu offert
           <ArrowRight className="w-5 h-5" />
-        </RouteLink>
+        </Link>
         <p className="mt-4 text-xs text-offwhite/25">
           Aucune carte bancaire · Résultat en 60 secondes · Styles à l&apos;infini
         </p>
@@ -877,10 +868,10 @@ function StickyMobileCTA() {
           <p className="text-sm font-semibold text-midnight leading-tight">1er rendu offert</p>
           <p className="text-[11px] text-midnight/45 leading-tight">Sans carte bancaire · 60 secondes</p>
         </div>
-        <RouteLink href="/signup"
-          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-sm whitespace-nowrap transition-all shadow-glow-sm">
+        <Link href="/signup"
+          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-sm whitespace-nowrap transition-all shadow-sage-sm">
           Recevoir <ArrowRight className="w-4 h-4" />
-        </RouteLink>
+        </Link>
       </div>
     </div>
   )
