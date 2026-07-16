@@ -7,7 +7,7 @@ import { Link } from '@/i18n/routing'
 import RouteLink from 'next/link'
 import {
   ArrowRight, Check, ChevronDown, ChevronUp,
-  ChevronLeft, ChevronRight, Star, Leaf, PlayCircle, X,
+  ChevronLeft, ChevronRight, Star, Leaf, PlayCircle, X, ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -49,6 +49,11 @@ function BeforeAfterSlider({
     setPos(Math.min(97, Math.max(3, ((clientX - left) / width) * 100)))
   }, [])
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft')  { setPos(p => Math.max(3, p - 5)); e.preventDefault() }
+    if (e.key === 'ArrowRight') { setPos(p => Math.min(97, p + 5)); e.preventDefault() }
+  }, [])
+
   useEffect(() => {
     if (!dragging) return
     const move = (e: MouseEvent) => updatePos(e.clientX)
@@ -70,13 +75,21 @@ function BeforeAfterSlider({
   return (
     <div
       ref={containerRef}
+      role="slider"
+      aria-label="Comparateur avant / après. Utilisez les flèches gauche/droite pour révéler le rendu."
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(pos)}
+      tabIndex={0}
       className={cn(
         'relative overflow-hidden select-none rounded-3xl border border-midnight/[0.08] shadow-card bg-cream-100',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
         dragging ? 'cursor-ew-resize' : 'cursor-col-resize',
         className,
       )}
       onMouseDown={e => { e.preventDefault(); setDragging(true); updatePos(e.clientX) }}
       onTouchStart={e => { setDragging(true); updatePos(e.touches[0].clientX) }}
+      onKeyDown={handleKeyDown}
     >
       {/* AFTER */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -358,7 +371,7 @@ function TabletVideoPlayer() {
 
 function VideoSection() {
   return (
-    <section className="section-pad bg-cream-50 overflow-hidden">
+    <section className="section-pad bg-white overflow-hidden">
       <div className="page-container">
         {/* Text */}
         <div className="text-center max-w-2xl mx-auto mb-10">
@@ -464,7 +477,7 @@ function HowItWorksSection() {
   ]
 
   return (
-    <section id="comment-ca-marche" className="section-pad bg-white">
+    <section id="comment-ca-marche" className="section-pad bg-cream-50">
       <div className="page-container">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="eyebrow mb-3">Comment ça marche</p>
@@ -506,7 +519,7 @@ const ARGUMENTS = [
 
 function ArgumentsSection() {
   return (
-    <section className="section-pad bg-cream-50">
+    <section className="section-pad bg-white">
       <div className="page-container max-w-3xl">
         <div className="text-center max-w-xl mx-auto mb-10">
           <p className="eyebrow mb-3">Pourquoi ça change la vente</p>
@@ -570,50 +583,59 @@ function OfferSection() {
       <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-sage-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] bg-petal-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="page-container relative max-w-3xl">
-        <div className="relative rounded-3xl border border-offwhite/[0.08] bg-offwhite/[0.03] p-10 md:p-14 text-center">
+      <div className="page-container relative max-w-xl">
+        <div
+          className="relative rounded-3xl border border-sage-400/25 p-8 md:p-11 shadow-[0_24px_60px_-24px_rgba(13,31,17,0.6)]"
+          style={{ background: 'linear-gradient(160deg, #1E3D29 0%, #122417 100%)' }}
+        >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-[1px] bg-gradient-to-r from-transparent via-sage-400/60 to-transparent" />
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage-500/15 border border-sage-400/25 text-sage-300 text-sm font-semibold mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sage-500/15 border border-sage-400/25 text-sage-300 text-xs font-semibold mb-6 uppercase tracking-wide">
             <Leaf className="w-3.5 h-3.5 text-sage-400" fill="currentColor" />
             Offre de lancement
           </div>
 
-          <h2 className="font-display font-bold text-offwhite mb-4 leading-tight" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+          <h2 className="font-display font-bold text-offwhite mb-2 leading-tight" style={{ fontSize: 'clamp(1.5rem,3vw,2.25rem)' }}>
             Votre premier rendu<br />est entièrement offert.
           </h2>
-          <p className="text-offwhite/55 text-[15px] leading-relaxed max-w-xl mx-auto mb-10">
-            Testez Verdia sur un projet réel. Uploadez une photo, choisissez un style,
-            et recevez un rendu photoréaliste en 60 secondes — gratuitement, sans carte bancaire.
+
+          <div className="flex items-baseline gap-2 mt-5 mb-1">
+            <span className="text-sage-400 font-display font-extrabold" style={{ fontSize: 'clamp(2.25rem,5vw,3rem)' }}>Gratuit</span>
+            <span className="text-offwhite/45 text-sm">1er rendu, sans carte bancaire</span>
+          </div>
+          <p className="text-offwhite/50 text-[14px] leading-relaxed mb-6">
+            Ensuite, à partir de 29&nbsp;€/mois pour un usage illimité sur tous vos chantiers.
           </p>
 
-          <div className="grid sm:grid-cols-3 gap-4 mb-10 max-w-lg mx-auto">
+          <ul className="text-left space-y-2.5 mb-8">
             {[
-              { label: 'Rendu offert', sub: 'Sans carte bancaire' },
-              { label: '60 secondes',  sub: 'Résultat immédiat' },
-              { label: '∞ styles',     sub: 'Illimités, HD' },
+              'Rendu photoréaliste en 60 secondes',
+              'Styles illimités — méditerranéen, moderne, potager…',
+              'Avant/après en HD, prêt à montrer au client',
+              'Aucune carte bancaire requise',
             ].map(item => (
-              <div key={item.label} className="rounded-2xl bg-offwhite/[0.05] border border-offwhite/[0.08] px-4 py-3 text-center">
-                <p className="text-base font-bold text-sage-400 mb-0.5">{item.label}</p>
-                <p className="text-xs text-offwhite/40">{item.sub}</p>
-              </div>
+              <li key={item} className="flex items-start gap-2.5 text-[14.5px] text-offwhite/80">
+                <Check className="w-4 h-4 text-sage-400 shrink-0 mt-0.5" strokeWidth={2.5} />
+                {item}
+              </li>
             ))}
-          </div>
+          </ul>
 
           <RouteLink href="/signup"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
+            className="w-full inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-base shadow-glow-md hover:shadow-glow-lg transition-all">
             Créer mon compte gratuit
             <ArrowRight className="w-5 h-5" />
           </RouteLink>
-          <p className="mt-4 text-xs text-offwhite/25">Aucune carte bancaire · Résiliation à tout moment</p>
-        </div>
+          <p className="mt-3 text-xs text-offwhite/25 text-center">Aucune carte bancaire · Résiliation à tout moment</p>
 
-        <div className="mt-6 rounded-2xl bg-offwhite/[0.04] border border-offwhite/[0.08] px-6 py-5 text-center">
-          <p className="text-[13px] text-offwhite/50 leading-relaxed max-w-xl mx-auto">
-            <strong className="text-offwhite/80 font-semibold">Faites le calcul :</strong> un aménagement moyen se vend 8&nbsp;000 à 25&nbsp;000&nbsp;€.
-            À moins de 1,50&nbsp;€ le rendu avec le forfait Essentiel, si un seul client hésitant signe grâce à lui dans l&apos;année,
-            il s&apos;est remboursé plusieurs centaines de fois.
-          </p>
+          <div className="flex items-start gap-3 mt-6 pt-6 border-t border-offwhite/[0.12]">
+            <ShieldCheck className="w-5 h-5 text-sage-400 shrink-0 mt-0.5" strokeWidth={1.75} />
+            <p className="text-[13px] text-offwhite/50 leading-relaxed">
+              <strong className="text-offwhite/80 font-semibold">Faites le calcul :</strong> un aménagement moyen se vend 8&nbsp;000 à 25&nbsp;000&nbsp;€.
+              À moins de 1,50&nbsp;€ le rendu avec le forfait Essentiel, si un seul client hésitant signe grâce à lui dans l&apos;année,
+              il s&apos;est remboursé plusieurs centaines de fois.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -629,10 +651,14 @@ const TESTIMONIALS = [
 
 function TestimonialsSection() {
   const [current, setCurrent] = useState(0)
+  const [paused, setPaused]   = useState(false)
+
   useEffect(() => {
+    if (paused) return
     const t = setInterval(() => setCurrent(c => (c + 1) % TESTIMONIALS.length), 5000)
     return () => clearInterval(t)
-  }, [])
+  }, [current, paused])
+
   const t = TESTIMONIALS[current]
 
   return (
@@ -645,7 +671,11 @@ function TestimonialsSection() {
           </h2>
         </div>
 
-        <div className="card-light rounded-3xl p-10 md:p-14 text-center">
+        <div
+          className="card-light rounded-3xl p-10 md:p-14 text-center"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
           <div className="flex justify-center gap-1 mb-6">
             {Array.from({ length: t.stars }).map((_, i) => <Star key={i} className="w-4 h-4 text-glow-500 fill-glow-500" />)}
           </div>
@@ -748,7 +778,7 @@ const FAQS = [
 function FAQSection() {
   const [open, setOpen] = useState<number | null>(null)
   return (
-    <section id="faq" className="section-pad bg-white">
+    <section id="faq" className="section-pad bg-cream-50">
       <div className="page-container max-w-3xl">
         <div className="text-center mb-10">
           <p className="eyebrow mb-3">FAQ</p>
@@ -759,14 +789,22 @@ function FAQSection() {
         <div className="flex flex-col divide-y divide-midnight/[0.07]">
           {FAQS.map((faq, i) => (
             <div key={i} className="py-5">
-              <button onClick={() => setOpen(open === i ? null : i)}
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                aria-expanded={open === i}
+                aria-controls={`faq-panel-${i}`}
+                id={`faq-trigger-${i}`}
                 className="w-full flex items-start justify-between gap-4 text-left">
                 <span className={cn('font-medium text-base transition-colors', open === i ? 'text-sage-600' : 'text-midnight/75 hover:text-midnight')}>
                   {faq.q}
                 </span>
                 {open === i ? <ChevronUp className="w-5 h-5 text-sage-500 mt-0.5 shrink-0" /> : <ChevronDown className="w-5 h-5 text-midnight/30 mt-0.5 shrink-0" />}
               </button>
-              {open === i && <p className="mt-3 text-sm text-midnight/50 leading-relaxed">{faq.a}</p>}
+              {open === i && (
+                <p id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-trigger-${i}`} className="mt-3 text-sm text-midnight/50 leading-relaxed">
+                  {faq.a}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -808,6 +846,41 @@ function FinalCTASection() {
   )
 }
 
+// ─── STICKY MOBILE CTA ────────────────────────────────────────────────────────
+function StickyMobileCTA() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 560)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return (
+    <div
+      className={cn(
+        'lg:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3',
+        'bg-white/95 backdrop-blur-sm border-t border-midnight/[0.08] shadow-[0_-8px_24px_-8px_rgba(13,31,17,0.12)]',
+        'transition-transform duration-300',
+        visible ? 'translate-y-0' : 'translate-y-full',
+      )}
+      style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+    >
+      <div className="flex items-center gap-3 max-w-md mx-auto">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-midnight leading-tight">1er rendu offert</p>
+          <p className="text-[11px] text-midnight/45 leading-tight">Sans carte bancaire · 60 secondes</p>
+        </div>
+        <RouteLink href="/signup"
+          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-glow-500 hover:bg-glow-400 text-white font-bold text-sm whitespace-nowrap transition-all shadow-glow-sm">
+          Recevoir <ArrowRight className="w-4 h-4" />
+        </RouteLink>
+      </div>
+    </div>
+  )
+}
+
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   return (
@@ -820,12 +893,13 @@ export default function HomePage() {
       <HowItWorksSection />
       <ArgumentsSection />
       <StylesSection />
-      <OfferSection />
       <TestimonialsSection />
+      <OfferSection />
       <PricingSection />
       <CalendlySection />
       <FAQSection />
       <FinalCTASection />
+      <StickyMobileCTA />
     </>
   )
 }
