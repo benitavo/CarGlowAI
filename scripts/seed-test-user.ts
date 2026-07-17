@@ -42,15 +42,15 @@ async function main() {
   let workspace = await db.workspace.findFirst({ where: { slug: 'summit-auto-group' } })
 
   if (!workspace) {
+    const config = await db.pricingConfig.upsert({ where: { id: 'global' }, create: { id: 'global' }, update: {} })
     workspace = await db.workspace.create({
       data: {
-        name:             'Summit Auto Group',
-        slug:             'summit-auto-group',
-        plan:             'GROWTH',
-        creditsRemaining: 2847,
-        creditsPerMonth:  3000,
-        planRenewsAt:     new Date('2026-06-30'),
-        billingEmail:     'billing@summitauto.com',
+        name:           'Summit Auto Group',
+        slug:           'summit-auto-group',
+        plan:           'PRO',
+        monthlyCredits: Math.round(config.proCredits * 0.9), // demo: mostly-unused allotment
+        renewalDate:    new Date('2026-06-30'),
+        billingEmail:   'billing@summitauto.com',
       },
     })
   }
@@ -200,7 +200,7 @@ async function main() {
         delta:        3000,
         balanceAfter: 3000,
         reason:       'MONTHLY_GRANT',
-        notes:        'Initial GROWTH plan grant',
+        notes:        'Initial PRO plan grant',
       },
     })
     // Reflect photo deductions
@@ -215,7 +215,7 @@ async function main() {
     })
     await db.workspace.update({
       where: { id: workspace.id },
-      data:  { creditsRemaining: 3000 - photoCount },
+      data:  { monthlyCredits: 3000 - photoCount },
     })
   }
   console.log(`  ✓ Credits        ${3000 - photoCount} / 3000 (${photoCount} used by seed photos)`)

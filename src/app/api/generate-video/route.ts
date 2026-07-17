@@ -3,10 +3,12 @@ import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
 import { GARDEN_STYLES, buildVideoPrompt } from '@/lib/gardenPrompts'
 import { generateStyledImage } from '@/lib/gemini'
+import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 
 export const maxDuration = 300
 
 const SUPERUSER_EMAILS = ['ribeaudb38@gmail.com']
+const FEATURE_KEY = 'videoGeneration'
 
 async function pollOperation(operationName: string, apiKey: string, maxWaitMs = 240000): Promise<string> {
   const pollUrl = `https://generativelanguage.googleapis.com/v1beta/${operationName}?key=${apiKey}`
@@ -55,13 +57,23 @@ export async function POST(req: NextRequest) {
 
   const member = await db.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
-    include: { workspace: true },
   })
 
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
-  if (!isSuperuser && member.workspace.creditsRemaining < 2) {
-    return NextResponse.json({ error: 'Crédits insuffisants (2 crédits requis pour une vidéo)' }, { status: 402 })
+  let deduction: Awaited<ReturnType<typeof deductCredits>> | null = null
+  if (!isSuperuser) {
+    try {
+      deduction = await deductCredits(workspaceId, FEATURE_KEY)
+    } catch (err) {
+      if (err instanceof InsufficientCreditsError) {
+        return NextResponse.json(
+          { error: 'insufficient_credits', message: `Crédits insuffisants (${err.required} crédits requis pour une vidéo)`, available: err.available, required: err.required },
+          { status: 402 },
+        )
+      }
+      throw err
+    }
   }
 
   const style = GARDEN_STYLES[styleSlug] ?? GARDEN_STYLES['gazon-fleurs']
@@ -129,25 +141,16 @@ export async function POST(req: NextRequest) {
       data: { enhancedUrl: videoUrl, thumbnailUrl, status: 'ENHANCED', processingMs },
     })
 
-    if (!isSuperuser) {
-      await db.$transaction([
-        db.workspace.update({
-          where: { id: workspaceId },
-          data: { creditsRemaining: { decrement: 2 } },
-        }),
-        db.creditTransaction.create({
-          data: {
-            workspaceId,
-            delta: -2,
-            balanceAfter: member.workspace.creditsRemaining - 2,
-            reason: 'ENHANCEMENT',
-          },
-        }),
-      ])
+    if (deduction) {
+      await db.creditTransaction.updateMany({
+        where: { id: { in: deduction.transactionIds } },
+        data: { photoId: photo.id },
+      })
     }
 
     console.log(`[generate-video] done in ${processingMs}ms style=${styleSlug}`)
-    return NextResponse.json({ photoId: photo.id, videoUrl, processingMs })
+    const credits = isSuperuser ? null : await getAvailableCredits(workspaceId)
+    return NextResponse.json({ photoId: photo.id, videoUrl, processingMs, credits })
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur inconnue'
@@ -156,6 +159,11 @@ export async function POST(req: NextRequest) {
       where: { id: photo.id },
       data: { status: 'FAILED', errorMessage: msg },
     })
+
+    if (deduction) {
+      await refundCredits(workspaceId, deduction, { featureKey: FEATURE_KEY, photoId: photo.id })
+    }
+
     return NextResponse.json(
       { error: 'Génération vidéo échouée. Vérifiez que votre clé API Gemini supporte Veo 3.1.', detail: msg },
       { status: 500 },

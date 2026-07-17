@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
+import { getPricingConfig, monthlyCreditsForPlan } from '@/lib/pricing'
 
 export async function GET() {
   const session = await auth()
@@ -26,16 +27,22 @@ export async function GET() {
   const isSuperuser = !!session.user.email &&
     SUPERUSER_EMAILS.includes(session.user.email.toLowerCase())
 
+  const config = await getPricingConfig()
+
   return NextResponse.json({
-    userId:           session.user.id,
-    email:            session.user.email,
-    name:             session.user.name,
-    workspaceId:      workspace.id,
-    workspaceName:    workspace.name,
-    plan:             isSuperuser ? 'UNLIMITED' : workspace.plan,
-    creditsRemaining: isSuperuser ? 999999 : workspace.creditsRemaining,
-    creditsPerMonth:  isSuperuser ? 999999 : workspace.creditsPerMonth,
+    userId:             session.user.id,
+    email:              session.user.email,
+    name:               session.user.name,
+    workspaceId:        workspace.id,
+    workspaceName:      workspace.name,
+    plan:               isSuperuser ? 'UNLIMITED' : workspace.plan,
+    monthlyCredits:     isSuperuser ? 999999 : workspace.monthlyCredits,
+    bonusCredits:       isSuperuser ? 0 : workspace.bonusCredits,
+    creditsRemaining:   isSuperuser ? 999999 : workspace.monthlyCredits + workspace.bonusCredits,
+    creditsPerMonth:    isSuperuser ? 999999 : monthlyCreditsForPlan(config, workspace.plan),
+    subscriptionStatus: workspace.subscriptionStatus,
+    renewalDate:        workspace.renewalDate,
     isSuperuser,
-    role:             member.role,
+    role:               member.role,
   })
 }

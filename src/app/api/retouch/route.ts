@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
 import { retouchImage } from '@/lib/gemini'
+import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 
 export const maxDuration = 120
 
 const SUPERUSER_EMAILS = ['ribeaudb38@gmail.com']
+const FEATURE_KEY = 'imageRetouch'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -31,13 +33,23 @@ export async function POST(req: NextRequest) {
 
   const member = await db.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
-    include: { workspace: true },
   })
 
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
-  if (!isSuperuser && member.workspace.creditsRemaining < 1) {
-    return NextResponse.json({ error: 'Crédits insuffisants' }, { status: 402 })
+  let deduction: Awaited<ReturnType<typeof deductCredits>> | null = null
+  if (!isSuperuser) {
+    try {
+      deduction = await deductCredits(workspaceId, FEATURE_KEY)
+    } catch (err) {
+      if (err instanceof InsufficientCreditsError) {
+        return NextResponse.json(
+          { error: 'insufficient_credits', message: 'Crédits insuffisants', available: err.available, required: err.required },
+          { status: 402 },
+        )
+      }
+      throw err
+    }
   }
 
   const photo = await db.photo.create({
@@ -66,26 +78,16 @@ export async function POST(req: NextRequest) {
       data: { enhancedUrl, thumbnailUrl: enhancedUrl, status: 'ENHANCED', processingMs },
     })
 
-    if (!isSuperuser) {
-      await db.$transaction([
-        db.workspace.update({
-          where: { id: workspaceId },
-          data: { creditsRemaining: { decrement: 1 } },
-        }),
-        db.creditTransaction.create({
-          data: {
-            workspaceId,
-            delta: -1,
-            balanceAfter: member.workspace.creditsRemaining - 1,
-            reason: 'ENHANCEMENT',
-            photoId: photo.id,
-          },
-        }),
-      ])
+    if (deduction) {
+      await db.creditTransaction.updateMany({
+        where: { id: { in: deduction.transactionIds } },
+        data: { photoId: photo.id },
+      })
     }
 
     console.log(`[retouch] done in ${processingMs}ms`)
-    return NextResponse.json({ photoId: photo.id, enhancedUrl, processingMs })
+    const credits = isSuperuser ? null : await getAvailableCredits(workspaceId)
+    return NextResponse.json({ photoId: photo.id, enhancedUrl, processingMs, credits })
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur inconnue'
@@ -94,6 +96,11 @@ export async function POST(req: NextRequest) {
       where: { id: photo.id },
       data: { status: 'FAILED', errorMessage: msg },
     })
+
+    if (deduction) {
+      await refundCredits(workspaceId, deduction, { featureKey: FEATURE_KEY, photoId: photo.id })
+    }
+
     return NextResponse.json(
       { error: 'Retouche échouée, veuillez réessayer.', detail: msg },
       { status: 500 },

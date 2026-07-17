@@ -640,8 +640,8 @@ function HowItWorksSection() {
       desc: "Uploadez les photos du jardin ou du terrain. Jusqu'à 3 photos par projet, tous les formats acceptés." },
     { num: '2', title: "L'IA applique le rendu paysager", img: '/howitworks-generate-crop.png',
       desc: "Choisissez un style parmi nos options. L'IA transforme automatiquement chaque photo en rendu photoréaliste professionnel." },
-    { num: '3', title: 'Retouchez en illimité', img: '/howitworks-retouch-crop.png',
-      desc: "Affinez chaque rendu dans l'éditeur intégré. Changez de style, ajustez les détails, sans limite de retouches." },
+    { num: '3', title: 'Retouchez à la demande', img: '/howitworks-retouch-crop.png',
+      desc: "Affinez chaque rendu dans l'éditeur intégré. Changez de style, ajustez les détails — chaque retouche coûte 1 crédit." },
   ]
 
   return (
@@ -734,7 +734,7 @@ const AUTOMATION_STEPS = [
     desc: "L'IA détecte le terrain, l'exposition et les éléments existants (murs, arbres, mobilier) et suggère le style le plus adapté au jardin." },
   { icon: Layers, title: 'Génération multi-styles', time: '~60 s pour 3 styles',
     desc: "Générez plusieurs styles en parallèle sur la même photo — méditerranéen, contemporain, zen — pour laisser le client choisir." },
-  { icon: Wand2, title: 'Retouche en illimité', time: '~15 secondes',
+  { icon: Wand2, title: 'Retouche instantanée', time: '~15 secondes',
     desc: "Affinez chaque rendu directement dans l'éditeur : changez de style, précisez un détail, régénérez sans repartir de zéro." },
   { icon: PackageCheck, title: 'Kit client prêt à l’emploi', time: '~5 secondes',
     desc: "Téléchargez le rendu HD et le comparatif avant/après, prêts à présenter à vos clients ou à joindre à votre devis." },
@@ -783,7 +783,7 @@ function AutomationSection() {
           {[
             { icon: Clock,  text: '60 secondes par rendu' },
             { icon: Layers, text: 'Styles illimités' },
-            { icon: Wand2,  text: 'Retouche en illimité incluse' },
+            { icon: Wand2,  text: 'Retouche dès 1 crédit' },
           ].map(pill => (
             <div key={pill.text} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sage-50 border border-sage-200/60 text-sage-700 text-sm font-medium">
               <pill.icon className="w-4 h-4 text-sage-500" strokeWidth={1.75} />
@@ -892,13 +892,60 @@ function TestimonialsSection() {
 }
 
 // ─── PRICING ──────────────────────────────────────────────────────────────────
-const PLANS = [
-  { name: 'Découverte', price: 'Gratuit', per: '', sub: '1 rendu offert', features: ['1 rendu photoréaliste', 'Tous les styles disponibles', 'Téléchargement HD'], cta: 'Commencer gratuitement', href: '/signup', highlight: false },
-  { name: 'Essentiel',  price: '€29', per: '/mois', sub: '20 rendus par mois', badge: 'Le plus populaire', features: ['20 rendus / mois', 'Tous les 6 styles', 'Téléchargement HD', 'Support prioritaire'], cta: "Démarrer l'essai", href: '/signup?plan=essentiel', highlight: true },
-  { name: 'Pro',        price: '€89', per: '/mois', sub: 'Rendus illimités', features: ['Rendus illimités', 'Tous les styles', 'Export haute résolution', 'Support dédié'], cta: "Démarrer l'essai", href: '/signup?plan=pro', highlight: false },
-]
+// Numbers come from /api/pricing (backed by PricingConfig) — never hardcode credits or prices here.
+interface MarketingPlan {
+  name: string
+  price: string
+  per: string
+  sub: string
+  badge?: string
+  features: string[]
+  cta: string
+  href: string
+  highlight: boolean
+}
+
+const PLAN_META: Record<string, { name: string; badge?: string; highlight: boolean; href: string; cta: string; extraFeatures: string[] }> = {
+  FREE:      { name: 'Découverte', highlight: false, href: '/signup', cta: 'Commencer gratuitement', extraFeatures: ['Tous les styles disponibles', 'Téléchargement HD'] },
+  ESSENTIAL: { name: 'Essentiel',  badge: 'Le plus populaire', highlight: true, href: '/signup?plan=essential', cta: "Démarrer l'essai", extraFeatures: ['Tous les styles', 'Téléchargement HD', 'Support prioritaire'] },
+  PRO:       { name: 'Pro',        highlight: false, href: '/signup?plan=pro', cta: "Démarrer l'essai", extraFeatures: ['Tous les styles', 'Export haute résolution', 'Support dédié'] },
+  BUSINESS:  { name: 'Business',   highlight: false, href: '/signup?plan=business', cta: "Démarrer l'essai", extraFeatures: ['Tous les styles', 'Export haute résolution', 'Support dédié prioritaire'] },
+}
+
+function usePricingPlans(): MarketingPlan[] {
+  const [plans, setPlans] = useState<MarketingPlan[]>([])
+  useEffect(() => {
+    fetch('/api/pricing')
+      .then(r => r.json())
+      .then(d => {
+        const built: MarketingPlan[] = (d.plans ?? [])
+          .filter((p: { id: string }) => p.id in PLAN_META)
+          .map((p: { id: string; price: number; credits: number }) => {
+            const meta = PLAN_META[p.id]
+            const creditsLabel = p.id === 'FREE'
+              ? `${p.credits.toLocaleString()} crédit${p.credits === 1 ? '' : 's'} offert${p.credits === 1 ? '' : 's'}`
+              : `${p.credits.toLocaleString()} crédits / mois`
+            return {
+              name: meta.name,
+              price: p.price > 0 ? `€${p.price}` : 'Gratuit',
+              per: p.price > 0 ? '/mois' : '',
+              sub: creditsLabel,
+              badge: meta.badge,
+              features: [creditsLabel, ...meta.extraFeatures],
+              cta: meta.cta,
+              href: meta.href,
+              highlight: meta.highlight,
+            }
+          })
+        setPlans(built)
+      })
+      .catch(() => {})
+  }, [])
+  return plans
+}
 
 function PricingSection() {
+  const plans = usePricingPlans()
   return (
     <section id="tarifs" className="section-pad bg-cream-50">
       <div className="page-container">
@@ -908,8 +955,8 @@ function PricingSection() {
             Commencez gratuitement,<br /><span className="text-gradient">évoluez à votre rythme.</span>
           </h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
-          {PLANS.map(plan => (
+        <div className="grid md:grid-cols-4 gap-5 max-w-6xl mx-auto">
+          {plans.map(plan => (
             <div key={plan.name} className={cn(
               'relative rounded-3xl p-8 flex flex-col border transition-all',
               plan.highlight ? 'bg-midnight border-sage-500/30 shadow-sage-md' : 'bg-white border-midnight/[0.07] shadow-card hover:shadow-card-hover',

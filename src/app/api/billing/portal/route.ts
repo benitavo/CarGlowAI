@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
-
-// DEV MODE — Stripe is not configured. Returns a mock redirect URL.
-// Wire up STRIPE_SECRET_KEY in .env to activate the real portal.
+import { getStripe } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -15,14 +13,24 @@ export async function POST(req: NextRequest) {
 
   const member = await db.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    include: { workspace: true },
   })
 
   if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  console.log(`[billing/portal] dev mock — workspace: ${workspaceId}`)
+  if (!member.workspace.stripeCustomerId) {
+    return NextResponse.json({ error: 'This workspace has no billing history yet' }, { status: 400 })
+  }
 
+  const stripe = getStripe()
   const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
-  return NextResponse.json({ url: `${baseUrl}/app/billing?mock=portal` })
+
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: member.workspace.stripeCustomerId,
+    return_url: `${baseUrl}/app/billing`,
+  })
+
+  return NextResponse.json({ url: portalSession.url })
 }

@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import {
   LayoutDashboard, Wand2, FolderOpen,
-  CreditCard, LogOut,
+  CreditCard, LogOut, ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +29,7 @@ interface WorkspaceSummary {
   workspaceId:      string
   plan:             string
   creditsRemaining: number
+  isSuperuser:      boolean
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -44,12 +45,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       .then(r => r.json())
       .then(d => { if (!cancelled) setWs({
         workspaceId:      d.workspaceId,
-        plan:             d.plan ?? 'TRIAL',
+        plan:             d.plan ?? 'FREE',
         creditsRemaining: d.creditsRemaining ?? 0,
+        isSuperuser:      !!d.isSuperuser,
       })})
       .catch(() => {})
     return () => { cancelled = true }
   }, [session?.user?.id])
+
+  const nav = ws?.isSuperuser
+    ? [...NAV, { label: 'Admin tarifs', href: '/app/admin/pricing', icon: ShieldCheck }]
+    : NAV
 
   const handleSignOut = async () => {
     await signOut({ redirect: false })
@@ -73,7 +79,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {NAV.map(item => {
+          {nav.map(item => {
             const active = item.href === '/app'
               ? pathname === '/app'
               : !!pathname?.startsWith(item.href)

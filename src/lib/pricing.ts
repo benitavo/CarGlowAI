@@ -1,0 +1,89 @@
+// Single source of truth for every pricing number in the app. Nothing outside this file
+// (and the admin page that edits the underlying rows) should ever hardcode a credit cost,
+// a plan's monthly credit allotment, or a price — read it from here instead.
+import { db } from './db'
+import type { PricingConfig, AiFeature, Plan } from '@/generated/prisma/client'
+
+let cachedConfig: PricingConfig | null = null
+let cachedAt = 0
+const CACHE_TTL_MS = 15_000 // short TTL: keeps DB load low but lets admin edits take effect quickly
+
+export async function getPricingConfig(): Promise<PricingConfig> {
+  const now = Date.now()
+  if (cachedConfig && now - cachedAt < CACHE_TTL_MS) return cachedConfig
+
+  const config = await db.pricingConfig.upsert({
+    where: { id: 'global' },
+    create: { id: 'global' },
+    update: {},
+  })
+  cachedConfig = config
+  cachedAt = now
+  return config
+}
+
+// Call after any admin write to PricingConfig so the new values are visible immediately.
+export function invalidatePricingCache() {
+  cachedConfig = null
+}
+
+export async function getAiFeature(key: string): Promise<AiFeature | null> {
+  return db.aiFeature.findUnique({ where: { key } })
+}
+
+export async function listAiFeatures(): Promise<AiFeature[]> {
+  return db.aiFeature.findMany({ orderBy: { key: 'asc' } })
+}
+
+// Monthly recurring allotment for a plan. FREE has none — it grants a one-time signup
+// credit instead (see freeSignupCredits()), so it never resets or recurs.
+export function monthlyCreditsForPlan(config: PricingConfig, plan: Plan): number {
+  switch (plan) {
+    case 'FREE':
+      return 0
+    case 'ESSENTIAL':
+      return config.essentialCredits
+    case 'PRO':
+      return config.proCredits
+    case 'BUSINESS':
+      return config.businessCredits
+    case 'ENTERPRISE':
+      return config.businessCredits // custom tier: real allotment is set per-workspace by an admin
+  }
+}
+
+// One-time, non-expiring credit granted at signup on the FREE plan. Not a monthly allotment —
+// never resets, never recurs. Kept as its own accessor so the "1 free credit" concept has a
+// single name even though it's still backed by PricingConfig.freeCredits.
+export function freeSignupCredits(config: PricingConfig): number {
+  return config.freeCredits
+}
+
+export function priceForPlan(config: PricingConfig, plan: Plan): number {
+  switch (plan) {
+    case 'FREE':
+      return 0
+    case 'ESSENTIAL':
+      return config.essentialPrice
+    case 'PRO':
+      return config.proPrice
+    case 'BUSINESS':
+      return config.businessPrice
+    case 'ENTERPRISE':
+      return config.businessPrice
+  }
+}
+
+export interface CreditPack {
+  id: 'pack1' | 'pack2' | 'pack3'
+  credits: number
+  price: number
+}
+
+export function creditPacks(config: PricingConfig): CreditPack[] {
+  return [
+    { id: 'pack1', credits: config.pack1Credits, price: config.pack1Price },
+    { id: 'pack2', credits: config.pack2Credits, price: config.pack2Price },
+    { id: 'pack3', credits: config.pack3Credits, price: config.pack3Price },
+  ]
+}

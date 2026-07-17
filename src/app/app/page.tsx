@@ -32,7 +32,7 @@ export default async function DashboardPage() {
     db.photo.count({ where: { workspaceId: wsId, status: { in: ['ENHANCED', 'EXPIRED'] } } }),
   ])
 
-  const creditsRemaining = workspace.creditsRemaining
+  const creditsRemaining = workspace.monthlyCredits + workspace.bonusCredits
 
   return (
     <div className="pb-24 lg:pb-12 bg-cream-50 min-h-screen">

@@ -1,17 +1,11 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Mail, User, KeyRound, ArrowRight, Check, Loader2 } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import { cn } from '@/lib/utils'
-
-const BENEFITS = [
-  '1 rendu offert, sans carte bancaire',
-  'Résiliation à tout moment',
-  'Conforme RGPD · Données hébergées en France',
-]
 
 function validatePassword(pwd: string): string | null {
   if (pwd.length < 8)        return 'Le mot de passe doit contenir au moins 8 caractères.'
@@ -28,6 +22,20 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
+  const [freeCredits, setFreeCredits] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/pricing')
+      .then(r => r.json())
+      .then(d => setFreeCredits(d.plans?.find((p: { id: string }) => p.id === 'FREE')?.credits ?? null))
+      .catch(() => {})
+  }, [])
+
+  const benefits = [
+    freeCredits ? `${freeCredits} crédits offerts, sans carte bancaire` : 'Crédits offerts, sans carte bancaire',
+    'Résiliation à tout moment',
+    'Conforme RGPD · Données hébergées en France',
+  ]
 
   const pwdError = password.length > 0 ? validatePassword(password) : null
   const valid    = name.trim().length > 1 && /\S+@\S+\.\S+/.test(email) && !validatePassword(password)
@@ -129,7 +137,7 @@ export default function SignUpPage() {
       </form>
 
       <ul className="mt-8 pt-6 border-t border-midnight/[0.07] space-y-2">
-        {BENEFITS.map(b => (
+        {benefits.map(b => (
           <li key={b} className="flex items-center gap-2 text-xs text-midnight/55">
             <Check className="w-3.5 h-3.5 text-sage-500 flex-shrink-0" strokeWidth={2.5} />
             {b}

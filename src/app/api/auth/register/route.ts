@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { getPricingConfig, freeSignupCredits } from '@/lib/pricing'
+import { grantCredits } from '@/lib/credits'
 
 /**
  * POST /api/auth/register
@@ -68,16 +70,24 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    await db.workspace.create({
+    const config = await getPricingConfig()
+
+    // FREE plan: a single one-time credit, granted as non-expiring bonus — not a monthly
+    // allotment that would recur or reset each billing cycle.
+    const workspace = await db.workspace.create({
       data: {
-        name:             name ?? 'My Workspace',
-        slug:             `ws-${user.id}`,
-        creditsRemaining: 3,   // 3 free enhancements before upgrade
-        creditsPerMonth:  3,
+        name:           name ?? 'My Workspace',
+        slug:           `ws-${user.id}`,
+        plan:           'FREE',
+        monthlyCredits: 0,
         members: {
           create: { userId: user.id, role: 'OWNER' },
         },
       },
+    })
+
+    await grantCredits(workspace.id, freeSignupCredits(config), 'ADJUSTMENT', {
+      notes: 'Free plan signup credit',
     })
 
     console.log(`[auth/register] created account for ${email}`)

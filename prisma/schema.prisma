@@ -30,10 +30,10 @@ enum WorkspaceRole {
 }
 
 enum Plan {
-  TRIAL
-  STARTER
-  GROWTH
+  FREE
+  ESSENTIAL
   PRO
+  BUSINESS
   ENTERPRISE
 }
 
@@ -60,6 +60,8 @@ enum CreditReason {
   ENHANCEMENT
   REFUND
   ADJUSTMENT
+  MONTHLY_RESET
+  PACK_PURCHASE
 }
 
 // ── AUTH (NextAuth.js) ───────────────────────────────────────────────────────
@@ -131,10 +133,14 @@ model Workspace {
   name                String
   slug                String   @unique
   logoUrl             String?
-  plan                Plan     @default(TRIAL)
-  planRenewsAt        DateTime?
-  creditsRemaining    Int      @default(50)
-  creditsPerMonth     Int      @default(50)
+  plan                Plan     @default(FREE)
+  renewalDate         DateTime?
+  monthlyCredits      Int      @default(2)
+  bonusCredits        Int      @default(0)
+  subscriptionStatus  String   @default("active")
+  lastCreditReset     DateTime @default(now())
+  /// @deprecated superseded by PricingConfig; kept until all reads are migrated, then dropped
+  creditsPerMonth     Int?
   vatNumber           String?
   billingAddress      Json?
   billingEmail        String?
@@ -392,6 +398,8 @@ model CreditTransaction {
   delta           Int          // positive for grant/purchase, negative for spend
   balanceAfter    Int
   reason          CreditReason
+  featureKey      String?      // AiFeature.key this transaction relates to, e.g. "imageGeneration"
+  bucket          String?      // "monthly" | "bonus" — which pool this delta was applied to
   photoId         String?
   stripeInvoiceId String?
   notes           String?
@@ -401,6 +409,46 @@ model CreditTransaction {
   photo     Photo?    @relation(fields: [photoId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId, createdAt(sort: Desc)])
+}
+
+// Singleton row (id = "global") holding every tunable pricing number in the app.
+// Edit this row (via the admin page or directly) to change pricing — no code changes needed.
+model PricingConfig {
+  id               String   @id @default("global")
+
+  freeCredits      Int      @default(1) // one-time signup grant on FREE, not a monthly allotment
+
+  essentialPrice   Int      @default(39)
+  essentialCredits Int      @default(100)
+
+  proPrice         Int      @default(99)
+  proCredits       Int      @default(300)
+
+  businessPrice    Int      @default(199)
+  businessCredits  Int      @default(700)
+
+  pack1Price       Int      @default(19)
+  pack1Credits     Int      @default(50)
+
+  pack2Price       Int      @default(49)
+  pack2Credits     Int      @default(150)
+
+  pack3Price       Int      @default(99)
+  pack3Credits     Int      @default(400)
+
+  updatedAt        DateTime @updatedAt
+}
+
+// One row per AI action / feature. Adding a new AI feature (Sky replacement, 360 panorama, ...)
+// only requires inserting a new row here — no backend code changes.
+model AiFeature {
+  id         String   @id @default(cuid())
+  key        String   @unique // stable identifier, e.g. "imageGeneration", "imageRetouch", "videoGeneration"
+  label      String
+  creditCost Int
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model ShareLink {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import {
@@ -18,6 +18,7 @@ interface GenState {
   resultUrl?: string
   error?: string
   processingMs?: number
+  insufficientCredits?: boolean
 }
 
 interface Version {
@@ -59,9 +60,33 @@ export default function EditorClient() {
   const [retouchText, setRetouchText]     = useState('')
   const [retouchStatus, setRetouchStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [retouchError, setRetouchError]   = useState<string | undefined>()
+  const [retouchInsufficientCredits, setRetouchInsufficientCredits] = useState(false)
   const styleSectionRef   = useRef<HTMLDivElement>(null)
   const characteristicsRef = useRef<HTMLTextAreaElement>(null)
   const retouchInputRef    = useRef<HTMLInputElement>(null)
+
+  const [credits, setCredits]         = useState<number | null>(null)
+  const [featureCosts, setFeatureCosts] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    fetch('/api/pricing')
+      .then(r => r.json())
+      .then(d => {
+        const costs: Record<string, number> = {}
+        for (const f of d.features ?? []) costs[f.key] = f.creditCost
+        setFeatureCosts(costs)
+      })
+      .catch(() => {})
+  }, [])
+
+  const refreshCredits = useCallback(() => {
+    fetch('/api/me')
+      .then(r => r.json())
+      .then(d => setCredits((d.monthlyCredits ?? 0) + (d.bonusCredits ?? 0)))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => { refreshCredits() }, [refreshCredits])
 
   const selected = selectedIdx !== null ? versions[selectedIdx] : null
 
@@ -113,19 +138,27 @@ export default function EditorClient() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Erreur inconnue')
+      if (!res.ok) {
+        if (res.status === 402 || data.error === 'insufficient_credits') {
+          setGen({ status: 'error', error: data.message ?? 'Crédits insuffisants', insufficientCredits: true })
+          return
+        }
+        throw new Error(data.error ?? 'Erreur inconnue')
+      }
       const url = data.enhancedUrl ?? data.videoUrl
       pushVersion({ id: data.photoId ?? `${Date.now()}`, url, mode, kind: 'generate', processingMs: data.processingMs })
       setGen({ status: 'done', resultUrl: url, processingMs: data.processingMs })
+      refreshCredits()
     } catch (err) {
       setGen({ status: 'error', error: err instanceof Error ? err.message : 'Erreur inconnue' })
     }
-  }, [file, session, styleSlug, characteristics, mode, pushVersion])
+  }, [file, session, styleSlug, characteristics, mode, pushVersion, refreshCredits])
 
   const handleRetouch = useCallback(async () => {
     if (!retouchText.trim() || !selected || selected.mode !== 'image' || !session?.user?.workspaceId) return
     setRetouchStatus('loading')
     setRetouchError(undefined)
+    setRetouchInsufficientCredits(false)
     try {
       const { base64, mimeType } = splitDataUrl(selected.url)
       const res = await fetch('/api/retouch', {
@@ -140,15 +173,24 @@ export default function EditorClient() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Erreur inconnue')
+      if (!res.ok) {
+        if (res.status === 402 || data.error === 'insufficient_credits') {
+          setRetouchError(data.message ?? 'Crédits insuffisants')
+          setRetouchInsufficientCredits(true)
+          setRetouchStatus('error')
+          return
+        }
+        throw new Error(data.error ?? 'Erreur inconnue')
+      }
       pushVersion({ id: data.photoId, url: data.enhancedUrl, mode: 'image', kind: 'retouch', processingMs: data.processingMs })
       setRetouchText('')
       setRetouchStatus('idle')
+      refreshCredits()
     } catch (err) {
       setRetouchError(err instanceof Error ? err.message : 'Erreur inconnue')
       setRetouchStatus('error')
     }
-  }, [retouchText, selected, session, styleSlug, pushVersion])
+  }, [retouchText, selected, session, styleSlug, pushVersion, refreshCredits])
 
   const handleDownload = async () => {
     const url = selected?.url ?? gen.resultUrl
@@ -180,7 +222,12 @@ export default function EditorClient() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo%20verdia%20without%20background.png" alt="Verdia" className="h-8 sm:h-14 w-auto object-contain" />
         </Link>
-        <div className="w-8 sm:w-28 shrink-0" />
+        <Link
+          href="/app/billing"
+          className="shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-sage-50 border border-sage-200 text-xs sm:text-sm font-semibold text-sage-700 hover:bg-sage-100 transition-colors"
+        >
+          {credits === null ? '…' : `${credits.toLocaleString()} crédit${credits === 1 ? '' : 's'}`}
+        </Link>
       </header>
 
       <div className="max-w-[1200px] mx-auto px-4 sm:px-5 py-6 sm:py-8 grid lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 items-start">
@@ -374,7 +421,14 @@ export default function EditorClient() {
 
               {/* Retouch bar */}
               {selected.mode === 'image' && (
-                <div className="border-t border-sage-100 px-4 py-3 flex items-center gap-2 bg-cream-50/60">
+                <div className="border-t border-sage-100 px-4 pt-3 pb-0 flex items-center justify-between">
+                  <span className="text-[11px] text-midnight/35">
+                    Retouche — Coûte {featureCosts.imageRetouch ?? 1} crédit{(featureCosts.imageRetouch ?? 1) === 1 ? '' : 's'}
+                  </span>
+                </div>
+              )}
+              {selected.mode === 'image' && (
+                <div className="px-4 py-3 flex items-center gap-2 bg-cream-50/60">
                   <input
                     ref={retouchInputRef}
                     type="text"
@@ -401,7 +455,14 @@ export default function EditorClient() {
               )}
               {retouchStatus === 'error' && retouchError && (
                 <div className="px-4 pb-3 -mt-1">
-                  <p className="text-xs text-rose-600">{retouchError}</p>
+                  <p className="text-xs text-rose-600">
+                    {retouchError}
+                    {retouchInsufficientCredits && (
+                      <Link href="/app/billing" className="ml-1 font-semibold underline underline-offset-2 hover:text-rose-800">
+                        Recharger des crédits
+                      </Link>
+                    )}
+                  </p>
                 </div>
               )}
             </div>
@@ -455,6 +516,11 @@ export default function EditorClient() {
           {gen.status === 'error' && (
             <div className="order-10 lg:order-none rounded-2xl bg-rose-50 border border-rose-200 px-5 py-4 text-sm text-rose-700">
               {gen.error}
+              {gen.insufficientCredits && (
+                <Link href="/app/billing" className="ml-1 font-semibold underline underline-offset-2 hover:text-rose-800">
+                  Recharger des crédits
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -475,6 +541,14 @@ export default function EditorClient() {
             >
               <ImageIcon className="w-4 h-4" strokeWidth={1.75} />
               Image
+              {featureCosts.imageGeneration != null && (
+                <span className={cn(
+                  'text-[10px] px-1.5 py-0.5 rounded-full font-bold',
+                  mode === 'image' ? 'bg-white/20 text-white' : 'bg-sage-100 text-sage-600',
+                )}>
+                  {featureCosts.imageGeneration} crédit{featureCosts.imageGeneration === 1 ? '' : 's'}
+                </span>
+              )}
             </button>
             <button
               onClick={() => { setMode('video'); setGen({ status: 'idle' }) }}
@@ -487,7 +561,12 @@ export default function EditorClient() {
             >
               <Video className="w-4 h-4" strokeWidth={1.75} />
               Vidéo
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sage-100 text-sage-600 font-bold">IA</span>
+              <span className={cn(
+                'text-[10px] px-1.5 py-0.5 rounded-full font-bold',
+                mode === 'video' ? 'bg-white/20 text-white' : 'bg-sage-100 text-sage-600',
+              )}>
+                {featureCosts.videoGeneration != null ? `${featureCosts.videoGeneration} crédits` : 'IA'}
+              </span>
             </button>
           </div>
 
@@ -551,6 +630,10 @@ export default function EditorClient() {
               <>
                 {mode === 'video' ? <Video className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                 {mode === 'video' ? 'Générer la vidéo' : 'Générer mon rendu'}
+                {(() => {
+                  const cost = mode === 'video' ? featureCosts.videoGeneration : featureCosts.imageGeneration
+                  return cost != null ? ` · ${cost} crédit${cost === 1 ? '' : 's'}` : ''
+                })()}
               </>
             )}
           </button>
