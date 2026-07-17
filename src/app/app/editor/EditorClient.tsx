@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   Upload, Loader2, Download, ArrowLeft, Sparkles,
   Leaf, RotateCcw, Video, Image as ImageIcon, PenLine,
-  Wand2, RefreshCw, Palette, Send,
+  Wand2, RefreshCw, Palette, Send, AlertTriangle, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GARDEN_STYLES } from '@/lib/gardenStyles'
@@ -18,7 +18,11 @@ interface GenState {
   resultUrl?: string
   error?: string
   processingMs?: number
-  insufficientCredits?: boolean
+}
+
+interface CreditError {
+  available: number
+  required: number
 }
 
 interface Version {
@@ -60,7 +64,7 @@ export default function EditorClient() {
   const [retouchText, setRetouchText]     = useState('')
   const [retouchStatus, setRetouchStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [retouchError, setRetouchError]   = useState<string | undefined>()
-  const [retouchInsufficientCredits, setRetouchInsufficientCredits] = useState(false)
+  const [creditError, setCreditError]     = useState<CreditError | null>(null)
   const styleSectionRef   = useRef<HTMLDivElement>(null)
   const characteristicsRef = useRef<HTMLTextAreaElement>(null)
   const retouchInputRef    = useRef<HTMLInputElement>(null)
@@ -140,7 +144,8 @@ export default function EditorClient() {
       const data = await res.json()
       if (!res.ok) {
         if (res.status === 402 || data.error === 'insufficient_credits') {
-          setGen({ status: 'error', error: data.message ?? 'Crédits insuffisants', insufficientCredits: true })
+          setGen({ status: 'idle' })
+          setCreditError({ available: data.available ?? 0, required: data.required ?? 0 })
           return
         }
         throw new Error(data.error ?? 'Erreur inconnue')
@@ -158,7 +163,6 @@ export default function EditorClient() {
     if (!retouchText.trim() || !selected || selected.mode !== 'image' || !session?.user?.workspaceId) return
     setRetouchStatus('loading')
     setRetouchError(undefined)
-    setRetouchInsufficientCredits(false)
     try {
       const { base64, mimeType } = splitDataUrl(selected.url)
       const res = await fetch('/api/retouch', {
@@ -175,9 +179,8 @@ export default function EditorClient() {
       const data = await res.json()
       if (!res.ok) {
         if (res.status === 402 || data.error === 'insufficient_credits') {
-          setRetouchError(data.message ?? 'Crédits insuffisants')
-          setRetouchInsufficientCredits(true)
-          setRetouchStatus('error')
+          setRetouchStatus('idle')
+          setCreditError({ available: data.available ?? 0, required: data.required ?? 0 })
           return
         }
         throw new Error(data.error ?? 'Erreur inconnue')
@@ -455,14 +458,7 @@ export default function EditorClient() {
               )}
               {retouchStatus === 'error' && retouchError && (
                 <div className="px-4 pb-3 -mt-1">
-                  <p className="text-xs text-rose-600">
-                    {retouchError}
-                    {retouchInsufficientCredits && (
-                      <Link href="/app/billing" className="ml-1 font-semibold underline underline-offset-2 hover:text-rose-800">
-                        Recharger des crédits
-                      </Link>
-                    )}
-                  </p>
+                  <p className="text-xs text-rose-600">{retouchError}</p>
                 </div>
               )}
             </div>
@@ -516,11 +512,6 @@ export default function EditorClient() {
           {gen.status === 'error' && (
             <div className="order-10 lg:order-none rounded-2xl bg-rose-50 border border-rose-200 px-5 py-4 text-sm text-rose-700">
               {gen.error}
-              {gen.insufficientCredits && (
-                <Link href="/app/billing" className="ml-1 font-semibold underline underline-offset-2 hover:text-rose-800">
-                  Recharger des crédits
-                </Link>
-              )}
             </div>
           )}
         </div>
@@ -654,6 +645,51 @@ export default function EditorClient() {
           )}
         </div>
       </div>
+
+      {creditError && (
+        <InsufficientCreditsModal
+          available={creditError.available}
+          required={creditError.required}
+          onClose={() => setCreditError(null)}
+        />
+      )}
     </div>
+  )
+}
+
+function InsufficientCreditsModal({ available, required, onClose }: { available: number; required: number; onClose: () => void }) {
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-midnight/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <div className="bg-white border border-rose-100 rounded-2xl w-full max-w-sm p-6 pointer-events-auto shadow-card text-center relative">
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 p-1 rounded hover:bg-sage-50 text-midnight/40"
+            aria-label="Fermer"
+          >
+            <X className="w-4 h-4" strokeWidth={1.75} />
+          </button>
+          <div className="w-12 h-12 mx-auto rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-6 h-6 text-rose-500" strokeWidth={1.75} />
+          </div>
+          <h3 className="font-display font-semibold text-lg text-midnight mb-2">Crédits insuffisants</h3>
+          <p className="text-sm text-midnight/50 mb-6">
+            Il vous faut {required} crédit{required === 1 ? '' : 's'} pour cette action, il vous en reste {available}.
+          </p>
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/app/billing"
+              className="rounded-xl bg-sage-500 hover:bg-sage-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors"
+            >
+              Recharger des crédits
+            </Link>
+            <button onClick={onClose} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
