@@ -133,14 +133,10 @@ model Workspace {
   name                String
   slug                String   @unique
   logoUrl             String?
-  plan                Plan     @default(FREE)
-  renewalDate         DateTime?
-  monthlyCredits      Int      @default(2)
-  bonusCredits        Int      @default(0)
-  subscriptionStatus  String   @default("active")
-  lastCreditReset     DateTime @default(now())
-  /// @deprecated superseded by PricingConfig; kept until all reads are migrated, then dropped
-  creditsPerMonth     Int?
+  plan                Plan     @default(TRIAL)
+  planRenewsAt        DateTime?
+  creditsRemaining    Int      @default(50)
+  creditsPerMonth     Int?     @default(50)
   vatNumber           String?
   billingAddress      Json?
   billingEmail        String?
