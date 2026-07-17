@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
-import PhotoGrid from './_components/PhotoGrid'
+import PhotoGrid from '@/components/app/PhotoGrid'
 
 export default async function LibraryPage() {
   const session = await auth()
@@ -22,7 +22,7 @@ export default async function LibraryPage() {
   const photos = await db.photo.findMany({
     where: {
       workspaceId: wsId,
-      status: { in: ['ENHANCED', 'PROCESSING', 'FAILED', 'UPLOADED'] },
+      status: { in: ['ENHANCED', 'PROCESSING', 'FAILED', 'UPLOADED', 'EXPIRED'] },
     },
     orderBy: { createdAt: 'desc' },
     take: 200,

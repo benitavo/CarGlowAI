@@ -74,8 +74,10 @@ export function Footer() {
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-widest text-offwhite/30 mb-4">Légal</h4>
               <ul className="flex flex-col gap-2.5">
-                <li><Link href="/legal/terms" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Conditions</Link></li>
+                <li><Link href="/legal/terms" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Conditions générales</Link></li>
                 <li><Link href="/legal/privacy" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Confidentialité</Link></li>
+                <li><Link href="/legal/cookies" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Cookies</Link></li>
+                <li><Link href="/legal/mentions" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Mentions légales</Link></li>
               </ul>
             </div>
           </div>

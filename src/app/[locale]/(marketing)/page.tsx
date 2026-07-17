@@ -26,11 +26,28 @@ function GridAvatar({
   )
 }
 
-// ─── PAIRS ────────────────────────────────────────────────────────────────────
-const PAIRS: { before: string; after: string; video?: string }[] = [
-  { before: '/garden-before-7.jpg', after: '/garden-after-7.png', video: '/garden-video-7.mp4' },
-  { before: '/garden-before-4.jpg', after: '/garden-after-4.jpg' },
-  { before: '/garden-before-5.jpg', after: '/garden-after-5.jpg' },
+// ─── SHOWCASE (before/after pairs, auto-rotating) ────────────────────────────
+interface ShowcaseItem { before: string; after: string; video?: string; style: string; desc: string }
+
+const SHOWCASE: ShowcaseItem[] = [
+  { before: '/garden-before-7.jpg', after: '/garden-after-7.png', video: '/garden-video-7.mp4',
+    style: 'Zen & Japonais',    desc: 'Bambou, mousse et pierres' },
+  { before: '/garden-before-4.jpg', after: '/garden-after-4.jpg',
+    style: 'Naturel & Sauvage', desc: 'Prairie fleurie et plantes locales' },
+  { before: '/garden-before-5.jpg', after: '/garden-after-5.jpg',
+    style: 'Gazon & Fleurs',    desc: 'Pelouse verte et massifs fleuris' },
+]
+
+const SHOWCASE_INTERVAL_MS = 30_000
+
+// ─── STYLE PHOTOS (crossfade strip below the gallery) ────────────────────────
+const STYLE_PHOTOS = [
+  { src: '/styles/gazon-fleurs.jpg',    style: 'Gazon & Fleurs',    desc: 'Pelouse verte et massifs fleuris' },
+  { src: '/styles/mediterraneen.jpg',   style: 'Méditerranéen',     desc: 'Olivier, lavande et pierre naturelle' },
+  { src: '/styles/contemporain.jpg',    style: 'Contemporain',      desc: 'Lignes épurées et végétation structurée' },
+  { src: '/styles/naturel-sauvage.jpg', style: 'Naturel & Sauvage', desc: 'Prairie fleurie et plantes locales' },
+  { src: '/styles/zen.jpg',             style: 'Zen & Japonais',    desc: 'Bambou, mousse et pierres' },
+  { src: '/styles/potager.jpg',         style: 'Potager',           desc: 'Carrés potagers et aromatiques' },
 ]
 
 // ─── BEFORE / AFTER SLIDER ───────────────────────────────────────────────────
@@ -210,7 +227,17 @@ function StatsSection() {
 function GallerySection() {
   const [active, setActive]       = useState(0)
   const [showVideo, setShowVideo] = useState(false)
-  const pair = PAIRS[active]
+  const [paused, setPaused]       = useState(false)
+  const item = SHOWCASE[active]
+
+  useEffect(() => {
+    if (paused) return
+    const t = setInterval(() => {
+      setActive(a => (a + 1) % SHOWCASE.length)
+      setShowVideo(false)
+    }, SHOWCASE_INTERVAL_MS)
+    return () => clearInterval(t)
+  }, [active, paused])
 
   return (
     <section id="galerie" className="section-pad bg-cream-50 pt-40">
@@ -218,28 +245,38 @@ function GallerySection() {
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-10 lg:gap-16 items-start">
 
           {/* Image : slider + vignettes */}
-          <div>
-            {showVideo && pair.video ? (
+          <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+            {showVideo && item.video ? (
               <div className="relative aspect-[4/3] w-full mb-3 rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card bg-midnight">
-                <video src={pair.video} controls autoPlay className="absolute inset-0 w-full h-full object-cover" />
+                <video src={item.video} controls autoPlay className="absolute inset-0 w-full h-full object-cover" />
                 <button
                   onClick={() => setShowVideo(false)}
                   className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-midnight/60 backdrop-blur-sm text-xs font-semibold text-white border border-white/20 hover:bg-midnight/80 transition-colors"
                 >
                   <X className="w-3.5 h-3.5" /> Fermer
                 </button>
+                <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-midnight/50 backdrop-blur-sm border border-white/15">
+                  <p className="text-xs font-semibold text-white">{item.style}</p>
+                  <p className="text-[11px] text-white/70">{item.desc}</p>
+                </div>
               </div>
             ) : (
-              <BeforeAfterSlider
-                key={active}
-                before={pair.before}
-                after={pair.after}
-                className="aspect-[4/3] w-full mb-3"
-                initialPos={25}
-              />
+              <div className="relative mb-3">
+                <BeforeAfterSlider
+                  key={active}
+                  before={item.before}
+                  after={item.after}
+                  className="aspect-[4/3] w-full"
+                  initialPos={25}
+                />
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-midnight/50 backdrop-blur-sm border border-white/15 pointer-events-none">
+                  <p className="text-xs font-semibold text-white">{item.style}</p>
+                  <p className="text-[11px] text-white/70">{item.desc}</p>
+                </div>
+              </div>
             )}
 
-            {pair.video && !showVideo && (
+            {item.video && !showVideo && (
               <button
                 onClick={() => setShowVideo(true)}
                 className="mb-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sage-50 border border-sage-200 text-sage-700 text-sm font-medium hover:bg-sage-100 transition-colors"
@@ -249,7 +286,7 @@ function GallerySection() {
             )}
 
             <div className="grid grid-cols-3 gap-2">
-              {PAIRS.map((p, i) => (
+              {SHOWCASE.map((s, i) => (
                 <button
                   key={i}
                   onClick={() => { setActive(i); setShowVideo(false) }}
@@ -260,8 +297,8 @@ function GallerySection() {
                       : 'border-transparent opacity-55 hover:opacity-85 hover:border-sage-300',
                   )}
                 >
-                  <Image src={p.after} alt={`Rendu ${i + 1}`} fill className="object-cover" sizes="80px" />
-                  {p.video && (
+                  <Image src={s.after} alt={s.style} fill className="object-cover" sizes="80px" />
+                  {s.video && (
                     <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-midnight/60 backdrop-blur-sm flex items-center justify-center">
                       <PlayCircle className="w-3 h-3 text-white" strokeWidth={2.5} />
                     </span>
@@ -275,7 +312,7 @@ function GallerySection() {
           <div className="lg:pt-4">
             <p className="eyebrow mb-3">Exemples réels</p>
             <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-              {PAIRS.length} transformations<br /><span className="text-gradient">en 60 secondes.</span>
+              {SHOWCASE.length} transformations<br /><span className="text-gradient">en 60 secondes.</span>
             </h2>
             <p className="text-midnight/45 text-[15px] leading-relaxed mb-7">
               Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple photo de jardin.
@@ -288,11 +325,13 @@ function GallerySection() {
             </Link>
             <p className="text-xs text-midnight/35 mb-6">Sans carte bancaire · Résultat en 60 secondes</p>
 
-            <p className="text-xs text-midnight/30 flex items-center gap-2 mb-6">
-              <ChevronLeft className="w-3 h-3" />
-              Glissez pour comparer avant / après
-              <ChevronRight className="w-3 h-3" />
-            </p>
+            {!showVideo && (
+              <p className="text-xs text-midnight/30 flex items-center gap-2 mb-6">
+                <ChevronLeft className="w-3 h-3" />
+                Glissez pour comparer avant / après
+                <ChevronRight className="w-3 h-3" />
+              </p>
+            )}
 
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2.5">
@@ -313,8 +352,97 @@ function GallerySection() {
           </div>
 
         </div>
+
+        <StylePhotosStrip />
       </div>
     </section>
+  )
+}
+
+// ─── STYLE PHOTOS STRIP (crossfade) ───────────────────────────────────────────
+function StylePhotosStrip() {
+  const [active, setActive] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    if (paused) return
+    const t = setInterval(() => setActive(a => (a + 1) % STYLE_PHOTOS.length), 4000)
+    return () => clearInterval(t)
+  }, [paused])
+
+  const goPrev = useCallback(() => {
+    setActive(a => (a - 1 + STYLE_PHOTOS.length) % STYLE_PHOTOS.length)
+  }, [])
+  const goNext = useCallback(() => {
+    setActive(a => (a + 1) % STYLE_PHOTOS.length)
+  }, [])
+
+  const current = STYLE_PHOTOS[active]
+
+  return (
+    <div className="mt-16 pt-14 border-t border-midnight/[0.06]">
+      <div className="text-center max-w-lg mx-auto mb-8">
+        <p className="eyebrow mb-3">Tous les styles</p>
+        <h3 className="font-display font-bold text-midnight" style={{ fontSize: 'clamp(1.4rem,2.5vw,1.9rem)' }}>
+          Une ambiance pour chaque jardin.
+        </h3>
+      </div>
+
+      <div
+        className="relative max-w-xl mx-auto aspect-[16/9] rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        {STYLE_PHOTOS.map((s, i) => (
+          <Image
+            key={s.style}
+            src={s.src}
+            alt={s.style}
+            fill
+            priority={i === 0}
+            className={cn(
+              'object-cover transition-opacity duration-1000 ease-in-out',
+              i === active ? 'opacity-100' : 'opacity-0',
+            )}
+            sizes="(min-width: 1024px) 576px, 100vw"
+          />
+        ))}
+        <div className="absolute inset-0 bg-gradient-to-t from-midnight/60 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute bottom-5 left-5 right-5">
+          <p className="text-white font-display font-semibold text-lg">{current.style}</p>
+          <p className="text-white/70 text-sm">{current.desc}</p>
+        </div>
+
+        <button
+          onClick={goPrev}
+          aria-label="Style précédent"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
+        >
+          <ChevronLeft className="w-5 h-5" strokeWidth={2} />
+        </button>
+        <button
+          onClick={goNext}
+          aria-label="Style suivant"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
+        >
+          <ChevronRight className="w-5 h-5" strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="flex justify-center gap-2 mt-5">
+        {STYLE_PHOTOS.map((s, i) => (
+          <button
+            key={s.style}
+            onClick={() => setActive(i)}
+            aria-label={s.style}
+            className={cn(
+              'h-1.5 rounded-full transition-all',
+              i === active ? 'w-6 bg-sage-500' : 'w-1.5 bg-midnight/15 hover:bg-midnight/30',
+            )}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -592,12 +720,12 @@ function ArgumentsSection() {
 
 // ─── STYLES GRID ──────────────────────────────────────────────────────────────
 const GARDEN_STYLES = [
-  { emoji: '🌸', name: 'Gazon & Fleurs',    desc: 'Pelouse verte, massifs fleuris et bordures colorées', color: 'bg-petal-50 border-petal-200/60' },
-  { emoji: '🫒', name: 'Méditerranéen',      desc: 'Olivier, lavande, gravier blanc et pierre naturelle', color: 'bg-cream-100 border-cream-300/60' },
-  { emoji: '◼',  name: 'Contemporain',       desc: 'Lignes épurées, ardoise, végétation structurée',      color: 'bg-midnight/[0.03] border-midnight/[0.08]' },
-  { emoji: '🌿', name: 'Naturel & Sauvage', desc: 'Prairie fleurie, graminées, plantes indigènes',        color: 'bg-sage-50 border-sage-200/60' },
-  { emoji: '🎋', name: 'Zen & Japonais',    desc: 'Bambou, mousse, graviers ratissés, pierres',           color: 'bg-cream-100 border-cream-300/60' },
-  { emoji: '🥬', name: 'Potager',           desc: 'Carrés potagers, aromates, arbres fruitiers',          color: 'bg-sage-50 border-sage-200/60' },
+  { image: '/styles/gazon-fleurs.jpg',    name: 'Gazon & Fleurs',    desc: 'Pelouse verte, massifs fleuris et bordures colorées', color: 'bg-petal-50 border-petal-200/60' },
+  { image: '/styles/mediterraneen.jpg',   name: 'Méditerranéen',      desc: 'Olivier, lavande, gravier blanc et pierre naturelle', color: 'bg-cream-100 border-cream-300/60' },
+  { image: '/styles/contemporain.jpg',    name: 'Contemporain',       desc: 'Lignes épurées, ardoise, végétation structurée',      color: 'bg-midnight/[0.03] border-midnight/[0.08]' },
+  { image: '/styles/naturel-sauvage.jpg', name: 'Naturel & Sauvage', desc: 'Prairie fleurie, graminées, plantes indigènes',        color: 'bg-sage-50 border-sage-200/60' },
+  { image: '/styles/zen.jpg',             name: 'Zen & Japonais',    desc: 'Bambou, mousse, graviers ratissés, pierres',           color: 'bg-cream-100 border-cream-300/60' },
+  { image: '/styles/potager.jpg',         name: 'Potager',           desc: 'Carrés potagers, aromates, arbres fruitiers',          color: 'bg-sage-50 border-sage-200/60' },
 ]
 
 // ─── AUTOMATION ───────────────────────────────────────────────────────────────
@@ -681,7 +809,9 @@ function StylesSection() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {GARDEN_STYLES.map(s => (
             <div key={s.name} className={cn('group p-6 rounded-2xl border transition-all cursor-default hover:shadow-card', s.color)}>
-              <span className="text-3xl mb-4 block">{s.emoji}</span>
+              <div className="relative w-full h-32 rounded-xl overflow-hidden mb-4">
+                <Image src={s.image} alt={s.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(min-width: 768px) 300px, 45vw" />
+              </div>
               <h3 className="font-display font-semibold text-midnight text-[15px] mb-1.5 group-hover:text-sage-600 transition-colors">{s.name}</h3>
               <p className="text-xs text-midnight/45 leading-relaxed">{s.desc}</p>
             </div>

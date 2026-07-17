@@ -51,6 +51,7 @@ enum PhotoStatus {
   PROCESSING
   ENHANCED
   FAILED
+  EXPIRED
 }
 
 enum CreditReason {
@@ -251,6 +252,7 @@ model Photo {
   width         Int?
   height        Int?
   sizeBytes     Int?
+  downloadedAt  DateTime?   // first download timestamp — undownloaded renders are purged 30 days after creation
   createdById   String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

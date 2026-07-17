@@ -489,7 +489,8 @@ export default function EditorPage() {
                       : 'border border-transparent hover:bg-cream-100 hover:border-sage-100',
                   )}
                 >
-                  <span className="text-xl shrink-0">{style.emoji}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={style.image} alt="" className="w-11 h-11 rounded-lg object-cover shrink-0" />
                   <div>
                     <p className={cn(
                       'text-sm font-semibold',

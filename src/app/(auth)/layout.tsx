@@ -33,8 +33,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <footer className="px-6 lg:px-10 py-6 border-t border-midnight/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs text-midnight/40">
           <div>© {new Date().getFullYear()} Verdia</div>
           <div className="flex items-center gap-4">
-            <Link href="/terms"   className="hover:text-midnight/70">CGU</Link>
-            <Link href="/privacy" className="hover:text-midnight/70">Confidentialité</Link>
+            <Link href="/legal/terms"   className="hover:text-midnight/70">CGU</Link>
+            <Link href="/legal/privacy" className="hover:text-midnight/70">Confidentialité</Link>
             <Link href="/support" className="hover:text-midnight/70">Support</Link>
           </div>
         </footer>

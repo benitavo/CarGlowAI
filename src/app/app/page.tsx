@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, Image as ImageIcon, ArrowRight, AlertCircle, CreditCard, Leaf } from 'lucide-react'
+import { ImageIcon, ArrowRight, AlertCircle, CreditCard, Leaf, Clock3 } from 'lucide-react'
 import { auth } from '@/app/api/auth/[...nextauth]/route'
 import { db } from '@/lib/db'
+import PhotoGrid from '@/components/app/PhotoGrid'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -21,12 +22,15 @@ export default async function DashboardPage() {
 
   const wsId = workspace.id
 
-  const recentPhotos = await db.photo.findMany({
-    where:   { workspaceId: wsId, status: 'ENHANCED' },
-    orderBy: { createdAt: 'desc' },
-    take:    12,
-    select:  { id: true, thumbnailUrl: true, enhancedUrl: true, styleUsed: true, createdAt: true },
-  })
+  const [recentPhotos, totalRenders] = await Promise.all([
+    db.photo.findMany({
+      where:   { workspaceId: wsId, status: 'ENHANCED' },
+      orderBy: { createdAt: 'desc' },
+      take:    3,
+      include: { vehicle: { select: { name: true } } },
+    }),
+    db.photo.count({ where: { workspaceId: wsId, status: { in: ['ENHANCED', 'EXPIRED'] } } }),
+  ])
 
   const creditsRemaining = workspace.creditsRemaining
 
@@ -75,43 +79,53 @@ export default async function DashboardPage() {
       </section>
 
       <div className="px-6 lg:px-10 py-8 max-w-[1480px]">
+        {/* Stats */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+          <div className="rounded-2xl border border-sage-100 bg-white px-5 py-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-sage-50 border border-sage-200/60 flex items-center justify-center shrink-0">
+              <ImageIcon className="w-5 h-5 text-sage-500" strokeWidth={1.75} />
+            </div>
+            <div>
+              <p className="font-display font-bold text-xl text-midnight leading-none">{totalRenders}</p>
+              <p className="text-xs text-midnight/45 mt-1">Rendu{totalRenders !== 1 ? 's' : ''} généré{totalRenders !== 1 ? 's' : ''} au total</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-sage-100 bg-white px-5 py-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-sage-50 border border-sage-200/60 flex items-center justify-center shrink-0">
+              <Clock3 className="w-5 h-5 text-sage-500" strokeWidth={1.75} />
+            </div>
+            <div>
+              <p className="font-display font-bold text-xl text-midnight leading-none">{creditsRemaining.toLocaleString()}</p>
+              <p className="text-xs text-midnight/45 mt-1">Crédits restants</p>
+            </div>
+          </div>
+        </div>
+
         {/* Library */}
         <section className="rounded-2xl border border-sage-100 bg-white overflow-hidden shadow-sm">
-          <header className="flex items-center justify-between px-5 py-4 border-b border-sage-100">
-            <h2 className="font-display font-semibold text-[15px] text-midnight">Mes rendus de jardin</h2>
-            <Link href="/app/library" className="text-[12px] text-sage-600 hover:text-sage-700 inline-flex items-center gap-1 font-medium">
+          <header className="flex items-center justify-between px-5 py-4 border-b border-sage-100 gap-3">
+            <div>
+              <h2 className="font-display font-semibold text-[15px] text-midnight">Mes 3 derniers rendus</h2>
+              <p className="text-[11px] text-midnight/40 mt-0.5">
+                Un rendu non téléchargé est automatiquement supprimé après 30 jours.
+              </p>
+            </div>
+            <Link href="/app/library" className="text-[12px] text-sage-600 hover:text-sage-700 inline-flex items-center gap-1 font-medium shrink-0">
               Voir tout <ArrowRight className="w-3 h-3" />
             </Link>
           </header>
 
-          {recentPhotos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-              <div className="w-14 h-14 rounded-2xl bg-sage-50 border border-sage-200 flex items-center justify-center mb-4">
-                <ImageIcon className="w-6 h-6 text-sage-400" strokeWidth={1.5} />
-              </div>
-              <p className="text-sm text-midnight/45 mb-4">Vos rendus de jardin apparaîtront ici</p>
-              <Link
-                href="/app/editor"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-semibold text-sm transition-all"
-              >
-                <Leaf className="w-4 h-4" /> Générer mon premier rendu
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-px bg-sage-50">
-              {recentPhotos.map((p) => (
-                <div key={p.id} className="relative group bg-white aspect-square overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={p.thumbnailUrl ?? p.enhancedUrl ?? ''}
-                    alt={p.styleUsed ?? 'rendu jardin'}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-midnight/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              ))}
-            </div>
-          )}
+          <PhotoGrid photos={recentPhotos.map(p => ({
+            id:           p.id,
+            thumbnailUrl: p.thumbnailUrl ?? p.enhancedUrl ?? p.originalUrl,
+            fullUrl:      p.enhancedUrl ?? p.thumbnailUrl ?? p.originalUrl,
+            vehicleName:  p.vehicle?.name ?? null,
+            styleUsed:    p.styleUsed ?? null,
+            status:       p.status,
+            createdAt:    p.createdAt.toISOString(),
+            processingMs: p.processingMs ?? null,
+            isVideo:      Array.isArray(p.toolsUsed) && p.toolsUsed.includes('veo_video_generation'),
+          }))} />
         </section>
       </div>
     </div>

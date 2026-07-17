@@ -1,26 +1,49 @@
-export default function LegalPage() {
-  const titles: Record<string,string> = { terms:'Terms of Service', privacy:'Privacy Policy', cookies:'Cookie Policy', dpa:'Data Processing Agreement', sla:'Service Level Agreement' }
+import type { Metadata } from 'next'
+import { Link } from '@/i18n/routing'
+import { LegalPageLayout, LegalSection } from '@/components/legal/LegalPageLayout'
+
+export const metadata: Metadata = {
+  title: 'Politique de cookies',
+  description: 'Quels cookies Verdia utilise et pourquoi.',
+}
+
+export default function CookiesPage() {
   return (
-    <div className="pt-32 pb-20 page-container max-w-2xl">
-      <div className="mb-12">
-        <p className="eyebrow mb-3">Legal</p>
-        <h1 className="text-3xl font-display font-bold text-offwhite mb-3">Legal Document</h1>
-        <p className="text-sm text-offwhite/30">Last updated: 1 January 2025</p>
-      </div>
-      <div className="flex flex-col gap-8 text-offwhite/60 leading-relaxed text-sm">
-        <section>
-          <h2 className="text-lg font-display font-semibold text-offwhite mb-3">1. Introduction</h2>
-          <p>These terms govern your use of CarGlow AI products and services. By using CarGlow, you agree to these terms.</p>
-        </section>
-        <section>
-          <h2 className="text-lg font-display font-semibold text-offwhite mb-3">2. Service description</h2>
-          <p>CarGlow AI provides AI-powered vehicle photo enhancement services for automotive dealerships, marketplaces, and related businesses.</p>
-        </section>
-        <section>
-          <h2 className="text-lg font-display font-semibold text-offwhite mb-3">3. Contact</h2>
-          <p>Questions? Email us at legal@carglowai.com</p>
-        </section>
-      </div>
-    </div>
+    <LegalPageLayout eyebrow="Cookies" title="Politique de cookies" updated="17 juillet 2026">
+      <LegalSection title="Résumé">
+        <p>
+          Le site utilise des cookies techniques indispensables à son fonctionnement ainsi que, le cas échéant,
+          des cookies de mesure d&apos;audience. Les cookies non essentiels sont soumis au consentement préalable
+          lorsque la loi l&apos;exige.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Pourquoi nous utilisons des cookies">
+        <p>Verdia utilise des cookies afin :</p>
+        <ul>
+          <li>d&apos;assurer le fonctionnement du site ;</li>
+          <li>de maintenir la session utilisateur ;</li>
+          <li>de mesurer l&apos;audience ;</li>
+          <li>d&apos;améliorer le service.</li>
+        </ul>
+      </LegalSection>
+
+      <LegalSection title="Vos choix">
+        <p>
+          Les cookies strictement nécessaires au fonctionnement du site (par exemple, le maintien de votre
+          session de connexion) ne requièrent pas de consentement. Les cookies non essentiels — mesure
+          d&apos;audience notamment — sont soumis à votre consentement préalable lorsque la réglementation
+          l&apos;exige, et vous pouvez à tout moment les refuser ou les supprimer via les paramètres de votre
+          navigateur.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Contact">
+        <p>
+          Pour toute question, écrivez à <a href="mailto:verdia.rendus@gmail.com">verdia.rendus@gmail.com</a>.
+          Voir aussi notre <Link href="/legal/privacy" className="text-sage-600 underline underline-offset-2 hover:text-sage-700">politique de confidentialité</Link>.
+        </p>
+      </LegalSection>
+    </LegalPageLayout>
   )
 }

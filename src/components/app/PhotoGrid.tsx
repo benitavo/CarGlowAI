@@ -1,8 +1,8 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Download, ImageIcon, ArrowRight, X, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import { Download, ImageIcon, ArrowRight, X, ChevronLeft, ChevronRight, Play, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Photo {
@@ -23,6 +23,7 @@ const STATUS_CLS: Record<string, string> = {
   QUEUED:     'bg-white/90 text-midnight border-white/90',
   FAILED:     'bg-rose-500 text-white border-rose-500',
   UPLOADED:   'bg-midnight-900/60 text-offwhite border-white/15',
+  EXPIRED:    'bg-midnight-900/60 text-offwhite border-white/15',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -31,6 +32,7 @@ const STATUS_LABEL: Record<string, string> = {
   QUEUED:     'En attente',
   FAILED:     'Échec',
   UPLOADED:   'Importé',
+  EXPIRED:    'Expiré',
 }
 
 function timeAgo(iso: string) {
@@ -40,6 +42,16 @@ function timeAgo(iso: string) {
   if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`
   const d = Math.floor(s / 86400)
   return d === 1 ? 'hier' : `il y a ${d} j`
+}
+
+function daysUntilExpiry(createdAt: string) {
+  const ageMs = Date.now() - new Date(createdAt).getTime()
+  const remaining = 30 - Math.floor(ageMs / 86_400_000)
+  return Math.max(0, remaining)
+}
+
+function markDownloaded(id: string) {
+  fetch(`/api/photos/${id}/mark-downloaded`, { method: 'POST', keepalive: true }).catch(() => {})
 }
 
 export default function PhotoGrid({ photos }: { photos: Photo[] }) {
@@ -95,7 +107,9 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
       {/* Grid */}
       <div className="px-6 lg:px-10 py-8 max-w-[1480px]">
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-          {photos.map((p, idx) => (
+          {photos.map((p, idx) => {
+            const expiryDays = p.status === 'ENHANCED' ? daysUntilExpiry(p.createdAt) : null
+            return (
             <button
               key={p.id}
               onClick={() => setPreviewIdx(idx)}
@@ -131,6 +145,13 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 {STATUS_LABEL[p.status] ?? p.status}
               </div>
 
+              {expiryDays !== null && expiryDays <= 7 && (
+                <div className="absolute top-2 left-2 flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border border-white/20 bg-rose-500/90 text-white backdrop-blur-md">
+                  <Clock className="w-2.5 h-2.5" strokeWidth={2.5} />
+                  {expiryDays === 0 ? 'Expire aujourd\'hui' : `${expiryDays} j restants`}
+                </div>
+              )}
+
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 {p.vehicleName && (
                   <div className="text-[13px] font-medium text-offwhite truncate">{p.vehicleName}</div>
@@ -142,7 +163,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 </div>
               </div>
             </button>
-          ))}
+          )})}
         </div>
       </div>
 
@@ -175,6 +196,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   <a
                     href={preview.fullUrl}
                     download={`verdia-${preview.vehicleName ?? preview.id}.${preview.isVideo ? 'mp4' : 'png'}`}
+                    onClick={() => markDownloaded(preview.id)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-midnight font-semibold text-sm transition-all"
                   >
                     <Download className="w-4 h-4" strokeWidth={2} /> Télécharger
@@ -230,8 +252,13 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                     />
                   )
                 ) : (
-                  <div className="h-64 flex items-center justify-center">
+                  <div className="h-64 flex flex-col items-center justify-center gap-2 py-16">
                     <ImageIcon className="w-10 h-10 text-offwhite/20" strokeWidth={1.5} />
+                    {preview.status === 'EXPIRED' && (
+                      <p className="text-xs text-offwhite/40 max-w-[220px] text-center leading-relaxed">
+                        Ce rendu n&apos;a pas été téléchargé dans les 30 jours et a été supprimé.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
