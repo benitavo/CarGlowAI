@@ -18,8 +18,17 @@ export default auth(function middleware(req: any) {
     return // not authenticated → let Next.js render the page normally
   }
 
-  // /app/* is already guarded by the `authorized` callback (returns false → redirect to /signin).
-  if (pathname.startsWith('/app')) return
+  // /app/* requires a session. The `authorized` callback in auth.config.ts does not actually
+  // block the request here (confirmed: this function still runs with req.auth === null for an
+  // unauthenticated request) — enforce the redirect explicitly instead of relying on it.
+  if (pathname.startsWith('/app')) {
+    if (!req.auth?.user) {
+      const signInUrl = new URL('/signin', req.url)
+      signInUrl.searchParams.set('callbackUrl', pathname)
+      return Response.redirect(signInUrl)
+    }
+    return
+  }
 
   // Apply next-intl locale detection to marketing routes.
   return intlMiddleware(req)

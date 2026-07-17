@@ -33,7 +33,7 @@ export function Nav() {
             alt="Verdia"
             width={310}
             height={96}
-            className="h-24 w-auto object-contain"
+            className="h-12 sm:h-16 lg:h-24 w-auto object-contain"
             priority
           />
         </Link>
@@ -95,6 +95,8 @@ export function Nav() {
             {[
               { label: 'Comment ça marche', href: '/#comment-ca-marche' },
               { label: 'Tarifs',            href: '/#tarifs' },
+              { label: 'Guide',             href: '/guide' },
+              { label: 'Blog',              href: '/blog' },
               { label: 'À propos',          href: '/about' },
             ].map(item => (
               <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}

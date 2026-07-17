@@ -219,7 +219,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 onClick={goPrev}
                 disabled={!hasPrev}
                 className={cn(
-                  'absolute left-0 z-10 -translate-x-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all',
+                  'absolute left-1 sm:left-0 sm:-translate-x-1/2 z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all',
                   'bg-midnight-800/90 border border-white/[0.12] backdrop-blur',
                   hasPrev
                     ? 'text-offwhite hover:bg-white/[0.12] hover:border-white/[0.25] cursor-pointer'
@@ -227,7 +227,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 )}
                 aria-label="Rendu précédent"
               >
-                <ChevronLeft className="w-5 h-5" strokeWidth={2} />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />
               </button>
 
               {/* Image */}
@@ -268,7 +268,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 onClick={goNext}
                 disabled={!hasNext}
                 className={cn(
-                  'absolute right-0 z-10 translate-x-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all',
+                  'absolute right-1 sm:right-0 sm:translate-x-1/2 z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all',
                   'bg-midnight-800/90 border border-white/[0.12] backdrop-blur',
                   hasNext
                     ? 'text-offwhite hover:bg-white/[0.12] hover:border-white/[0.25] cursor-pointer'
@@ -276,7 +276,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 )}
                 aria-label="Rendu suivant"
               >
-                <ChevronRight className="w-5 h-5" strokeWidth={2} />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />
               </button>
             </div>
           </div>

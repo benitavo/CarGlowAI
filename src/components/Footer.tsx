@@ -86,7 +86,7 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-offwhite/[0.06]">
-        <div className="page-container py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="page-container pt-5 pb-24 lg:pb-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-offwhite/30">
             © {new Date().getFullYear()} Verdia. {t('copyright')}
           </p>

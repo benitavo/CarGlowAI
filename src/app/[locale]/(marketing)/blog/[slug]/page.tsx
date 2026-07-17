@@ -117,12 +117,12 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
         </h1>
         <p className="text-lg text-midnight/50 leading-relaxed mb-8">{description}</p>
 
-        <div className="flex items-center justify-between py-5 border-y border-midnight/[0.08] mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-5 border-y border-midnight/[0.08] mb-10">
           <div>
             <p className="text-sm font-semibold text-midnight">{author}</p>
             <p className="text-xs text-midnight/45">{authorRole}</p>
           </div>
-          <div className="flex items-center gap-4 text-xs text-midnight/45">
+          <div className="flex flex-wrap items-center gap-4 text-xs text-midnight/45">
             <span className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" strokeWidth={1.75} />
               {formatDate(date)}
