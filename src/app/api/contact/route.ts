@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   }
 
   const { error } = await getResend().emails.send({
-    from:    'Verdia <verdia.rendus@gmail.com>',
+    from:    'Verdia <noreply@verdia-app.com>',
     to:      'verdia.rendus@gmail.com',
     replyTo: email,
     subject: `${prenom} ${nom} via Verdia${sujet ? ` — ${sujet}` : ''}`,

@@ -119,6 +119,24 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const renewalDate = new Date(subscription.current_period_end * 1000)
   await db.workspace.update({ where: { id: workspaceId }, data: { renewalDate, subscriptionStatus: subscription.status } })
   await resetMonthlyCredits(workspaceId, { renewalDate })
+
+  // Email de facture d'abonnement
+  const email = subscription.metadata?.email
+  if (email) {
+    const plan = planFromSubscription(subscription)
+    const amountEur = invoice.amount_paid
+      ? `${(invoice.amount_paid / 100).toFixed(2).replace('.', ',')} €`
+      : '—'
+    const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    const invoiceNum = invoice.number ?? `INV-${Date.now()}`
+    sendInvoiceEmail(email, {
+      invoiceNumber: invoiceNum,
+      date,
+      description:   `Abonnement ${plan ?? 'Verdia'} — renouvellement mensuel`,
+      amountEur,
+      receiptUrl:    invoice.hosted_invoice_url ?? undefined,
+    })
+  }
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
