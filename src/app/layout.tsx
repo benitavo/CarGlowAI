@@ -12,7 +12,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://verdia.fr'),
+  metadataBase: new URL('https://verdia-app.com'),
   title: {
     default: 'Verdia — Visualisez votre jardin de rêve en secondes',
     template: '%s | Verdia',

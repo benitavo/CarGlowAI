@@ -21,7 +21,7 @@ export function splitLeadingStrong(paragraph: Paragraph): { label: string; rest:
   return { label, rest }
 }
 
-export const SITE_URL = 'https://verdia.fr'
+export const SITE_URL = 'https://verdia-app.com'
 
 export function parseMarkdown(body: string): Root {
   return unified().use(remarkParse).use(remarkGfm).parse(body) as Root
