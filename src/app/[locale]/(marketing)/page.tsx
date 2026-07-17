@@ -1110,19 +1110,19 @@ function StickyMobileCTA() {
 export default function HomePage() {
   return (
     <>
-      <GallerySection />
       <HeroSection />
-      <ScrollingGallerySection />
-      <VideoSection />
+      <GallerySection />
       <StatsSection />
       <HowItWorksSection />
-      <ArgumentsSection />
-      <AutomationSection />
+      <VideoSection />
+      <ScrollingGallerySection />
       <StylesSection />
+      <AutomationSection />
+      <ArgumentsSection />
       <TestimonialsSection />
       <PricingSection />
-      <CalendlySection />
       <FAQSection />
+      <CalendlySection />
       <FinalCTASection />
       <StickyMobileCTA />
     </>
