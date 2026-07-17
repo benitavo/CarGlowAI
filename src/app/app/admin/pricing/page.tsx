@@ -144,8 +144,8 @@ export default function AdminPricingPage() {
         {/* Plans */}
         <div>
           <h2 className="font-display font-bold text-lg text-midnight mb-3">Plans d&apos;abonnement</h2>
-          <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-x-auto">
+            <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="border-b border-sage-100 text-left text-xs uppercase tracking-wide text-midnight/40">
                   <th className="px-4 py-3 font-semibold">Plan</th>
@@ -166,8 +166,8 @@ export default function AdminPricingPage() {
         {/* Credit packs */}
         <div>
           <h2 className="font-display font-bold text-lg text-midnight mb-3">Packs de crédits (achat unique)</h2>
-          <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-x-auto">
+            <table className="w-full min-w-[420px] text-sm">
               <thead>
                 <tr className="border-b border-sage-100 text-left text-xs uppercase tracking-wide text-midnight/40">
                   <th className="px-4 py-3 font-semibold">Pack</th>
@@ -206,8 +206,8 @@ export default function AdminPricingPage() {
           <p className="text-sm text-midnight/45 mb-3">
             Chaque action consomme des crédits déduits automatiquement. Désactiver une action la rend indisponible sans toucher au code.
           </p>
-          <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b border-sage-100 text-left text-xs uppercase tracking-wide text-midnight/40">
                   <th className="px-4 py-3 font-semibold">Clé</th>

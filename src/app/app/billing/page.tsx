@@ -310,8 +310,8 @@ export default function BillingPage() {
         {history.length > 0 && (
           <div>
             <h2 className="font-display font-bold text-lg text-midnight mb-3">Historique des crédits</h2>
-            <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-2xl border border-sage-100 bg-white shadow-sm overflow-x-auto">
+              <table className="w-full min-w-[420px] text-sm">
                 <tbody>
                   {history.map((tx) => (
                     <tr key={tx.id} className="border-b border-sage-50 last:border-0">
@@ -378,7 +378,7 @@ function TopUpModal({
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {packs.map((p) => (
               <button
                 key={p.id}
