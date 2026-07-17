@@ -10,6 +10,7 @@ import {
   CreditCard, LogOut, ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { identifyUser } from '@/lib/analytics/client'
 
 const NAV = [
   { label: 'Tableau de bord', href: '/app',         icon: LayoutDashboard },
@@ -43,12 +44,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     let cancelled = false
     fetch('/api/me')
       .then(r => r.json())
-      .then(d => { if (!cancelled) setWs({
-        workspaceId:      d.workspaceId,
-        plan:             d.plan ?? 'FREE',
-        creditsRemaining: d.creditsRemaining ?? 0,
-        isSuperuser:      !!d.isSuperuser,
-      })})
+      .then(d => {
+        if (cancelled) return
+        setWs({
+          workspaceId:      d.workspaceId,
+          plan:             d.plan ?? 'FREE',
+          creditsRemaining: d.creditsRemaining ?? 0,
+          isSuperuser:      !!d.isSuperuser,
+        })
+        if (session.user!.id) {
+          identifyUser(session.user!.id, { email: session.user!.email, plan: d.plan, workspaceId: d.workspaceId })
+        }
+      })
       .catch(() => {})
     return () => { cancelled = true }
   }, [session?.user?.id])

@@ -3,6 +3,8 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { retouchImage } from '@/lib/gemini'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
+import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
 export const maxDuration = 120
 
@@ -33,9 +35,12 @@ export async function POST(req: NextRequest) {
 
   const member = await db.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    include: { workspace: { select: { plan: true } } },
   })
 
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+
+  const analyticsIdentity = { userId: session.user.id, email: session.user.email ?? null, plan: member.workspace.plan, workspaceId }
 
   let deduction: Awaited<ReturnType<typeof deductCredits>> | null = null
   if (!isSuperuser) {
@@ -43,6 +48,13 @@ export async function POST(req: NextRequest) {
       deduction = await deductCredits(workspaceId, FEATURE_KEY)
     } catch (err) {
       if (err instanceof InsufficientCreditsError) {
+        trackServerEvent(ANALYTICS_EVENTS.OUT_OF_CREDITS, {
+          ...analyticsIdentity,
+          remainingCredits: err.available,
+          featureKey: FEATURE_KEY,
+          required: err.required,
+          available: err.available,
+        })
         return NextResponse.json(
           { error: 'insufficient_credits', message: 'Crédits insuffisants', available: err.available, required: err.required },
           { status: 402 },
@@ -87,11 +99,21 @@ export async function POST(req: NextRequest) {
 
     console.log(`[retouch] done in ${processingMs}ms`)
     const credits = isSuperuser ? null : await getAvailableCredits(workspaceId)
+    const remainingCredits = credits?.total ?? 0
+
+    trackServerEvent(ANALYTICS_EVENTS.IMAGE_RETOUCHED, { ...analyticsIdentity, remainingCredits, processingMs })
+    if (deduction) {
+      trackServerEvent(ANALYTICS_EVENTS.CREDITS_CONSUMED, {
+        ...analyticsIdentity, remainingCredits, featureKey: FEATURE_KEY, amount: deduction.monthlySpent + deduction.bonusSpent,
+      })
+    }
+
     return NextResponse.json({ photoId: photo.id, enhancedUrl, processingMs, credits })
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur inconnue'
     console.error('[retouch]', msg)
+    captureServerException(err, session.user.id)
     await db.photo.update({
       where: { id: photo.id },
       data: { status: 'FAILED', errorMessage: msg },

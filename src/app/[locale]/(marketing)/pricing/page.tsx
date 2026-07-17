@@ -5,6 +5,7 @@ import { Link } from '@/i18n/routing'
 import RouteLink from 'next/link'
 import { Check, Minus, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics/client'
 
 interface ApiPlan {
   id: 'FREE' | 'ESSENTIAL' | 'PRO' | 'BUSINESS'
@@ -63,6 +64,8 @@ export default function PricingPage() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => { trackEvent(ANALYTICS_EVENTS.PRICING_VIEWED, { source: 'pricing_page' }) }, [])
+
   const costFor = (key: string) => features.find(f => f.key === key)?.creditCost
 
   return (
@@ -109,6 +112,7 @@ export default function PricingPage() {
                 </div>
 
                 <RouteLink href={meta.href}
+                  onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: `pricing_${plan.id.toLowerCase()}`, label: meta.cta, location: 'pricing_page' })}
                   className={cn(
                     'mb-8 text-center py-3 rounded-2xl text-sm font-semibold transition-all',
                     meta.highlight

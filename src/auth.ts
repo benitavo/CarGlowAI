@@ -2,6 +2,8 @@ import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { trackServerEvent } from '@/lib/analytics/server'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
 // Full NextAuth instance (Node.js runtime — uses bcrypt + Prisma directly in authorize()).
 // Lives outside app/api/auth/[...nextauth]/route.ts because Next's typed route handlers only
@@ -89,5 +91,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/signin',
     error:  '/auth/error',
+  },
+
+  events: {
+    async signIn({ user }) {
+      if (!user?.id) return
+      try {
+        const member = await db.workspaceMember.findFirst({
+          where:   { userId: user.id },
+          orderBy: { joinedAt: 'asc' },
+          include: { workspace: { select: { id: true, plan: true, monthlyCredits: true, bonusCredits: true } } },
+        })
+        trackServerEvent(ANALYTICS_EVENTS.LOGIN, {
+          userId: user.id,
+          email: user.email ?? null,
+          plan: member?.workspace.plan ?? 'FREE',
+          remainingCredits: member ? member.workspace.monthlyCredits + member.workspace.bonusCredits : 0,
+          workspaceId: member?.workspace.id,
+          method: 'credentials',
+        })
+      } catch {
+        // analytics must never break the login flow
+      }
+    },
   },
 })

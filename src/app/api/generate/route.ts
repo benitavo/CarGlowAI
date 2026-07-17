@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { GARDEN_STYLES } from '@/lib/gardenPrompts'
 import { generateStyledImage } from '@/lib/gemini'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
+import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
 export const maxDuration = 120
 
@@ -34,17 +36,32 @@ export async function POST(req: NextRequest) {
 
   const member = await db.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    include: { workspace: { select: { plan: true } } },
   })
 
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
-  // Deduct BEFORE ever calling Gemini. Superusers bypass the ledger entirely (dev/testing only).
+  const analyticsIdentity = { userId: session.user.id, email: session.user.email ?? null, plan: member.workspace.plan, workspaceId }
+
+  // Checked before deducting so a mid-request race can't misreport "first" — a prior count
+  // of 0 here means whichever generation succeeds first genuinely is the first for this workspace.
+  const priorImageCount = await db.creditTransaction.count({
+    where: { workspaceId, featureKey: FEATURE_KEY, reason: 'ENHANCEMENT' },
+  })
+
   let deduction: Awaited<ReturnType<typeof deductCredits>> | null = null
   if (!isSuperuser) {
     try {
       deduction = await deductCredits(workspaceId, FEATURE_KEY)
     } catch (err) {
       if (err instanceof InsufficientCreditsError) {
+        trackServerEvent(ANALYTICS_EVENTS.OUT_OF_CREDITS, {
+          ...analyticsIdentity,
+          remainingCredits: err.available,
+          featureKey: FEATURE_KEY,
+          required: err.required,
+          available: err.available,
+        })
         return NextResponse.json(
           { error: 'insufficient_credits', message: 'Crédits insuffisants', available: err.available, required: err.required },
           { status: 402 },
@@ -91,11 +108,24 @@ export async function POST(req: NextRequest) {
 
     console.log(`[generate] done in ${processingMs}ms style=${styleSlug}`)
     const credits = isSuperuser ? null : await getAvailableCredits(workspaceId)
+    const remainingCredits = credits?.total ?? 0
+
+    trackServerEvent(ANALYTICS_EVENTS.IMAGE_GENERATED, { ...analyticsIdentity, remainingCredits, styleSlug, processingMs })
+    if (deduction) {
+      trackServerEvent(ANALYTICS_EVENTS.CREDITS_CONSUMED, {
+        ...analyticsIdentity, remainingCredits, featureKey: FEATURE_KEY, amount: deduction.monthlySpent + deduction.bonusSpent,
+      })
+    }
+    if (priorImageCount === 0) {
+      trackServerEvent(ANALYTICS_EVENTS.FIRST_IMAGE_GENERATED, { ...analyticsIdentity, remainingCredits })
+    }
+
     return NextResponse.json({ photoId: photo.id, enhancedUrl, processingMs, credits })
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur inconnue'
     console.error('[generate]', msg)
+    captureServerException(err, session.user.id)
     await db.photo.update({
       where: { id: photo.id },
       data: { status: 'FAILED', errorMessage: msg },

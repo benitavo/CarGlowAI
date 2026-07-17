@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { getStripe, priceIdForPlan, priceIdForPack, type SubscriptionPlan, type CreditPackId } from '@/lib/stripe'
+import { trackServerEvent } from '@/lib/analytics/server'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = ['ESSENTIAL', 'PRO', 'BUSINESS']
 const CREDIT_PACKS: CreditPackId[] = ['pack1', 'pack2', 'pack3']
@@ -31,6 +33,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const analyticsIdentity = {
+    userId: session.user.id,
+    email: session.user.email ?? null,
+    plan: member.workspace.plan,
+    remainingCredits: member.workspace.monthlyCredits + member.workspace.bonusCredits,
+    workspaceId,
+  }
+
   const stripe = getStripe()
   const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
 
@@ -56,9 +66,10 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: priceIdForPlan(plan as SubscriptionPlan), quantity: 1 }],
       success_url: `${baseUrl}/app/billing?checkout=success`,
       cancel_url: `${baseUrl}/app/billing?checkout=cancelled`,
-      metadata: { workspaceId, plan },
-      subscription_data: { metadata: { workspaceId, plan } },
+      metadata: { workspaceId, plan, userId: session.user.id, email: session.user.email ?? '' },
+      subscription_data: { metadata: { workspaceId, plan, userId: session.user.id, email: session.user.email ?? '' } },
     })
+    trackServerEvent(ANALYTICS_EVENTS.CHECKOUT_STARTED, { ...analyticsIdentity, kind: 'subscription', target: plan })
     return NextResponse.json({ url: checkoutSession.url })
   }
 
@@ -71,7 +82,8 @@ export async function POST(req: NextRequest) {
     line_items: [{ price: priceIdForPack(pack as CreditPackId), quantity: 1 }],
     success_url: `${baseUrl}/app/billing?checkout=success`,
     cancel_url: `${baseUrl}/app/billing?checkout=cancelled`,
-    metadata: { workspaceId, pack },
+    metadata: { workspaceId, pack, userId: session.user.id, email: session.user.email ?? '' },
   })
+  trackServerEvent(ANALYTICS_EVENTS.CHECKOUT_STARTED, { ...analyticsIdentity, kind: 'pack', target: pack })
   return NextResponse.json({ url: checkoutSession.url })
 }

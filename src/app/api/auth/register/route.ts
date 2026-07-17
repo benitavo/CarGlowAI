@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { getPricingConfig, monthlyCreditsForPlan } from '@/lib/pricing'
+import { trackServerEvent } from '@/lib/analytics/server'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
 /**
  * POST /api/auth/register
@@ -77,17 +79,28 @@ export async function POST(req: NextRequest) {
     const nextReset = new Date()
     nextReset.setMonth(nextReset.getMonth() + 1)
 
-    await db.workspace.create({
+    const freeCredits = monthlyCreditsForPlan(config, 'FREE')
+
+    const workspace = await db.workspace.create({
       data: {
         name:           name ?? 'My Workspace',
         slug:           `ws-${user.id}`,
         plan:           'FREE',
-        monthlyCredits: monthlyCreditsForPlan(config, 'FREE'),
+        monthlyCredits: freeCredits,
         renewalDate:    nextReset,
         members: {
           create: { userId: user.id, role: 'OWNER' },
         },
       },
+    })
+
+    trackServerEvent(ANALYTICS_EVENTS.ACCOUNT_CREATED, {
+      userId: user.id,
+      email: user.email,
+      plan: 'FREE',
+      remainingCredits: freeCredits,
+      workspaceId: workspace.id,
+      method: 'credentials',
     })
 
     console.log(`[auth/register] created account for ${email}`)

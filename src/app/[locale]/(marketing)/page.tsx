@@ -9,6 +9,7 @@ import {
   Phone, Wallet, Clock, ScanSearch, Layers, Wand2, PackageCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics/client'
 
 // ─── AVATAR (cropped from a 5x2 face-grid image via background-position) ─────
 function GridAvatar({
@@ -170,11 +171,13 @@ function HeroSection() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <Link href="/signup"
+            onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'hero_primary', label: 'Recevoir mon rendu offert', location: 'hero' })}
             className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Recevoir mon rendu offert
             <ArrowRight className="w-5 h-5" />
           </Link>
           <Link href="#galerie"
+            onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'hero_secondary', label: 'Voir les exemples', location: 'hero' })}
             className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-midnight/[0.12] text-midnight/65 hover:text-midnight hover:bg-midnight/[0.04] text-base font-medium transition-all">
             Voir les exemples
           </Link>
@@ -944,6 +947,7 @@ function usePricingPlans(): MarketingPlan[] {
 
 function PricingSection() {
   const plans = usePricingPlans()
+  useEffect(() => { trackEvent(ANALYTICS_EVENTS.PRICING_VIEWED, { source: 'homepage' }) }, [])
   return (
     <section id="tarifs" className="section-pad bg-cream-50">
       <div className="page-container">
@@ -1059,6 +1063,7 @@ function FinalCTASection() {
         </p>
 
         <Link href="/signup"
+          onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'final_cta', label: 'Recevoir mon rendu offert', location: 'final_cta' })}
           className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
           Recevoir mon rendu offert
           <ArrowRight className="w-5 h-5" />
@@ -1108,6 +1113,7 @@ function StickyMobileCTA() {
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
+  useEffect(() => { trackEvent(ANALYTICS_EVENTS.LANDING_VIEWED, {}) }, [])
   return (
     <>
       <HeroSection />
