@@ -922,9 +922,7 @@ function usePricingPlans(): MarketingPlan[] {
           .filter((p: { id: string }) => p.id in PLAN_META)
           .map((p: { id: string; price: number; credits: number }) => {
             const meta = PLAN_META[p.id]
-            const creditsLabel = p.id === 'FREE'
-              ? `${p.credits.toLocaleString()} crédit${p.credits === 1 ? '' : 's'} offert${p.credits === 1 ? '' : 's'}`
-              : `${p.credits.toLocaleString()} crédits / mois`
+            const creditsLabel = `${p.credits.toLocaleString()} crédit${p.credits === 1 ? '' : 's'} / mois`
             return {
               name: meta.name,
               price: p.price > 0 ? `€${p.price}` : 'Gratuit',

@@ -189,9 +189,7 @@ export default function BillingPage() {
             <ul className="space-y-2 mb-5">
               <li className="flex items-center gap-2 text-sm text-midnight/65">
                 <Check className="w-3.5 h-3.5 text-sage-500 flex-shrink-0" strokeWidth={2.5} />
-                {plan === 'FREE'
-                  ? `${(currentPlanMeta?.credits ?? 0).toLocaleString()} crédit${(currentPlanMeta?.credits ?? 0) === 1 ? '' : 's'} offert${(currentPlanMeta?.credits ?? 0) === 1 ? '' : 's'}`
-                  : `${(currentPlanMeta?.credits ?? 0).toLocaleString()} crédits / mois`}
+                {(currentPlanMeta?.credits ?? 0).toLocaleString()} crédit{(currentPlanMeta?.credits ?? 0) === 1 ? '' : 's'} / mois
               </li>
               {renewalDateLabel && (
                 <li className="flex items-center gap-2 text-sm text-midnight/65">
@@ -217,24 +215,14 @@ export default function BillingPage() {
           <div className="rounded-2xl border border-sage-100 bg-white shadow-sm p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-midnight/40 mb-1">
-                  {plan === 'FREE' ? 'Crédits disponibles' : 'Crédits mensuels'}
-                </div>
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-midnight/40 mb-1">Crédits mensuels</div>
                 <div className="flex items-baseline gap-2">
-                  {plan === 'FREE' ? (
-                    <span className="font-display font-bold text-2xl tabular-nums text-midnight">
-                      {totalCredits.toLocaleString()}
-                    </span>
-                  ) : (
-                    <>
-                      <span className="font-display font-bold text-2xl tabular-nums text-midnight">
-                        {monthlyCredits.toLocaleString()}
-                      </span>
-                      <span className="text-midnight/40 text-sm tabular-nums">
-                        / {monthlyAllotment.toLocaleString()}
-                      </span>
-                    </>
-                  )}
+                  <span className="font-display font-bold text-2xl tabular-nums text-midnight">
+                    {monthlyCredits.toLocaleString()}
+                  </span>
+                  <span className="text-midnight/40 text-sm tabular-nums">
+                    / {monthlyAllotment.toLocaleString()}
+                  </span>
                 </div>
               </div>
               <button
@@ -247,31 +235,23 @@ export default function BillingPage() {
               </button>
             </div>
 
-            {plan === 'FREE' ? (
-              <p className="text-xs text-midnight/45">
-                1 crédit offert à la création du compte, n&apos;expire jamais. Rechargez pour continuer au-delà.
-              </p>
-            ) : (
-              <>
-                <div className="space-y-1.5 mb-4">
-                  <div className="h-2 bg-sage-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-sage-500 to-sage-400 rounded-full transition-all"
-                      style={{ width: `${Math.min(pct, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-midnight/45">
-                    <span><span className="tabular-nums text-midnight/70">{Math.round(pct)}%</span> restants</span>
-                    <span>Expirent en fin de cycle</span>
-                  </div>
-                </div>
+            <div className="space-y-1.5 mb-4">
+              <div className="h-2 bg-sage-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-sage-500 to-sage-400 rounded-full transition-all"
+                  style={{ width: `${Math.min(pct, 100)}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-midnight/45">
+                <span><span className="tabular-nums text-midnight/70">{Math.round(pct)}%</span> restants</span>
+                <span>Expirent en fin de cycle</span>
+              </div>
+            </div>
 
-                <div className="pt-3 border-t border-sage-100 flex items-center justify-between">
-                  <div className="text-xs text-midnight/45">Crédits achetés (n&apos;expirent jamais)</div>
-                  <div className="font-display font-bold text-midnight tabular-nums">{bonusCredits.toLocaleString()}</div>
-                </div>
-              </>
-            )}
+            <div className="pt-3 border-t border-sage-100 flex items-center justify-between">
+              <div className="text-xs text-midnight/45">Crédits achetés (n&apos;expirent jamais)</div>
+              <div className="font-display font-bold text-midnight tabular-nums">{bonusCredits.toLocaleString()}</div>
+            </div>
           </div>
 
         </div>
@@ -297,9 +277,7 @@ export default function BillingPage() {
                       {p.price > 0 && <span className="text-xs text-midnight/40 font-normal">/mois</span>}
                     </div>
                     <div className="text-xs text-midnight/50 mb-4">
-                      {p.id === 'FREE'
-                        ? `${p.credits.toLocaleString()} crédit${p.credits === 1 ? '' : 's'} offert${p.credits === 1 ? '' : 's'}`
-                        : `${p.credits.toLocaleString()} crédits / mois`}
+                      {p.credits.toLocaleString()} crédit{p.credits === 1 ? '' : 's'} / mois
                     </div>
                     {isCurrent ? (
                       <span className="mt-auto text-center text-xs font-semibold uppercase tracking-wide text-sage-600 py-2">

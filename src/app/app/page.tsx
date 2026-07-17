@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ImageIcon, ArrowRight, AlertCircle, CreditCard, Leaf, Clock3 } from 'lucide-react'
-import { auth } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import PhotoGrid from '@/components/app/PhotoGrid'
 
@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   const userId      = session.user.id
   const workspaceId = session.user.workspaceId
 
-  let workspace = workspaceId
+  const workspace = workspaceId
     ? await db.workspace.findUnique({ where: { id: workspaceId } })
     : await db.workspaceMember
         .findFirst({ where: { userId }, include: { workspace: true }, orderBy: { joinedAt: 'asc' } })

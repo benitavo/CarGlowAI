@@ -32,7 +32,9 @@ export default function SignUpPage() {
   }, [])
 
   const benefits = [
-    freeCredits ? `${freeCredits} crédits offerts, sans carte bancaire` : 'Crédits offerts, sans carte bancaire',
+    freeCredits
+      ? `${freeCredits} crédit${freeCredits === 1 ? '' : 's'} offert${freeCredits === 1 ? '' : 's'} chaque mois, sans carte bancaire`
+      : 'Crédits gratuits chaque mois, sans carte bancaire',
     'Résiliation à tout moment',
     'Conforme RGPD · Données hébergées en France',
   ]

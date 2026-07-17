@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { fal } from '@fal-ai/client'
 import sharp from 'sharp'
@@ -107,7 +107,7 @@ async function centreAndUpload(imageUrl: string): Promise<string> {
     .jpeg({ quality: 95 })
     .toBuffer()
 
-  const file = new File([canvas], 'centred.jpg', { type: 'image/jpeg' })
+  const file = new File([Buffer.from(canvas)], 'centred.jpg', { type: 'image/jpeg' })
   const url  = await fal.storage.upload(file)
   console.log(`[enhance] centreAndUpload — car bbox ${carW}×${carH}, padTop=${padTop} padBot=${padBot} → canvas ${canvasW}×${canvasH}`)
   return url

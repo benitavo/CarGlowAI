@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { GARDEN_STYLES, buildVideoPrompt } from '@/lib/gardenPrompts'
 import { generateStyledImage } from '@/lib/gemini'

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/auth'
 import { fal } from '@fal-ai/client'
 
 fal.config({ credentials: process.env.FAL_KEY })

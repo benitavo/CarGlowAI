@@ -35,12 +35,13 @@ export async function listAiFeatures(): Promise<AiFeature[]> {
   return db.aiFeature.findMany({ orderBy: { key: 'asc' } })
 }
 
-// Monthly recurring allotment for a plan. FREE has none — it grants a one-time signup
-// credit instead (see freeSignupCredits()), so it never resets or recurs.
+// Monthly recurring allotment for a plan, including FREE (1 credit/month by default).
+// Paid plans reset via the Stripe renewal webhook; FREE has no subscription to key off, so
+// it's reset by the /api/cron/reset-free-credits job instead — see that route for the cadence.
 export function monthlyCreditsForPlan(config: PricingConfig, plan: Plan): number {
   switch (plan) {
     case 'FREE':
-      return 0
+      return config.freeCredits
     case 'ESSENTIAL':
       return config.essentialCredits
     case 'PRO':
@@ -50,13 +51,6 @@ export function monthlyCreditsForPlan(config: PricingConfig, plan: Plan): number
     case 'ENTERPRISE':
       return config.businessCredits // custom tier: real allotment is set per-workspace by an admin
   }
-}
-
-// One-time, non-expiring credit granted at signup on the FREE plan. Not a monthly allotment —
-// never resets, never recurs. Kept as its own accessor so the "1 free credit" concept has a
-// single name even though it's still backed by PricingConfig.freeCredits.
-export function freeSignupCredits(config: PricingConfig): number {
-  return config.freeCredits
 }
 
 export function priceForPlan(config: PricingConfig, plan: Plan): number {

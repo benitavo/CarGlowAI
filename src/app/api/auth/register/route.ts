@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
-import { getPricingConfig, freeSignupCredits } from '@/lib/pricing'
-import { grantCredits } from '@/lib/credits'
+import { getPricingConfig, monthlyCreditsForPlan } from '@/lib/pricing'
 
 /**
  * POST /api/auth/register
@@ -72,22 +71,23 @@ export async function POST(req: NextRequest) {
 
     const config = await getPricingConfig()
 
-    // FREE plan: a single one-time credit, granted as non-expiring bonus — not a monthly
-    // allotment that would recur or reset each billing cycle.
-    const workspace = await db.workspace.create({
+    // FREE plan: 1 credit/month, same "monthly allotment" model as paid plans. There's no
+    // Stripe subscription to key a renewal off, so renewalDate is set here and
+    // /api/cron/reset-free-credits resets it (and monthlyCredits) once it's due.
+    const nextReset = new Date()
+    nextReset.setMonth(nextReset.getMonth() + 1)
+
+    await db.workspace.create({
       data: {
         name:           name ?? 'My Workspace',
         slug:           `ws-${user.id}`,
         plan:           'FREE',
-        monthlyCredits: 0,
+        monthlyCredits: monthlyCreditsForPlan(config, 'FREE'),
+        renewalDate:    nextReset,
         members: {
           create: { userId: user.id, role: 'OWNER' },
         },
       },
-    })
-
-    await grantCredits(workspace.id, freeSignupCredits(config), 'ADJUSTMENT', {
-      notes: 'Free plan signup credit',
     })
 
     console.log(`[auth/register] created account for ${email}`)

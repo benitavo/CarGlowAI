@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Check, X, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { integrations } from '@/lib/mock-data'
@@ -53,9 +54,9 @@ export default function IntegrationsPage() {
         <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.015] p-6">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-display font-semibold text-sm">REST API</h2>
-            <a href="/docs" className="text-xs text-sage-400 hover:text-sage-300 flex items-center gap-1">
+            <Link href="/docs" className="text-xs text-sage-400 hover:text-sage-300 flex items-center gap-1">
               View docs <ExternalLink className="w-3 h-3" />
-            </a>
+            </Link>
           </div>
           <p className="text-sm text-offwhite/50 mb-4">Connect any tool via our API. Your API key is in your account settings.</p>
           <div className="flex items-center gap-2 bg-midnight-900 rounded-lg px-4 py-3 font-mono text-xs text-offwhite/60 border border-white/[0.06]">

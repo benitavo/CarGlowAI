@@ -42,7 +42,7 @@ export default function SolutionsPage() {
           <span className="text-gradient">automotive commerce.</span>
         </h1>
         <p className="text-lg text-offwhite/50">
-          Whether you're a single dealer or a global OEM, CarGlow adapts to your workflow, volume, and brand requirements.
+          Whether you&apos;re a single dealer or a global OEM, CarGlow adapts to your workflow, volume, and brand requirements.
         </p>
       </div>
 

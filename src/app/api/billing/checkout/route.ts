@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { getStripe, priceIdForPlan, priceIdForPack, type SubscriptionPlan, type CreditPackId } from '@/lib/stripe'
 

@@ -416,7 +416,7 @@ model CreditTransaction {
 model PricingConfig {
   id               String   @id @default("global")
 
-  freeCredits      Int      @default(1) // one-time signup grant on FREE, not a monthly allotment
+  freeCredits      Int      @default(1) // FREE plan's monthly allotment, reset by /api/cron/reset-free-credits
 
   essentialPrice   Int      @default(39)
   essentialCredits Int      @default(100)

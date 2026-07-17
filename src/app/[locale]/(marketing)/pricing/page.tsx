@@ -42,7 +42,7 @@ function CellIcon({ value, highlight }: { value: CellValue; highlight: boolean }
 const PRICING_FAQS = [
   { q: 'Qu\'est-ce qu\'un crédit ?', a: 'Un crédit est consommé à chaque action IA : une génération d\'image coûte 1 crédit, une retouche 1 crédit, une génération de vidéo 15 crédits.' },
   { q: 'Les crédits mensuels non utilisés sont-ils reportés ?', a: 'Non. Les crédits inclus dans votre abonnement sont renouvelés chaque mois et n\'expirent pas d\'un mois sur l\'autre — mais ils ne se cumulent pas non plus. Les crédits achetés en pack, eux, n\'expirent jamais.' },
-  { q: 'Que contient l\'offre Découverte ?', a: 'Un crédit gratuit, offert une seule fois à la création du compte, sans carte bancaire, avec accès à tous les styles disponibles.' },
+  { q: 'Que contient l\'offre Découverte ?', a: 'Un crédit gratuit chaque mois, sans carte bancaire, avec accès à tous les styles disponibles.' },
   { q: 'Puis-je changer de forfait à tout moment ?', a: 'Oui. La mise à niveau est immédiate, la rétrogradation prend effet à la fin de la période de facturation en cours. Aucun frais de résiliation.' },
   { q: 'Puis-je acheter des crédits supplémentaires ?', a: 'Oui — des packs de crédits ponctuels sont disponibles depuis votre compte, en plus de votre abonnement. Ils n\'expirent jamais.' },
   { q: 'Proposez-vous des tarifs pour les grandes équipes ?', a: 'Oui — contactez notre équipe pour un tarif sur mesure au-delà du forfait Business ou pour des groupes multi-sites.' },
@@ -104,9 +104,7 @@ export default function PricingPage() {
                     {plan.price > 0 && <span className={cn('text-sm', meta.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>/mois</span>}
                   </div>
                   <p className={cn('text-xs mt-1', meta.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>
-                    {plan.id === 'FREE'
-                      ? `${plan.credits.toLocaleString()} crédit${plan.credits === 1 ? '' : 's'} offert${plan.credits === 1 ? '' : 's'}`
-                      : `${plan.credits.toLocaleString()} crédits / mois`}
+                    {plan.credits.toLocaleString()} crédit{plan.credits === 1 ? '' : 's'} / mois
                   </p>
                 </div>
 
@@ -193,13 +191,10 @@ export default function PricingPage() {
                 </td>
               </tr>
               <tr className="border-t border-midnight/[0.04] hover:bg-midnight/[0.015] transition-colors">
-                <td className="px-6 py-3.5 text-sm text-midnight/60">Crédits inclus</td>
+                <td className="px-6 py-3.5 text-sm text-midnight/60">Crédits inclus / mois</td>
                 {plans.map(p => (
                   <td key={p.id} className={cn('px-4 py-3.5 text-center', PLAN_META[p.id]?.highlight && 'bg-sage-50/30')}>
-                    <CellIcon
-                      value={p.id === 'FREE' ? `${p.credits.toLocaleString()} (offert)` : `${p.credits.toLocaleString()} / mois`}
-                      highlight={!!PLAN_META[p.id]?.highlight}
-                    />
+                    <CellIcon value={p.credits.toLocaleString()} highlight={!!PLAN_META[p.id]?.highlight} />
                   </td>
                 ))}
               </tr>
