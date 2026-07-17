@@ -6,6 +6,7 @@ import { getPricingConfig, creditPacks } from '@/lib/pricing'
 import { grantCredits, resetMonthlyCredits, getAvailableCredits } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { sendInvoiceEmail } from '@/lib/email'
 
 // Stripe requires the raw, unparsed request body to verify the webhook signature.
 export const runtime = 'nodejs'
@@ -192,6 +193,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ...identity, pack, credits: packDef.credits, amount: session.amount_total ?? undefined,
   })
   trackServerEvent(ANALYTICS_EVENTS.CREDITS_PURCHASED, { ...identity, amount: packDef.credits, source: 'pack' })
+
+  if (email) {
+    const amountEur = session.amount_total
+      ? `${(session.amount_total / 100).toFixed(2).replace('.', ',')} €`
+      : '—'
+    const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    sendInvoiceEmail(email, {
+      invoiceNumber: `INV-${Date.now()}`,
+      date,
+      description: `Pack crédits — ${packDef.credits} crédits`,
+      amountEur,
+      receiptUrl: typeof session.payment_intent === 'string' ? undefined : undefined,
+    })
+  }
 }
 
 export async function POST(req: NextRequest) {

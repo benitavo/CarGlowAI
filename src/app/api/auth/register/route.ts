@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { getPricingConfig, monthlyCreditsForPlan } from '@/lib/pricing'
 import { trackServerEvent } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { sendWelcomeEmail } from '@/lib/email'
 
 /**
  * POST /api/auth/register
@@ -102,6 +103,9 @@ export async function POST(req: NextRequest) {
       workspaceId: workspace.id,
       method: 'credentials',
     })
+
+    // Email de bienvenue (fire-and-forget — n'impacte pas la réponse si Resend est lent)
+    sendWelcomeEmail(email, user.name ?? email.split('@')[0])
 
     console.log(`[auth/register] created account for ${email}`)
     return NextResponse.json({ ok: true })
