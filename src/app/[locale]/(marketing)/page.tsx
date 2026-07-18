@@ -610,6 +610,7 @@ function CalendlySection() {
             <iframe
               src="https://calendly.com/verdia-rendus/nouvelle-reunion?embed_type=Inline&hide_gdpr_banner=1&background_color=fafaf7&text_color=0d1f11&primary_color=52b788"
               width="100%"
+              loading="lazy"
               className="h-[560px] sm:h-[640px] lg:h-[700px]"
               style={{ border: 'none' }}
               title="Réserver une démo Verdia"
