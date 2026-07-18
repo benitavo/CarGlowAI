@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { Suspense, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { KeyRound, ArrowRight, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const params   = useSearchParams()
   const router   = useRouter()
   const token    = params.get('token') ?? ''
@@ -142,5 +142,13 @@ export default function ResetPasswordPage() {
         </button>
       </form>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="text-midnight/40 text-sm">Chargement…</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }

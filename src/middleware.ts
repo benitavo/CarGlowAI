@@ -8,7 +8,7 @@ const { auth } = NextAuth(authConfig)
 const intlMiddleware = createNextIntlMiddleware(routing)
 
 // Pages that authenticated users should not see (redirect them to /app)
-const GUEST_ONLY = ['/signin', '/signup', '/forgot-password', '/verify']
+const GUEST_ONLY = ['/signin', '/signup', '/forgot-password', '/reset-password', '/verify']
 
 const authMiddleware = auth(function middleware(req: any) {
   const { pathname } = req.nextUrl
@@ -47,8 +47,9 @@ export const config = {
     '/signin',
     '/signup',
     '/forgot-password',
+    '/reset-password',
     '/verify',
     // Apply next-intl to marketing routes (exclude api, assets, auth pages)
-    '/((?!api|_next/static|_next/image|app|signin|signup|verify|forgot-password|auth|onboarding|favicon\\.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|txt|xml|mp4|webm|mov|ogg)).*)',
+    '/((?!api|_next/static|_next/image|app|signin|signup|verify|forgot-password|reset-password|auth|onboarding|favicon\\.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|txt|xml|mp4|webm|mov|ogg)).*)',
   ],
 }
