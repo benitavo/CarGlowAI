@@ -109,19 +109,18 @@ function BeforeAfterSlider({
       onKeyDown={handleKeyDown}
     >
       {/* AFTER */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={after} alt="Après" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+      <Image src={after} alt="Après" fill sizes="(min-width: 1024px) 60vw, 100vw"
+        className="object-cover pointer-events-none" />
       <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-midnight/40 backdrop-blur-sm text-xs font-semibold text-white border border-white/20">
         Après ✨
       </div>
 
       {/* BEFORE — clipped */}
       <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={before} alt="Avant"
-          className="absolute inset-0 h-full object-cover pointer-events-none"
-          style={{ width: `${10000 / pos}%`, maxWidth: 'none' }}
-        />
+        <div className="absolute inset-0 h-full" style={{ width: `${10000 / pos}%`, maxWidth: 'none' }}>
+          <Image src={before} alt="Avant" fill sizes="(min-width: 1024px) 60vw, 100vw"
+            className="object-cover pointer-events-none" />
+        </div>
         <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-midnight/40 backdrop-blur-sm text-xs font-semibold text-white border border-white/15"
           style={{ maxWidth: `calc(${pos}% - 1rem)`, overflow: 'hidden', whiteSpace: 'nowrap' }}>
           Avant
