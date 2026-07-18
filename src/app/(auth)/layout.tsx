@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="flex items-center gap-4">
             <Link href="/legal/terms"   className="hover:text-midnight/70">CGU</Link>
             <Link href="/legal/privacy" className="hover:text-midnight/70">Confidentialité</Link>
-            <Link href="/support" className="hover:text-midnight/70">Support</Link>
+            <Link href="/contact" className="hover:text-midnight/70">Support</Link>
           </div>
         </footer>
       </div>
