@@ -81,7 +81,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className="hidden lg:flex w-[210px] shrink-0 flex-col border-r border-sage-100 bg-white">
         {/* Logo */}
         <Link href="/" className="flex items-center h-24 px-5 border-b border-sage-100">
-          <Image src="/logo%20verdia%20without%20background.png" alt="Verdia" height={64} width={209} className="h-16 w-auto object-contain" />
+          <Image src="/logo%20verdia%20without%20background.png" alt="Verdia" height={500} width={500} className="h-16 w-auto object-contain" />
         </Link>
 
         {/* Nav */}

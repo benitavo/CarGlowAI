@@ -43,8 +43,8 @@ export function Footer() {
               <Image
                 src="/logo%20verdia%20without%20background.png"
                 alt="Verdia"
-                width={261}
-                height={80}
+                width={500}
+                height={500}
                 className="h-20 w-auto object-contain rounded-xl"
               />
             </Link>

@@ -31,9 +31,9 @@ export function Nav() {
           <Image
             src="/logo%20verdia%20without%20background.png"
             alt="Verdia"
-            width={310}
-            height={96}
-            className="h-12 sm:h-16 lg:h-24 w-auto object-contain"
+            width={500}
+            height={500}
+            className="h-10 sm:h-16 lg:h-24 w-auto object-contain"
             priority
           />
         </Link>
