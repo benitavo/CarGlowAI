@@ -75,7 +75,7 @@ export default function SignUpPage() {
         return
       }
 
-      router.push('/app')
+      router.push('/check-email')
       router.refresh()
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.')

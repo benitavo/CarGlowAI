@@ -4,7 +4,8 @@ import { db } from '@/lib/db'
 import { getPricingConfig, monthlyCreditsForPlan } from '@/lib/pricing'
 import { trackServerEvent } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
-import { sendWelcomeEmail } from '@/lib/email'
+import { sendVerificationEmail } from '@/lib/email'
+import crypto from 'crypto'
 
 /**
  * POST /api/auth/register
@@ -66,9 +67,9 @@ export async function POST(req: NextRequest) {
     const user = await db.user.create({
       data: {
         email,
-        name:          name ?? email.split('@')[0],
-        password:      passwordHash,
-        emailVerified: new Date(),  // marked verified at sign-up time for MVP
+        name:     name ?? email.split('@')[0],
+        password: passwordHash,
+        // emailVerified reste null jusqu'à confirmation par email
       },
     })
 
@@ -104,8 +105,14 @@ export async function POST(req: NextRequest) {
       method: 'credentials',
     })
 
-    // Email de bienvenue (fire-and-forget — n'impacte pas la réponse si Resend est lent)
-    sendWelcomeEmail(email, user.name ?? email.split('@')[0])
+    // Email de vérification
+    const verifToken   = crypto.randomBytes(32).toString('hex')
+    const verifExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+    await db.verificationToken.create({
+      data: { identifier: `verify:${email}`, token: verifToken, expires: verifExpires },
+    })
+    const verifyLink = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${verifToken}&email=${encodeURIComponent(email)}`
+    sendVerificationEmail(email, verifyLink)
 
     console.log(`[auth/register] created account for ${email}`)
     return NextResponse.json({ ok: true })

@@ -135,7 +135,27 @@ export async function sendInvoiceEmail(to: string, invoice: InvoiceData) {
   })
 }
 
-// ── 3. Email de réinitialisation de mot de passe ─────────────────────────────
+// ── 3. Email de vérification d'adresse ──────────────────────────────────────
+
+export async function sendVerificationEmail(to: string, verifyLink: string) {
+  await sendEmail({
+    to,
+    subject: 'Vérifiez votre adresse email — Verdia',
+    text: `Bonjour,\n\nCliquez sur ce lien pour confirmer votre adresse email (valable 24h) :\n${verifyLink}\n\nSi vous n'avez pas créé de compte Verdia, ignorez cet email.\n\nL'équipe Verdia`,
+    html: layout(`
+      ${h1('Confirmez votre adresse email')}
+      ${p('Merci de vous être inscrit sur Verdia ! Cliquez sur le bouton ci-dessous pour activer votre compte.')}
+      ${p('Ce lien est valable <strong>24 heures</strong>.')}
+      <div style="text-align:center;margin:28px 0">
+        ${btn(verifyLink, 'Confirmer mon adresse email →')}
+      </div>
+      ${p('Si vous n\'avez pas créé de compte Verdia, ignorez simplement cet email.')}
+      <p style="margin:24px 0 0;font-size:13px;color:#aaa">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>${verifyLink}</p>
+    `),
+  })
+}
+
+// ── 4. Email de réinitialisation de mot de passe ─────────────────────────────
 
 export async function sendPasswordResetEmail(to: string, resetLink: string) {
   await sendEmail({
