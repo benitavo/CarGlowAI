@@ -2,6 +2,7 @@ import NextAuth from 'next-auth'
 import { authConfig } from './auth.config'
 import createNextIntlMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
+import type { NextRequest, NextFetchEvent } from 'next/server'
 
 const { auth } = NextAuth(authConfig)
 const intlMiddleware = createNextIntlMiddleware(routing)
@@ -9,7 +10,7 @@ const intlMiddleware = createNextIntlMiddleware(routing)
 // Pages that authenticated users should not see (redirect them to /app)
 const GUEST_ONLY = ['/signin', '/signup', '/forgot-password', '/verify']
 
-export default auth(function middleware(req: any) {
+const authMiddleware = auth(function middleware(req: any) {
   const { pathname } = req.nextUrl
 
   // Auth pages: redirect if already logged in, otherwise pass through as-is.
@@ -21,18 +22,22 @@ export default auth(function middleware(req: any) {
   // /app/* requires a session. The `authorized` callback in auth.config.ts does not actually
   // block the request here (confirmed: this function still runs with req.auth === null for an
   // unauthenticated request) — enforce the redirect explicitly instead of relying on it.
-  if (pathname.startsWith('/app')) {
-    if (!req.auth?.user) {
-      const signInUrl = new URL('/signin', req.url)
-      signInUrl.searchParams.set('callbackUrl', pathname)
-      return Response.redirect(signInUrl)
-    }
-    return
+  if (!req.auth?.user) {
+    const signInUrl = new URL('/signin', req.url)
+    signInUrl.searchParams.set('callbackUrl', pathname)
+    return Response.redirect(signInUrl)
   }
-
-  // Apply next-intl locale detection to marketing routes.
-  return intlMiddleware(req)
 })
+
+// Marketing routes never need a session check, so they skip `auth()`'s JWT decrypt/verify
+// entirely (that cost was previously paid on every anonymous mobile pageview) and go
+// straight to locale routing.
+export default function middleware(req: NextRequest, event: NextFetchEvent) {
+  const { pathname } = req.nextUrl
+  const needsAuth = pathname.startsWith('/app') || GUEST_ONLY.includes(pathname)
+  if (needsAuth) return (authMiddleware as any)(req, event)
+  return intlMiddleware(req)
+}
 
 export const config = {
   matcher: [

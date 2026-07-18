@@ -5,6 +5,9 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
   images: {
+    // Static /public photos essentially never change — cache the optimized variants for a
+    // year instead of Next's 60s default, so repeat visits (and CDN edges) don't re-optimize.
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       { protocol: 'https', hostname: 'fal-cdn.fal.ai' },
       { protocol: 'https', hostname: 'storage.fal.ai' },

@@ -1,144 +1,25 @@
-'use client'
-
-import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
-import { Link } from '@/i18n/routing'
 import {
-  ArrowRight, Check, ChevronDown, ChevronUp,
-  ChevronLeft, ChevronRight, Star, Leaf, PlayCircle, X,
+  ArrowRight, Check, Leaf,
   Phone, Wallet, Clock, ScanSearch, Layers, Wand2, PackageCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics/client'
+import { GridAvatar } from './_components/GridAvatar'
+import { TrackedLink } from './_components/TrackedLink'
+import { LandingViewedTracker } from './_components/LandingViewedTracker'
+import { GallerySection } from './_components/GallerySection'
+import { TabletVideoPlayer } from './_components/TabletVideoPlayer'
+import { LazyCalendlyEmbed } from './_components/LazyCalendlyEmbed'
+import { TestimonialsSection } from './_components/TestimonialsSection'
+import { PricingSection } from './_components/PricingSection'
+import { FAQSection } from './_components/FAQSection'
+import { StickyMobileCTA } from './_components/StickyMobileCTA'
 
-// ─── AVATAR (cropped from a 5x2 face-grid image via background-position) ─────
-function GridAvatar({
-  col, row, className,
-}: { col: number; row: number; className?: string }) {
-  return (
-    <div
-      className={className}
-      style={{
-        backgroundImage: `url(/avatars/face-${row}-${col}.jpg)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    />
-  )
-}
-
-// ─── SHOWCASE (before/after pairs, auto-rotating) ────────────────────────────
-interface ShowcaseItem { before: string; after: string; video?: string; style: string; desc: string }
-
-const SHOWCASE: ShowcaseItem[] = [
-  { before: '/garden-before-7.jpg', after: '/garden-after-7.png', video: '/garden-video-7.mp4',
-    style: 'Zen & Japonais',    desc: 'Bambou, mousse et pierres' },
-  { before: '/garden-before-4.jpg', after: '/garden-after-4.jpg',
-    style: 'Naturel & Sauvage', desc: 'Prairie fleurie et plantes locales' },
-  { before: '/garden-before-5.jpg', after: '/garden-after-5.jpg',
-    style: 'Gazon & Fleurs',    desc: 'Pelouse verte et massifs fleuris' },
-]
-
-const SHOWCASE_INTERVAL_MS = 30_000
-
-// ─── STYLE PHOTOS (crossfade strip below the gallery) ────────────────────────
-const STYLE_PHOTOS = [
-  { src: '/styles/gazon-fleurs.jpg',    style: 'Gazon & Fleurs',    desc: 'Pelouse verte et massifs fleuris' },
-  { src: '/styles/mediterraneen.jpg',   style: 'Méditerranéen',     desc: 'Olivier, lavande et pierre naturelle' },
-  { src: '/styles/contemporain.jpg',    style: 'Contemporain',      desc: 'Lignes épurées et végétation structurée' },
-  { src: '/styles/naturel-sauvage.jpg', style: 'Naturel & Sauvage', desc: 'Prairie fleurie et plantes locales' },
-  { src: '/styles/zen.jpg',             style: 'Zen & Japonais',    desc: 'Bambou, mousse et pierres' },
-  { src: '/styles/potager.jpg',         style: 'Potager',           desc: 'Carrés potagers et aromatiques' },
-]
-
-// ─── BEFORE / AFTER SLIDER ───────────────────────────────────────────────────
-function BeforeAfterSlider({
-  before, after, className, initialPos = 45,
-}: { before: string; after: string; className?: string; initialPos?: number }) {
-  const [pos, setPos]           = useState(initialPos)
-  const [dragging, setDragging] = useState(false)
-  const containerRef            = useRef<HTMLDivElement>(null)
-
-  const updatePos = useCallback((clientX: number) => {
-    const el = containerRef.current
-    if (!el) return
-    const { left, width } = el.getBoundingClientRect()
-    setPos(Math.min(97, Math.max(3, ((clientX - left) / width) * 100)))
-  }, [])
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft')  { setPos(p => Math.max(3, p - 5)); e.preventDefault() }
-    if (e.key === 'ArrowRight') { setPos(p => Math.min(97, p + 5)); e.preventDefault() }
-  }, [])
-
-  useEffect(() => {
-    if (!dragging) return
-    const move = (e: MouseEvent) => updatePos(e.clientX)
-    const up   = () => setDragging(false)
-    window.addEventListener('mousemove', move)
-    window.addEventListener('mouseup',   up)
-    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
-  }, [dragging, updatePos])
-
-  useEffect(() => {
-    if (!dragging) return
-    const move = (e: TouchEvent) => { e.preventDefault(); updatePos(e.touches[0].clientX) }
-    const end  = () => setDragging(false)
-    window.addEventListener('touchmove', move, { passive: false })
-    window.addEventListener('touchend',  end)
-    return () => { window.removeEventListener('touchmove', move); window.removeEventListener('touchend', end) }
-  }, [dragging, updatePos])
-
-  return (
-    <div
-      ref={containerRef}
-      role="slider"
-      aria-label="Comparateur avant / après. Utilisez les flèches gauche/droite pour révéler le rendu."
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(pos)}
-      tabIndex={0}
-      className={cn(
-        'relative overflow-hidden select-none rounded-3xl border border-midnight/[0.08] shadow-card bg-cream-100',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
-        dragging ? 'cursor-ew-resize' : 'cursor-col-resize',
-        className,
-      )}
-      onMouseDown={e => { e.preventDefault(); setDragging(true); updatePos(e.clientX) }}
-      onTouchStart={e => { setDragging(true); updatePos(e.touches[0].clientX) }}
-      onKeyDown={handleKeyDown}
-    >
-      {/* AFTER */}
-      <Image src={after} alt="Après" fill sizes="(min-width: 1024px) 60vw, 100vw"
-        className="object-cover pointer-events-none" />
-      <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-midnight/40 backdrop-blur-sm text-xs font-semibold text-white border border-white/20">
-        Après ✨
-      </div>
-
-      {/* BEFORE — clipped */}
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
-        <div className="absolute inset-0 h-full" style={{ width: `${10000 / pos}%`, maxWidth: 'none' }}>
-          <Image src={before} alt="Avant" fill sizes="(min-width: 1024px) 60vw, 100vw"
-            className="object-cover pointer-events-none" />
-        </div>
-        <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-midnight/40 backdrop-blur-sm text-xs font-semibold text-white border border-white/15"
-          style={{ maxWidth: `calc(${pos}% - 1rem)`, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          Avant
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="absolute inset-y-0 w-[2px] bg-white shadow-[0_0_16px_rgba(255,255,255,0.9)] pointer-events-none"
-        style={{ left: `calc(${pos}% - 1px)` }} />
-      {/* Handle */}
-      <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-11 h-11 rounded-full bg-white shadow-card flex items-center justify-center pointer-events-none z-10"
-        style={{ left: `${pos}%` }}>
-        <ChevronLeft  className="w-3.5 h-3.5 text-midnight/70 absolute -left-0.5" strokeWidth={2.5} />
-        <ChevronRight className="w-3.5 h-3.5 text-midnight/70 absolute -right-0.5" strokeWidth={2.5} />
-      </div>
-    </div>
-  )
-}
+// PricingSection now reads PricingConfig directly via Prisma instead of a client-side
+// fetch to /api/pricing. Since this page is statically prerendered, without a revalidate
+// window the prices would freeze at build time until the next deploy — admin-configured
+// pricing must still show up without a code change, just within this window instead of instantly.
+export const revalidate = 60
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 function HeroSection() {
@@ -169,17 +50,15 @@ function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-          <Link href="/signup"
-            onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'hero_primary', label: 'Recevoir mon rendu offert', location: 'hero' })}
+          <TrackedLink href="/signup" ctaId="hero_primary" label="Recevoir mon rendu offert" location="hero"
             className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Recevoir mon rendu offert
             <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link href="#galerie"
-            onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'hero_secondary', label: 'Voir les exemples', location: 'hero' })}
+          </TrackedLink>
+          <TrackedLink href="#galerie" ctaId="hero_secondary" label="Voir les exemples" location="hero"
             className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-midnight/[0.12] text-midnight/65 hover:text-midnight hover:bg-midnight/[0.04] text-base font-medium transition-all">
             Voir les exemples
-          </Link>
+          </TrackedLink>
         </div>
 
         <div className="flex items-center justify-center gap-6 text-sm text-midnight/40">
@@ -225,307 +104,7 @@ function StatsSection() {
   )
 }
 
-// ─── BEFORE/AFTER GALLERY ─────────────────────────────────────────────────────
-function GallerySection() {
-  const [active, setActive]       = useState(0)
-  const [showVideo, setShowVideo] = useState(false)
-  const [paused, setPaused]       = useState(false)
-  const item = SHOWCASE[active]
-
-  useEffect(() => {
-    if (paused) return
-    const t = setInterval(() => {
-      setActive(a => (a + 1) % SHOWCASE.length)
-      setShowVideo(false)
-    }, SHOWCASE_INTERVAL_MS)
-    return () => clearInterval(t)
-  }, [active, paused])
-
-  return (
-    <section id="galerie" className="section-pad bg-cream-50 pt-40">
-      <div className="page-container">
-        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-10 lg:gap-16 items-start">
-
-          {/* Image : slider + vignettes */}
-          <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-            {showVideo && item.video ? (
-              <div className="relative aspect-[4/3] w-full mb-3 rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card bg-midnight">
-                <video src={item.video} controls autoPlay className="absolute inset-0 w-full h-full object-cover" />
-                <button
-                  onClick={() => setShowVideo(false)}
-                  className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-midnight/60 backdrop-blur-sm text-xs font-semibold text-white border border-white/20 hover:bg-midnight/80 transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" /> Fermer
-                </button>
-                <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-midnight/50 backdrop-blur-sm border border-white/15">
-                  <p className="text-xs font-semibold text-white">{item.style}</p>
-                  <p className="text-[11px] text-white/70">{item.desc}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="relative mb-3">
-                <BeforeAfterSlider
-                  key={active}
-                  before={item.before}
-                  after={item.after}
-                  className="aspect-[4/3] w-full"
-                  initialPos={25}
-                />
-                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-midnight/50 backdrop-blur-sm border border-white/15 pointer-events-none">
-                  <p className="text-xs font-semibold text-white">{item.style}</p>
-                  <p className="text-[11px] text-white/70">{item.desc}</p>
-                </div>
-              </div>
-            )}
-
-            {item.video && !showVideo && (
-              <button
-                onClick={() => setShowVideo(true)}
-                className="mb-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sage-50 border border-sage-200 text-sage-700 text-sm font-medium hover:bg-sage-100 transition-colors"
-              >
-                <PlayCircle className="w-4 h-4" /> Voir la visite en vidéo
-              </button>
-            )}
-
-            <div className="grid grid-cols-3 gap-2">
-              {SHOWCASE.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => { setActive(i); setShowVideo(false) }}
-                  className={cn(
-                    'relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all',
-                    i === active
-                      ? 'border-sage-500 shadow-sage-sm scale-[1.05]'
-                      : 'border-transparent opacity-55 hover:opacity-85 hover:border-sage-300',
-                  )}
-                >
-                  <Image src={s.after} alt={s.style} fill className="object-cover" sizes="80px" />
-                  {s.video && (
-                    <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-midnight/60 backdrop-blur-sm flex items-center justify-center">
-                      <PlayCircle className="w-3 h-3 text-white" strokeWidth={2.5} />
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Texte */}
-          <div className="lg:pt-4">
-            <p className="eyebrow mb-3">Exemples réels</p>
-            <h2 className="font-display font-bold text-midnight mb-5" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-              {SHOWCASE.length} transformations<br /><span className="text-gradient">en 60 secondes.</span>
-            </h2>
-            <p className="text-midnight/45 text-[15px] leading-relaxed mb-7">
-              Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple photo de jardin.
-            </p>
-
-            <Link href="/signup"
-              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all mb-3">
-              Essayer gratuitement
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <p className="text-xs text-midnight/35 mb-6">Sans carte bancaire · Résultat en 60 secondes</p>
-
-            {!showVideo && (
-              <p className="text-xs text-midnight/30 flex items-center gap-2 mb-6">
-                <ChevronLeft className="w-3 h-3" />
-                Glissez pour comparer avant / après
-                <ChevronRight className="w-3 h-3" />
-              </p>
-            )}
-
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2.5">
-                {[{ col: 0, row: 0 }, { col: 2, row: 0 }, { col: 4, row: 1 }, { col: 1, row: 1 }].map((a, i) => (
-                  <GridAvatar key={i} col={a.col} row={a.row}
-                    className="w-11 h-11 rounded-full ring-2 ring-white bg-sage-100 shrink-0" />
-                ))}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-midnight">100+ paysagistes l&apos;utilisent déjà</p>
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-sage-500 fill-sage-500" />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <StylePhotosStrip />
-      </div>
-    </section>
-  )
-}
-
-// ─── STYLE PHOTOS STRIP (crossfade) ───────────────────────────────────────────
-function StylePhotosStrip() {
-  const [active, setActive] = useState(0)
-  const [paused, setPaused] = useState(false)
-
-  useEffect(() => {
-    if (paused) return
-    const t = setInterval(() => setActive(a => (a + 1) % STYLE_PHOTOS.length), 4000)
-    return () => clearInterval(t)
-  }, [paused])
-
-  const goPrev = useCallback(() => {
-    setActive(a => (a - 1 + STYLE_PHOTOS.length) % STYLE_PHOTOS.length)
-  }, [])
-  const goNext = useCallback(() => {
-    setActive(a => (a + 1) % STYLE_PHOTOS.length)
-  }, [])
-
-  const current = STYLE_PHOTOS[active]
-
-  return (
-    <div className="mt-16 pt-14 border-t border-midnight/[0.06]">
-      <div className="text-center max-w-lg mx-auto mb-8">
-        <p className="eyebrow mb-3">Tous les styles</p>
-        <h3 className="font-display font-bold text-midnight" style={{ fontSize: 'clamp(1.4rem,2.5vw,1.9rem)' }}>
-          Une ambiance pour chaque jardin.
-        </h3>
-      </div>
-
-      <div
-        className="relative max-w-xl mx-auto aspect-[16/9] rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
-        {STYLE_PHOTOS.map((s, i) => (
-          <Image
-            key={s.style}
-            src={s.src}
-            alt={s.style}
-            fill
-            priority={i === 0}
-            className={cn(
-              'object-cover transition-opacity duration-1000 ease-in-out',
-              i === active ? 'opacity-100' : 'opacity-0',
-            )}
-            sizes="(min-width: 1024px) 576px, 100vw"
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-t from-midnight/60 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute bottom-5 left-5 right-5">
-          <p className="text-white font-display font-semibold text-lg">{current.style}</p>
-          <p className="text-white/70 text-sm">{current.desc}</p>
-        </div>
-
-        <button
-          onClick={goPrev}
-          aria-label="Style précédent"
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
-        >
-          <ChevronLeft className="w-5 h-5" strokeWidth={2} />
-        </button>
-        <button
-          onClick={goNext}
-          aria-label="Style suivant"
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
-        >
-          <ChevronRight className="w-5 h-5" strokeWidth={2} />
-        </button>
-      </div>
-
-      <div className="flex justify-center gap-2 mt-5">
-        {STYLE_PHOTOS.map((s, i) => (
-          <button
-            key={s.style}
-            onClick={() => setActive(i)}
-            aria-label={s.style}
-            className={cn(
-              'h-1.5 rounded-full transition-all',
-              i === active ? 'w-6 bg-sage-500' : 'w-1.5 bg-midnight/15 hover:bg-midnight/30',
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─── VIDEO DEMO ───────────────────────────────────────────────────────────────
-function TabletVideoPlayer() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [shouldLoad, setShouldLoad] = useState(false)
-
-  // The 2MB demo video only starts downloading once this scrolls near the viewport,
-  // instead of eagerly on every page load regardless of whether it's ever seen —
-  // that eager download was competing with the critical path for bandwidth on mobile.
-  useEffect(() => {
-    if (shouldLoad || !containerRef.current) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setShouldLoad(true) },
-      { rootMargin: '200px' },
-    )
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [shouldLoad])
-
-  return (
-    <div ref={containerRef} style={{ position: 'relative', width: '100%', maxWidth: 760 }}>
-      {/* Ambient glow */}
-      <div style={{
-        position: 'absolute', top: -50, left: -50, right: -50, bottom: -50,
-        background: 'radial-gradient(ellipse at center, rgba(82,183,136,0.20) 0%, transparent 70%)',
-        filter: 'blur(40px)', zIndex: 0, pointerEvents: 'none',
-      }} />
-      {/* Tablet shell */}
-      <div style={{
-        position: 'relative', zIndex: 1,
-        borderRadius: 28,
-        padding: '14px 14px 20px',
-        background: 'linear-gradient(160deg, #243028 0%, #0d1f11 100%)',
-        boxShadow: '0 40px 100px -15px rgba(13,31,17,0.55), 0 0 0 1px rgba(255,255,255,0.06)',
-      }}>
-        {/* Front camera dot */}
-        <div style={{
-          position: 'absolute', top: 7, left: '50%', transform: 'translateX(-50%)',
-          width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1a2e1e',
-        }} />
-        {/* Screen 16:9 via padding-bottom */}
-        <div style={{
-          position: 'relative',
-          paddingBottom: '56.25%',
-          borderRadius: 16,
-          overflow: 'hidden',
-          backgroundColor: '#111',
-        }}>
-          {shouldLoad && (
-            <video
-              src="/video-demo.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              style={{
-                position: 'absolute',
-                top: 0, left: 0,
-                width: '100%', height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            />
-          )}
-        </div>
-        {/* Home bar */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
-          <div style={{ width: 48, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)' }} />
-        </div>
-        {/* Side buttons */}
-        <div style={{ position: 'absolute', right: -3, top: 80, width: 3, height: 44, background: '#1a2e1e', borderRadius: '0 3px 3px 0' }} />
-        <div style={{ position: 'absolute', left: -3, top: 70, width: 3, height: 36, background: '#1a2e1e', borderRadius: '3px 0 0 3px' }} />
-        <div style={{ position: 'absolute', left: -3, top: 116, width: 3, height: 36, background: '#1a2e1e', borderRadius: '3px 0 0 3px' }} />
-      </div>
-    </div>
-  )
-}
-
 function VideoSection() {
   return (
     <section className="section-pad bg-white overflow-hidden">
@@ -563,39 +142,6 @@ function VideoSection() {
 }
 
 // ─── CALENDLY ─────────────────────────────────────────────────────────────────
-function LazyCalendlyEmbed() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [shouldLoad, setShouldLoad] = useState(false)
-
-  useEffect(() => {
-    if (shouldLoad || !containerRef.current) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setShouldLoad(true) },
-      { rootMargin: '200px' },
-    )
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [shouldLoad])
-
-  return (
-    <div ref={containerRef} className="h-[560px] sm:h-[640px] lg:h-[700px]">
-      {shouldLoad ? (
-        <iframe
-          src="https://calendly.com/verdia-rendus/nouvelle-reunion?embed_type=Inline&hide_gdpr_banner=1&background_color=fafaf7&text_color=0d1f11&primary_color=52b788"
-          width="100%"
-          height="100%"
-          style={{ border: 'none' }}
-          title="Réserver une démo Verdia"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-cream-50">
-          <div className="w-6 h-6 border-2 border-sage-300 border-t-sage-600 rounded-full animate-spin" />
-        </div>
-      )}
-    </div>
-  )
-}
-
 function CalendlySection() {
   return (
     <section id="rendez-vous" className="section-pad bg-white">
@@ -775,6 +321,32 @@ const GARDEN_STYLES = [
   { image: '/styles/potager.jpg',         name: 'Potager',           desc: 'Carrés potagers, aromates, arbres fruitiers',          color: 'bg-sage-50 border-sage-200/60' },
 ]
 
+function StylesSection() {
+  return (
+    <section className="section-pad bg-cream-50">
+      <div className="page-container">
+        <div className="text-center max-w-xl mx-auto mb-10">
+          <p className="eyebrow mb-3">Styles paysagers</p>
+          <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
+            Chaque projet mérite<br /><span className="text-gradient">son ambiance.</span>
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {GARDEN_STYLES.map(s => (
+            <div key={s.name} className={cn('group p-6 rounded-2xl border transition-all cursor-default hover:shadow-card', s.color)}>
+              <div className="relative w-full h-32 rounded-xl overflow-hidden mb-4">
+                <Image src={s.image} alt={s.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(min-width: 768px) 300px, 45vw" />
+              </div>
+              <h3 className="font-display font-semibold text-midnight text-[15px] mb-1.5 group-hover:text-sage-600 transition-colors">{s.name}</h3>
+              <p className="text-xs text-midnight/45 leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── AUTOMATION ───────────────────────────────────────────────────────────────
 const AUTOMATION_STEPS = [
   { icon: ScanSearch, title: 'Analyse intelligente', time: '~10 secondes',
@@ -843,249 +415,6 @@ function AutomationSection() {
   )
 }
 
-function StylesSection() {
-  return (
-    <section className="section-pad bg-cream-50">
-      <div className="page-container">
-        <div className="text-center max-w-xl mx-auto mb-10">
-          <p className="eyebrow mb-3">Styles paysagers</p>
-          <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-            Chaque projet mérite<br /><span className="text-gradient">son ambiance.</span>
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {GARDEN_STYLES.map(s => (
-            <div key={s.name} className={cn('group p-6 rounded-2xl border transition-all cursor-default hover:shadow-card', s.color)}>
-              <div className="relative w-full h-32 rounded-xl overflow-hidden mb-4">
-                <Image src={s.image} alt={s.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(min-width: 768px) 300px, 45vw" />
-              </div>
-              <h3 className="font-display font-semibold text-midnight text-[15px] mb-1.5 group-hover:text-sage-600 transition-colors">{s.name}</h3>
-              <p className="text-xs text-midnight/45 leading-relaxed">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
-const TESTIMONIALS = [
-  { quote: "J'ai montré le rendu à mes clients avant même de calculer le devis. Ils ont dit oui sur le champ. C'est devenu mon outil de vente numéro un.", name: 'Thomas B.', role: 'Paysagiste', location: 'Lyon, 69', stars: 5, avatar: { col: 2, row: 0 } },
-  { quote: "En 2 minutes, j'avais 6 versions différentes du futur jardin. Le client a choisi le style méditerranéen. Le chantier commence la semaine prochaine.", name: 'Sophie L.', role: 'Architecte paysagiste', location: 'Aix-en-Provence, 13', stars: 5, avatar: { col: 1, row: 0 } },
-  { quote: "Mes clients n'arrivent plus à se projeter sur les plans papier. Avec Verdia, ils voient exactement ce que ça va donner. Le taux de signature a explosé.", name: 'Marc D.', role: 'Aménageur extérieur', location: 'Bordeaux, 33', stars: 5, avatar: { col: 4, row: 0 } },
-]
-
-function TestimonialsSection() {
-  const [current, setCurrent] = useState(0)
-  const [paused, setPaused]   = useState(false)
-
-  useEffect(() => {
-    if (paused) return
-    const t = setInterval(() => setCurrent(c => (c + 1) % TESTIMONIALS.length), 5000)
-    return () => clearInterval(t)
-  }, [current, paused])
-
-  const t = TESTIMONIALS[current]
-
-  return (
-    <section className="section-pad bg-white">
-      <div className="page-container max-w-3xl">
-        <div className="text-center mb-10">
-          <p className="eyebrow mb-3">Témoignages</p>
-          <h2 className="font-display font-bold text-midnight" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-            Ils ont <span className="text-gradient">convaincu</span> leurs clients.
-          </h2>
-        </div>
-
-        <div
-          className="card-light rounded-3xl p-10 md:p-14 text-center"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          <div className="flex justify-center gap-1 mb-6">
-            {Array.from({ length: t.stars }).map((_, i) => <Star key={i} className="w-4 h-4 text-sage-500 fill-sage-500" />)}
-          </div>
-          <p className="text-lg md:text-xl text-midnight/70 leading-relaxed mb-8 max-w-xl mx-auto">&ldquo;{t.quote}&rdquo;</p>
-          <div className="flex items-center justify-center gap-3">
-            <GridAvatar col={t.avatar.col} row={t.avatar.row}
-              className="w-10 h-10 rounded-full shrink-0 bg-sage-200" />
-            <div className="text-left">
-              <p className="text-sm font-semibold text-midnight">{t.name}</p>
-              <p className="text-xs text-midnight/45">{t.role} · {t.location}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-3 mt-6">
-          <button onClick={() => setCurrent(c => (c - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)}
-            className="w-8 h-8 rounded-full border border-midnight/[0.10] flex items-center justify-center text-midnight/35 hover:text-midnight transition-all">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <div className="flex gap-1.5">
-            {TESTIMONIALS.map((_, i) => (
-              <button key={i} onClick={() => setCurrent(i)}
-                className={cn('h-1.5 rounded-full transition-all', i === current ? 'bg-sage-500 w-5' : 'bg-midnight/15 w-1.5')} />
-            ))}
-          </div>
-          <button onClick={() => setCurrent(c => (c + 1) % TESTIMONIALS.length)}
-            className="w-8 h-8 rounded-full border border-midnight/[0.10] flex items-center justify-center text-midnight/35 hover:text-midnight transition-all">
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── PRICING ──────────────────────────────────────────────────────────────────
-// Numbers come from /api/pricing (backed by PricingConfig) — never hardcode credits or prices here.
-interface MarketingPlan {
-  name: string
-  price: string
-  per: string
-  sub: string
-  badge?: string
-  features: string[]
-  cta: string
-  href: string
-  highlight: boolean
-}
-
-const PLAN_META: Record<string, { name: string; badge?: string; highlight: boolean; href: string; cta: string; extraFeatures: string[] }> = {
-  FREE:      { name: 'Découverte', highlight: false, href: '/signup', cta: 'Commencer gratuitement', extraFeatures: ['Tous les styles disponibles', 'Téléchargement HD'] },
-  ESSENTIAL: { name: 'Essentiel',  badge: 'Le plus populaire', highlight: true, href: '/signup?plan=essential', cta: "Démarrer l'essai", extraFeatures: ['Tous les styles', 'Téléchargement HD', 'Support prioritaire'] },
-  PRO:       { name: 'Pro',        highlight: false, href: '/signup?plan=pro', cta: "Démarrer l'essai", extraFeatures: ['Tous les styles', 'Export haute résolution', 'Support dédié'] },
-  BUSINESS:  { name: 'Business',   highlight: false, href: '/signup?plan=business', cta: "Démarrer l'essai", extraFeatures: ['Tous les styles', 'Export haute résolution', 'Support dédié prioritaire'] },
-}
-
-function usePricingPlans(): MarketingPlan[] {
-  const [plans, setPlans] = useState<MarketingPlan[]>([])
-  useEffect(() => {
-    fetch('/api/pricing')
-      .then(r => r.json())
-      .then(d => {
-        const built: MarketingPlan[] = (d.plans ?? [])
-          .filter((p: { id: string }) => p.id in PLAN_META)
-          .map((p: { id: string; price: number; credits: number }) => {
-            const meta = PLAN_META[p.id]
-            const creditsLabel = `${p.credits.toLocaleString()} crédit${p.credits === 1 ? '' : 's'} / mois`
-            return {
-              name: meta.name,
-              price: p.price > 0 ? `€${p.price}` : 'Gratuit',
-              per: p.price > 0 ? '/mois' : '',
-              sub: creditsLabel,
-              badge: meta.badge,
-              features: [creditsLabel, ...meta.extraFeatures],
-              cta: meta.cta,
-              href: meta.href,
-              highlight: meta.highlight,
-            }
-          })
-        setPlans(built)
-      })
-      .catch(() => {})
-  }, [])
-  return plans
-}
-
-function PricingSection() {
-  const plans = usePricingPlans()
-  useEffect(() => { trackEvent(ANALYTICS_EVENTS.PRICING_VIEWED, { source: 'homepage' }) }, [])
-  return (
-    <section id="tarifs" className="section-pad bg-cream-50">
-      <div className="page-container">
-        <div className="text-center max-w-xl mx-auto mb-10">
-          <p className="eyebrow mb-3">Tarifs</p>
-          <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-            Commencez gratuitement,<br /><span className="text-gradient">évoluez à votre rythme.</span>
-          </h2>
-        </div>
-        <div className="grid md:grid-cols-4 gap-5 max-w-6xl mx-auto">
-          {plans.map(plan => (
-            <div key={plan.name} className={cn(
-              'relative rounded-3xl p-8 flex flex-col border transition-all',
-              plan.highlight ? 'bg-midnight border-sage-500/30 shadow-sage-md' : 'bg-white border-midnight/[0.07] shadow-card hover:shadow-card-hover',
-            )}>
-              {plan.badge && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-sage-500 text-white text-xs font-bold whitespace-nowrap">
-                  {plan.badge}
-                </span>
-              )}
-              <div className="mb-5">
-                <h3 className={cn('font-display font-semibold mb-1', plan.highlight ? 'text-offwhite' : 'text-midnight')}>{plan.name}</h3>
-                <p className={cn('text-xs', plan.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>{plan.sub}</p>
-              </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className={cn('text-4xl font-display font-bold', plan.highlight ? 'text-offwhite' : 'text-midnight')}>{plan.price}</span>
-                {plan.per && <span className={cn('text-sm', plan.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>{plan.per}</span>}
-              </div>
-              <ul className="flex flex-col gap-2.5 mb-8 flex-1">
-                {plan.features.map(f => (
-                  <li key={f} className={cn('flex items-start gap-2.5 text-sm', plan.highlight ? 'text-offwhite/65' : 'text-midnight/60')}>
-                    <Check className={cn('w-4 h-4 mt-0.5 shrink-0', plan.highlight ? 'text-sage-400' : 'text-sage-500')} />{f}
-                  </li>
-                ))}
-              </ul>
-              <Link href={plan.href} className={cn(
-                'text-center py-3 rounded-2xl text-sm font-semibold transition-all',
-                plan.highlight ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm' : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
-              )}>{plan.cta}</Link>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── FAQ ──────────────────────────────────────────────────────────────────────
-const FAQS = [
-  { q: 'Comment fonctionne la génération de rendu ?', a: "Vous téléchargez une photo du jardin, choisissez un style parmi nos 6 options, et notre IA transforme la photo en rendu photoréaliste en environ 60 secondes. L'IA conserve la structure existante et transforme uniquement les zones végétales." },
-  { q: 'Quelle qualité de photo est nécessaire ?', a: "Une photo prise avec un smartphone récent est largement suffisante. Photographiez en pleine lumière naturelle depuis un angle montrant l'ensemble du jardin." },
-  { q: 'Puis-je utiliser les rendus dans mes devis ?', a: "Oui, absolument. Les rendus sont téléchargeables en haute résolution et librement utilisables dans vos documents commerciaux, présentations, réseaux sociaux ou site web." },
-  { q: 'Le rendu modifie-t-il les structures existantes ?', a: "Non. L'IA respecte strictement le bâti existant : murs, clôtures, terrasse, mobilier, bâtiments. Seules les zones de végétation et de sol sont transformées." },
-  { q: 'Mon premier rendu est vraiment gratuit ?', a: "Oui, sans aucune condition. Créez votre compte, téléchargez votre photo, choisissez votre style et générez votre premier rendu — sans carte bancaire, sans engagement." },
-]
-
-function FAQSection() {
-  const [open, setOpen] = useState<number | null>(null)
-  return (
-    <section id="faq" className="section-pad bg-cream-50">
-      <div className="page-container max-w-3xl">
-        <div className="text-center mb-10">
-          <p className="eyebrow mb-3">FAQ</p>
-          <h2 className="font-display font-bold text-midnight mb-4" style={{ fontSize: 'clamp(1.75rem,3.5vw,2.75rem)' }}>
-            Questions <span className="text-gradient">fréquentes.</span>
-          </h2>
-        </div>
-        <div className="flex flex-col divide-y divide-midnight/[0.07]">
-          {FAQS.map((faq, i) => (
-            <div key={i} className="py-5">
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                aria-expanded={open === i}
-                aria-controls={`faq-panel-${i}`}
-                id={`faq-trigger-${i}`}
-                className="w-full flex items-start justify-between gap-4 text-left">
-                <span className={cn('font-medium text-base transition-colors', open === i ? 'text-sage-600' : 'text-midnight/75 hover:text-midnight')}>
-                  {faq.q}
-                </span>
-                {open === i ? <ChevronUp className="w-5 h-5 text-sage-500 mt-0.5 shrink-0" /> : <ChevronDown className="w-5 h-5 text-midnight/30 mt-0.5 shrink-0" />}
-              </button>
-              {open === i && (
-                <p id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-trigger-${i}`} className="mt-3 text-sm text-midnight/50 leading-relaxed">
-                  {faq.a}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 // ─── FINAL CTA ────────────────────────────────────────────────────────────────
 function FinalCTASection() {
   return (
@@ -1106,12 +435,11 @@ function FinalCTASection() {
           photoréalistes avant de commencer les travaux.
         </p>
 
-        <Link href="/signup"
-          onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'final_cta', label: 'Recevoir mon rendu offert', location: 'final_cta' })}
+        <TrackedLink href="/signup" ctaId="final_cta" label="Recevoir mon rendu offert" location="final_cta"
           className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
           Recevoir mon rendu offert
           <ArrowRight className="w-5 h-5" />
-        </Link>
+        </TrackedLink>
         <p className="mt-4 text-xs text-offwhite/25">
           Aucune carte bancaire · Résultat en 60 secondes · Styles à l&apos;infini
         </p>
@@ -1120,46 +448,11 @@ function FinalCTASection() {
   )
 }
 
-// ─── STICKY MOBILE CTA ────────────────────────────────────────────────────────
-function StickyMobileCTA() {
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 560)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  return (
-    <div
-      className={cn(
-        'lg:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3',
-        'bg-white/95 backdrop-blur-sm border-t border-midnight/[0.08] shadow-[0_-8px_24px_-8px_rgba(13,31,17,0.12)]',
-        'transition-transform duration-300',
-        visible ? 'translate-y-0' : 'translate-y-full',
-      )}
-      style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
-    >
-      <div className="flex items-center gap-3 max-w-md mx-auto">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-midnight leading-tight">1er rendu offert</p>
-          <p className="text-[11px] text-midnight/45 leading-tight">Sans carte bancaire · 60 secondes</p>
-        </div>
-        <Link href="/signup"
-          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-sm whitespace-nowrap transition-all shadow-sage-sm">
-          Recevoir <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
-    </div>
-  )
-}
-
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  useEffect(() => { trackEvent(ANALYTICS_EVENTS.LANDING_VIEWED, {}) }, [])
   return (
     <>
+      <LandingViewedTracker />
       <HeroSection />
       <GallerySection />
       <StatsSection />
