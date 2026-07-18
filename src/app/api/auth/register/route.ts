@@ -5,6 +5,7 @@ import { getPricingConfig, monthlyCreditsForPlan } from '@/lib/pricing'
 import { trackServerEvent } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 import { sendWelcomeEmail } from '@/lib/email'
+import { trackMetaConversion } from '@/lib/meta/server'
 
 /**
  * POST /api/auth/register
@@ -102,6 +103,19 @@ export async function POST(req: NextRequest) {
       remainingCredits: freeCredits,
       workspaceId: workspace.id,
       method: 'credentials',
+    })
+
+    // Meta CAPI — no-ops internally unless the visitor has granted marketing consent.
+    trackMetaConversion({
+      eventName: 'CompleteRegistration',
+      eventSourceUrl: req.nextUrl.toString(),
+      user: {
+        email,
+        clientIpAddress: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
+        clientUserAgent: req.headers.get('user-agent') ?? undefined,
+        fbp: req.cookies.get('_fbp')?.value,
+        fbc: req.cookies.get('_fbc')?.value,
+      },
     })
 
     // Email de bienvenue (fire-and-forget — n'impacte pas la réponse si Resend est lent)

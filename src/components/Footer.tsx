@@ -4,9 +4,11 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import RouteLink from 'next/link'
+import { useConsent } from '@/components/consent/ConsentProvider'
 
 export function Footer() {
   const t = useTranslations('footer')
+  const { openBanner } = useConsent()
 
   return (
     <footer className="bg-midnight border-t border-offwhite/[0.06]">
@@ -78,6 +80,11 @@ export function Footer() {
                 <li><Link href="/legal/privacy" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Confidentialité</Link></li>
                 <li><Link href="/legal/cookies" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Cookies</Link></li>
                 <li><Link href="/legal/mentions" className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors">Mentions légales</Link></li>
+                <li>
+                  <button onClick={openBanner} className="text-sm text-offwhite/50 hover:text-offwhite/90 transition-colors text-left">
+                    Gérer les cookies
+                  </button>
+                </li>
               </ul>
             </div>
           </div>
