@@ -80,7 +80,10 @@ export async function POST(req: NextRequest) {
     mode: 'payment',
     customer: customerId,
     line_items: [{ price: priceIdForPack(pack as CreditPackId), quantity: 1 }],
-    success_url: `${baseUrl}/app/billing?checkout=success`,
+    // session_id lets the billing page look up the actual amount paid (via
+    // /api/billing/checkout-session) to fire the Meta Purchase event with a real value —
+    // purely additive, doesn't change how the purchase itself is processed.
+    success_url: `${baseUrl}/app/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/app/billing?checkout=cancelled`,
     metadata: { workspaceId, pack, userId: session.user.id, email: session.user.email ?? '' },
   })

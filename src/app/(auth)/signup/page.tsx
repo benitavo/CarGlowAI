@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Mail, User, KeyRound, ArrowRight, Check, Loader2 } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/meta'
 
 function validatePassword(pwd: string): string | null {
   if (pwd.length < 8)        return 'Le mot de passe doit contenir au moins 8 caractères.'
@@ -60,6 +61,11 @@ export default function SignUpPage() {
         setLoading(false)
         return
       }
+
+      // Fires here — after the server has actually created the account — not on the
+      // button click above, so a validation failure or duplicate-email rejection never
+      // counts as a registration.
+      trackEvent('CompleteRegistration', { email })
 
       const signInResult = await signIn('credentials', { email, password, redirect: false })
       if (signInResult?.error) {

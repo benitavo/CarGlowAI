@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Check, ExternalLink, Plus, Lock, Zap, X, ArrowUpRight, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/meta'
 
 interface PricingPlan {
   id: 'FREE' | 'ESSENTIAL' | 'PRO' | 'BUSINESS'
@@ -53,6 +55,8 @@ const REASON_LABEL: Record<string, string> = {
 }
 
 export default function BillingPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [showTopUp, setShowTopUp]         = useState(false)
   const [workspace, setWorkspace]         = useState<WorkspaceInfo | null>(null)
   const [pricing, setPricing]             = useState<PricingData | null>(null)
@@ -91,6 +95,35 @@ export default function BillingPage() {
       .then(d => setHistory(d.transactions ?? []))
       .catch(() => {})
   }, [workspace?.workspaceId])
+
+  // Fires once, right after a credit-pack purchase actually succeeds on Stripe's side
+  // (real amount pulled from the completed Checkout session, not a hardcoded price) —
+  // guarded so a refresh of this same URL never double-counts the same purchase.
+  useEffect(() => {
+    if (searchParams.get('checkout') !== 'success') return
+    const sessionId = searchParams.get('session_id')
+    if (!sessionId) return
+
+    const trackedKey = `meta_purchase_tracked_${sessionId}`
+    if (sessionStorage.getItem(trackedKey)) return
+
+    fetch(`/api/billing/checkout-session?session_id=${sessionId}`)
+      .then(r => r.json())
+      .then(d => {
+        if (!d.paid) return
+        sessionStorage.setItem(trackedKey, '1')
+        trackEvent('Purchase', {
+          eventId: sessionId,
+          value: d.value,
+          currency: d.currency ?? 'EUR',
+          email: d.email ?? undefined,
+        })
+      })
+      .catch(() => {})
+      .finally(() => {
+        router.replace('/app/billing')
+      })
+  }, [searchParams, router])
 
   const openPortal = useCallback(async () => {
     if (!workspace?.workspaceId || portalLoading) return
