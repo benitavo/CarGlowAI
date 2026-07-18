@@ -451,8 +451,24 @@ function StylePhotosStrip() {
 
 // ─── VIDEO DEMO ───────────────────────────────────────────────────────────────
 function TabletVideoPlayer() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [shouldLoad, setShouldLoad] = useState(false)
+
+  // The 2MB demo video only starts downloading once this scrolls near the viewport,
+  // instead of eagerly on every page load regardless of whether it's ever seen —
+  // that eager download was competing with the critical path for bandwidth on mobile.
+  useEffect(() => {
+    if (shouldLoad || !containerRef.current) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setShouldLoad(true) },
+      { rootMargin: '200px' },
+    )
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [shouldLoad])
+
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: 760 }}>
+    <div ref={containerRef} style={{ position: 'relative', width: '100%', maxWidth: 760 }}>
       {/* Ambient glow */}
       <div style={{
         position: 'absolute', top: -50, left: -50, right: -50, bottom: -50,
@@ -480,21 +496,23 @@ function TabletVideoPlayer() {
           overflow: 'hidden',
           backgroundColor: '#111',
         }}>
-          <video
-            src="/video-demo.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            style={{
-              position: 'absolute',
-              top: 0, left: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-            }}
-          />
+          {shouldLoad && (
+            <video
+              src="/video-demo.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              style={{
+                position: 'absolute',
+                top: 0, left: 0,
+                width: '100%', height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          )}
         </div>
         {/* Home bar */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
