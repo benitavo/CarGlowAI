@@ -1,16 +1,28 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import { Mail, RefreshCw, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 
 function CheckEmailContent() {
   const params  = useSearchParams()
+  const router  = useRouter()
   const error   = params.get('error')
   const [sent,     setSent]     = useState(false)
   const [loading,  setLoading]  = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
   const [resendErr, setResendErr] = useState<string | null>(null)
+
+  // A user on this page already has a session (just an unverified one) — a plain link to
+  // /signin bounced them straight back here: the middleware sees an authenticated user on
+  // a guest-only route and redirects to /app, whose layout sees the unverified email and
+  // redirects right back to /check-email. Signing out first breaks that loop.
+  const backToSignIn = async () => {
+    setSigningOut(true)
+    await signOut({ redirect: false })
+    router.push('/signin')
+  }
 
   const resend = async () => {
     setLoading(true)
@@ -95,9 +107,10 @@ function CheckEmailContent() {
       {resendErr && <p className="text-xs text-rose-500 mt-2">{resendErr}</p>}
 
       <div className="mt-8 pt-6 border-t border-midnight/[0.07]">
-        <Link href="/signin" className="text-sm text-midnight/40 hover:text-sage-600 transition-colors">
+        <button onClick={backToSignIn} disabled={signingOut}
+          className="text-sm text-midnight/40 hover:text-sage-600 transition-colors disabled:opacity-60">
           ← Retour à la connexion
-        </Link>
+        </button>
       </div>
     </div>
   )
