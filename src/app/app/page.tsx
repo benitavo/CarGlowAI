@@ -4,6 +4,7 @@ import { ImageIcon, ArrowRight, AlertCircle, CreditCard, Leaf, Clock3 } from 'lu
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import PhotoGrid from '@/components/app/PhotoGrid'
+import OnboardingBanner from '@/app/app/_components/OnboardingBanner'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
 
   const wsId = workspace.id
 
-  const [recentPhotos, totalRenders] = await Promise.all([
+  const [recentPhotos, totalRenders, memberCount] = await Promise.all([
     db.photo.findMany({
       where:   { workspaceId: wsId, status: 'ENHANCED' },
       orderBy: { createdAt: 'desc' },
@@ -30,6 +31,7 @@ export default async function DashboardPage() {
       include: { vehicle: { select: { name: true } } },
     }),
     db.photo.count({ where: { workspaceId: wsId, status: { in: ['ENHANCED', 'EXPIRED'] } } }),
+    db.workspaceMember.count({ where: { workspaceId: wsId } }),
   ])
 
   const creditsRemaining = workspace.monthlyCredits + workspace.bonusCredits
@@ -79,6 +81,11 @@ export default async function DashboardPage() {
       </section>
 
       <div className="px-6 lg:px-10 py-8 max-w-[1480px]">
+        {/* Getting started checklist — hides itself once every real step is done */}
+        <div className="mb-6">
+          <OnboardingBanner photoCount={totalRenders} memberCount={memberCount} />
+        </div>
+
         {/* Stats */}
         <div className="grid sm:grid-cols-2 gap-4 mb-6">
           <div className="rounded-2xl border border-sage-100 bg-white px-5 py-4 flex items-center gap-4">

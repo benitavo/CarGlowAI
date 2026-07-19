@@ -10,15 +10,15 @@ interface Props {
   memberCount: number
 }
 
+// Only steps with a real, checkable signal end up here — a checklist item that can
+// never actually be marked done (no backing data) is worse than not showing one at all.
 export default function OnboardingBanner({ photoCount, memberCount }: Props) {
   const [dismissed, setDismissed] = useState(false)
 
   const steps = [
-    { id: 'account',  label: 'Create your account',          done: true,            href: '#' },
-    { id: 'first',    label: 'Enhance your first photo',     done: photoCount > 0,  href: '/app/editor' },
-    { id: 'invite',   label: 'Invite a teammate',            done: memberCount > 1, href: '/app/team' },
-    { id: 'brand',    label: 'Set up your brand kit',        done: false,           href: '/app/brand-kit' },
-    { id: 'style',    label: 'Pick a default style',         done: false,           href: '/app/styles' },
+    { id: 'account', label: 'Créer votre compte',           done: true,            href: null },
+    { id: 'first',   label: 'Générer votre premier rendu',  done: photoCount > 0,  href: '/app/editor' },
+    { id: 'invite',  label: 'Inviter un collègue',           done: memberCount > 1, href: '/app/team' },
   ]
 
   const completed = steps.filter(s => s.done).length
@@ -27,48 +27,57 @@ export default function OnboardingBanner({ photoCount, memberCount }: Props) {
   if (dismissed || pct >= 100) return null
 
   return (
-    <div className="rounded-2xl border border-sage-500/25 bg-gradient-to-br from-sage-500/[0.06] to-transparent overflow-hidden">
+    <div className="rounded-2xl border border-sage-200 bg-gradient-to-br from-sage-50 to-white overflow-hidden">
       <header className="flex items-start justify-between p-5 pb-3">
         <div>
-          <div className="text-[11px] font-semibold tracking-widest uppercase text-sage-400 mb-1">Getting started</div>
-          <h3 className="font-display font-semibold text-[15px]">Finish setup</h3>
+          <div className="text-[11px] font-semibold tracking-widest uppercase text-sage-600 mb-1">Pour bien démarrer</div>
+          <h3 className="font-display font-semibold text-[15px] text-midnight">Finalisez votre configuration</h3>
         </div>
-        <button onClick={() => setDismissed(true)} className="text-offwhite/40 hover:text-offwhite p-1">
+        <button onClick={() => setDismissed(true)} className="text-midnight/35 hover:text-midnight p-1" aria-label="Masquer">
           <X className="w-3.5 h-3.5" />
         </button>
       </header>
 
       <div className="px-5 pb-3">
         <div className="flex items-center justify-between text-[11px] mb-1.5">
-          <span className="text-offwhite/55">{completed} of {steps.length} complete</span>
-          <span className="text-sage-400 font-semibold tabular-nums">{Math.round(pct)}%</span>
+          <span className="text-midnight/50">{completed} sur {steps.length} terminé{completed > 1 ? 's' : ''}</span>
+          <span className="text-sage-600 font-semibold tabular-nums">{Math.round(pct)}%</span>
         </div>
-        <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-sage-500 to-sage-300 transition-all" style={{ width: `${pct}%` }} />
+        <div className="h-1 rounded-full bg-sage-100 overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-sage-500 to-sage-400 transition-all" style={{ width: `${pct}%` }} />
         </div>
       </div>
 
       <ul className="px-2 pb-3">
-        {steps.map((step) => (
-          <li key={step.id}>
-            <Link
-              href={step.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] transition-colors',
-                step.done ? 'text-offwhite/40' : 'text-offwhite/80 hover:bg-white/[0.04]'
-              )}
-            >
+        {steps.map((step) => {
+          const content = (
+            <>
               <span className={cn(
                 'w-4 h-4 shrink-0 rounded-full flex items-center justify-center border',
-                step.done ? 'border-sage-500/60 bg-sage-500/20 text-sage-400' : 'border-white/[0.15]'
+                step.done ? 'border-sage-500 bg-sage-500 text-white' : 'border-midnight/[0.18]',
               )}>
                 {step.done && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
               </span>
-              <span className={cn('flex-1', step.done && 'line-through decoration-offwhite/30')}>{step.label}</span>
-              {!step.done && <ChevronRight className="w-3.5 h-3.5 text-offwhite/30" />}
-            </Link>
-          </li>
-        ))}
+              <span className={cn('flex-1', step.done ? 'text-midnight/40 line-through decoration-midnight/20' : 'text-midnight/80')}>
+                {step.label}
+              </span>
+              {!step.done && step.href && <ChevronRight className="w-3.5 h-3.5 text-midnight/30" />}
+            </>
+          )
+          return (
+            <li key={step.id}>
+              {step.href && !step.done ? (
+                <Link href={step.href} className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] transition-colors hover:bg-sage-50">
+                  {content}
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px]">
+                  {content}
+                </div>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
