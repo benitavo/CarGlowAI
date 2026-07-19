@@ -4,6 +4,7 @@ import {
   Phone, Wallet, Clock, ScanSearch, Layers, Wand2, PackageCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { db } from '@/lib/db'
 import { GridAvatar } from './_components/GridAvatar'
 import { TrackedLink } from './_components/TrackedLink'
 import { LandingViewedTracker } from './_components/LandingViewedTracker'
@@ -22,7 +23,11 @@ import { StickyMobileCTA } from './_components/StickyMobileCTA'
 export const revalidate = 60
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
-function HeroSection() {
+// Below a certain count a specific number reads as thin rather than reassuring — the
+// fallback copy makes no claim at all rather than showing something unconvincing.
+const MIN_RENDER_COUNT_TO_SHOW = 20
+
+function HeroSection({ renderCount }: { renderCount: number }) {
   return (
     <section className="relative flex flex-col items-center justify-center pt-16 pb-16 overflow-hidden bg-cream-50">
       <div className="absolute top-0 right-0 w-[600px] h-[500px] bg-sage-200/40 rounded-full blur-[140px] pointer-events-none -translate-y-1/4 translate-x-1/4" />
@@ -66,6 +71,12 @@ function HeroSection() {
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> 60 secondes</span>
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-sage-500" /> Styles illimités</span>
         </div>
+
+        {renderCount >= MIN_RENDER_COUNT_TO_SHOW && (
+          <p className="mt-6 text-xs text-midnight/35">
+            <span className="font-semibold text-midnight/60 tabular-nums">{renderCount.toLocaleString('fr-FR')}</span> rendus déjà générés par des paysagistes
+          </p>
+        )}
       </div>
     </section>
   )
@@ -311,6 +322,33 @@ function ArgumentsSection() {
   )
 }
 
+// ─── MID-PAGE CTA ─────────────────────────────────────────────────────────────
+// Gallery and the final CTA bracket a long stretch (Stats, HowItWorks, Video,
+// ScrollingGallery, Styles, Automation, Arguments) with no CTA reminder on desktop —
+// mobile has StickyMobileCTA covering that gap, desktop doesn't. One calm banner here,
+// not a repeat of every section's ask.
+function MidPageCTASection() {
+  return (
+    <section className="py-14 bg-cream-50">
+      <div className="page-container">
+        <div className="max-w-4xl mx-auto rounded-3xl border border-sage-200 bg-white shadow-card px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="text-center sm:text-left">
+            <h3 className="font-display font-bold text-midnight text-lg mb-1">
+              Prêt à essayer sur votre prochain projet ?
+            </h3>
+            <p className="text-sm text-midnight/50">Premier rendu offert, sans carte bancaire.</p>
+          </div>
+          <TrackedLink href="/signup" ctaId="midpage" label="Recevoir mon rendu offert" location="midpage"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-semibold text-sm shadow-sage-sm hover:shadow-sage-md transition-all shrink-0 whitespace-nowrap">
+            Recevoir mon rendu offert
+            <ArrowRight className="w-4 h-4" />
+          </TrackedLink>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── STYLES GRID ──────────────────────────────────────────────────────────────
 const GARDEN_STYLES = [
   { image: '/styles/gazon-fleurs.jpg',    name: 'Gazon & Fleurs',    desc: 'Pelouse verte, massifs fleuris et bordures colorées', color: 'bg-petal-50 border-petal-200/60' },
@@ -449,12 +487,20 @@ function FinalCTASection() {
 }
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
-export default function HomePage() {
+export default async function HomePage() {
+  // Real counts, not invented ones — each section decides for itself whether the number
+  // is high enough to be reassuring rather than thin (see MIN_RENDER_COUNT_TO_SHOW and
+  // GallerySection's own threshold).
+  const [renderCount, landscaperCount] = await Promise.all([
+    db.photo.count({ where: { status: { in: ['ENHANCED', 'EXPIRED'] } } }),
+    db.workspace.count(),
+  ])
+
   return (
     <>
       <LandingViewedTracker />
-      <HeroSection />
-      <GallerySection />
+      <HeroSection renderCount={renderCount} />
+      <GallerySection landscaperCount={landscaperCount} />
       <StatsSection />
       <HowItWorksSection />
       <VideoSection />
@@ -462,6 +508,7 @@ export default function HomePage() {
       <StylesSection />
       <AutomationSection />
       <ArgumentsSection />
+      <MidPageCTASection />
       <TestimonialsSection />
       <PricingSection />
       <FAQSection />

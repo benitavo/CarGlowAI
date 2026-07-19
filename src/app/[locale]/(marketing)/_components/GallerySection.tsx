@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import {
-  ArrowRight, ChevronLeft, ChevronRight, PlayCircle, Star, X,
+  ArrowRight, ChevronLeft, ChevronRight, PlayCircle, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GridAvatar } from './GridAvatar'
@@ -206,7 +206,10 @@ function StylePhotosStrip() {
 }
 
 // ─── BEFORE/AFTER GALLERY ─────────────────────────────────────────────────────
-export function GallerySection() {
+// Below this, showing the exact count reads as thin rather than reassuring.
+const MIN_LANDSCAPER_COUNT_TO_SHOW = 10
+
+export function GallerySection({ landscaperCount }: { landscaperCount: number }) {
   const [active, setActive]       = useState(0)
   const [showVideo, setShowVideo] = useState(false)
   const [paused, setPaused]       = useState(false)
@@ -323,12 +326,11 @@ export function GallerySection() {
                 ))}
               </div>
               <div>
-                <p className="text-sm font-semibold text-midnight">100+ paysagistes l&apos;utilisent déjà</p>
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-sage-500 fill-sage-500" />
-                  ))}
-                </div>
+                <p className="text-sm font-semibold text-midnight">
+                  {landscaperCount >= MIN_LANDSCAPER_COUNT_TO_SHOW
+                    ? <>{landscaperCount.toLocaleString('fr-FR')}+ paysagistes l&apos;utilisent déjà</>
+                    : <>Rejoignez les paysagistes qui utilisent Verdia</>}
+                </p>
               </div>
             </div>
           </div>
