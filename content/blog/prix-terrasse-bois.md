@@ -12,7 +12,7 @@ targetKeyword: prix terrasse bois
 secondaryKeywords: [prix terrasse bois au m2, tarif terrasse bois, prix pose terrasse bois, terrasse bois composite prix, coût terrasse bois]
 readingTime: 11
 featured: true
-image: /blog/images/prix-terrasse-bois.webp
+image: /blog/images/prix-terrasse-bois.jpg
 imageAlt: Terrasse en bois installée dans un jardin avec mobilier extérieur
 ---
 
