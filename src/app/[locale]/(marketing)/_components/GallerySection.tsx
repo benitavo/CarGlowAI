@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import {
-  ArrowRight, ChevronLeft, ChevronRight, PlayCircle, X,
+  ArrowRight, ChevronLeft, ChevronRight, PlayCircle, Star, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GridAvatar } from './GridAvatar'
@@ -175,14 +175,14 @@ function StylePhotosStrip() {
         <button
           onClick={goPrev}
           aria-label="Style précédent"
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
         >
           <ChevronLeft className="w-5 h-5" strokeWidth={2} />
         </button>
         <button
           onClick={goNext}
           aria-label="Style suivant"
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-midnight-800/70 border border-white/[0.15] backdrop-blur flex items-center justify-center text-white hover:bg-midnight-800/90 hover:border-white/25 transition-all"
         >
           <ChevronRight className="w-5 h-5" strokeWidth={2} />
         </button>
@@ -331,6 +331,11 @@ export function GallerySection({ landscaperCount }: { landscaperCount: number })
                     ? <>{landscaperCount.toLocaleString('fr-FR')}+ paysagistes l&apos;utilisent déjà</>
                     : <>Rejoignez les paysagistes qui utilisent Verdia</>}
                 </p>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 text-sage-500 fill-sage-500" />
+                  ))}
+                </div>
               </div>
             </div>
           </div>

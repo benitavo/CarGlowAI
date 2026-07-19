@@ -235,3 +235,21 @@
   .fill-sage-500  { fill: #35A070; }
   .fill-offwhite  { fill: #EEF9F0; }
 }
+
+/* Continuous decorative motion (the scrolling gallery marquee, crossfades) has no
+   functional purpose for someone who's asked their OS to reduce motion — mobile users
+   hit this a lot more often than desktop. Loading spinners are left alone: they signal
+   real state, not decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee, .animate-marquee-rev {
+    animation-play-state: paused;
+  }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-spin {
+    animation-duration: 1s !important;
+  }
+}

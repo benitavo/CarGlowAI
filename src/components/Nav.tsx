@@ -80,7 +80,7 @@ export function Nav() {
 
         {/* Mobile toggle */}
         <button
-          className="lg:hidden p-2 rounded-lg text-midnight/60 hover:text-midnight hover:bg-midnight/[0.04]"
+          className="lg:hidden p-3 -mr-3 rounded-lg text-midnight/60 hover:text-midnight hover:bg-midnight/[0.04]"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >

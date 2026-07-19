@@ -34,7 +34,7 @@ export default function ContactPage() {
     }
   }
 
-  const inputCls = 'w-full bg-cream-50 border border-sage-200 rounded-xl px-4 py-3 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 transition-all'
+  const inputCls = 'w-full bg-cream-50 border border-sage-200 rounded-xl px-4 py-3 text-base text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-100 transition-all'
   const labelCls = 'text-xs font-semibold text-midnight/50 uppercase tracking-widest mb-1.5 block'
 
   return (

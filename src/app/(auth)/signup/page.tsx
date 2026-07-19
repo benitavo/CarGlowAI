@@ -160,7 +160,7 @@ export default function SignUpPage() {
           border: 1px solid rgba(13, 31, 17, 0.10);
           border-radius: 0.75rem;
           padding: 0.625rem 0.75rem 0.625rem 2.25rem;
-          font-size: 0.875rem;
+          font-size: 1rem; /* 16px minimum — below this, iOS Safari zooms the viewport on focus */
           color: #0D1F11;
           transition: border-color 0.15s, background 0.15s;
         }

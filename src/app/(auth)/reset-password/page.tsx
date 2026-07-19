@@ -95,7 +95,7 @@ function ResetPasswordForm() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="8 caractères minimum"
-              className="w-full bg-cream-50 border border-midnight/[0.10] rounded-xl pl-9 pr-3 py-2.5 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:bg-white transition-colors"
+              className="w-full bg-cream-50 border border-midnight/[0.10] rounded-xl pl-9 pr-3 py-2.5 text-base text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:bg-white transition-colors"
             />
           </div>
           {tooShort && <p className="text-[11px] text-rose-500">Au moins 8 caractères requis.</p>}
@@ -115,7 +115,7 @@ function ResetPasswordForm() {
               value={password2}
               onChange={e => setPassword2(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-cream-50 border border-midnight/[0.10] rounded-xl pl-9 pr-3 py-2.5 text-sm text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:bg-white transition-colors"
+              className="w-full bg-cream-50 border border-midnight/[0.10] rounded-xl pl-9 pr-3 py-2.5 text-base text-midnight placeholder:text-midnight/30 focus:outline-none focus:border-sage-400 focus:bg-white transition-colors"
             />
           </div>
           {mismatch && <p className="text-[11px] text-rose-500">Les mots de passe ne correspondent pas.</p>}

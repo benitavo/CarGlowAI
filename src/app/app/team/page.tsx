@@ -79,7 +79,7 @@ export default function TeamPage() {
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && invite()}
                 placeholder="colleague@dealership.com"
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-sage-500/50" />
+                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-base placeholder:text-offwhite/35 focus:outline-none focus:border-sage-500/50" />
             </div>
             <button onClick={invite} disabled={!email || inviting || !workspaceId}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-sage-500 hover:bg-sage-600 disabled:opacity-50 text-midnight font-semibold text-sm transition-all">
