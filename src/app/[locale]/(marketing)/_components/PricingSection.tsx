@@ -54,7 +54,7 @@ export async function PricingSection() {
   const plans = await getPlans()
   return (
     <section id="tarifs" className="section-pad bg-cream-50">
-      <PricingViewedTracker />
+      <PricingViewedTracker source="homepage" />
       <div className="page-container">
         <div className="text-center max-w-xl mx-auto mb-10">
           <p className="eyebrow mb-3">Tarifs</p>

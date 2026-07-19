@@ -1,24 +1,22 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import { Link } from '@/i18n/routing'
-import RouteLink from 'next/link'
-import { Check, Minus, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { Check, Minus, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics/client'
+import { getPricingConfig, listAiFeatures } from '@/lib/pricing'
+import { TrackedLink } from '../_components/TrackedLink'
+import { PricingViewedTracker } from '../_components/PricingViewedTracker'
+import { PricingFaqAccordion } from './_components/PricingFaqAccordion'
 
-interface ApiPlan {
+// Reads pricing directly via Prisma instead of a client-side fetch to /api/pricing — the
+// previous version populated `plans`/`features` from an empty initial state, so the plan
+// grid rendered blank for a moment on every load. This is the exact same fix already
+// applied to the homepage's pricing section.
+export const revalidate = 60
+
+interface Plan {
   id: 'FREE' | 'ESSENTIAL' | 'PRO' | 'BUSINESS'
   label: string
   price: number
   credits: number
-}
-
-interface ApiFeature {
-  key: string
-  label: string
-  creditCost: number
-  enabled: boolean
 }
 
 const PLAN_META: Record<string, { desc: string; cta: string; href: string; badge?: string; highlight: boolean }> = {
@@ -40,36 +38,28 @@ function CellIcon({ value, highlight }: { value: CellValue; highlight: boolean }
   )
 }
 
-const PRICING_FAQS = [
-  { q: 'Qu\'est-ce qu\'un crédit ?', a: 'Un crédit est consommé à chaque action IA : une génération d\'image coûte 1 crédit, une retouche 1 crédit, une génération de vidéo 15 crédits.' },
-  { q: 'Les crédits mensuels non utilisés sont-ils reportés ?', a: 'Non. Les crédits inclus dans votre abonnement sont renouvelés chaque mois et n\'expirent pas d\'un mois sur l\'autre — mais ils ne se cumulent pas non plus. Les crédits achetés en pack, eux, n\'expirent jamais.' },
-  { q: 'Que contient l\'offre Découverte ?', a: 'Un crédit gratuit chaque mois, sans carte bancaire, avec accès à tous les styles disponibles.' },
-  { q: 'Puis-je changer de forfait à tout moment ?', a: 'Oui. La mise à niveau est immédiate, la rétrogradation prend effet à la fin de la période de facturation en cours. Aucun frais de résiliation.' },
-  { q: 'Puis-je acheter des crédits supplémentaires ?', a: 'Oui — des packs de crédits ponctuels sont disponibles depuis votre compte, en plus de votre abonnement. Ils n\'expirent jamais.' },
-  { q: 'Proposez-vous des tarifs pour les grandes équipes ?', a: 'Oui — contactez notre équipe pour un tarif sur mesure au-delà du forfait Business ou pour des groupes multi-sites.' },
-]
+async function getPlansAndFeatures(): Promise<{ plans: Plan[]; costFor: (key: string) => number | undefined }> {
+  const config = await getPricingConfig()
+  const features = await listAiFeatures()
+  const plans: Plan[] = [
+    { id: 'FREE', label: 'Découverte', price: 0, credits: config.freeCredits },
+    { id: 'ESSENTIAL', label: 'Essentiel', price: config.essentialPrice, credits: config.essentialCredits },
+    { id: 'PRO', label: 'Pro', price: config.proPrice, credits: config.proCredits },
+    { id: 'BUSINESS', label: 'Business', price: config.businessPrice, credits: config.businessCredits },
+  ]
+  return {
+    plans,
+    costFor: (key: string) => features.find(f => f.key === key)?.creditCost,
+  }
+}
 
-export default function PricingPage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
-  const [plans, setPlans] = useState<ApiPlan[]>([])
-  const [features, setFeatures] = useState<ApiFeature[]>([])
-
-  useEffect(() => {
-    fetch('/api/pricing')
-      .then(r => r.json())
-      .then(d => {
-        setPlans(d.plans ?? [])
-        setFeatures(d.features ?? [])
-      })
-      .catch(() => {})
-  }, [])
-
-  useEffect(() => { trackEvent(ANALYTICS_EVENTS.PRICING_VIEWED, { source: 'pricing_page' }) }, [])
-
-  const costFor = (key: string) => features.find(f => f.key === key)?.creditCost
+export default async function PricingPage() {
+  const { plans, costFor } = await getPlansAndFeatures()
 
   return (
     <div className="pt-32 pb-20 bg-cream-50">
+      <PricingViewedTracker source="pricing_page" />
+
       {/* Header */}
       <div className="page-container text-center max-w-3xl mx-auto mb-16">
         <p className="eyebrow mb-3">Tarifs</p>
@@ -111,8 +101,7 @@ export default function PricingPage() {
                   </p>
                 </div>
 
-                <RouteLink href={meta.href}
-                  onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: `pricing_${plan.id.toLowerCase()}`, label: meta.cta, location: 'pricing_page' })}
+                <TrackedLink href={meta.href} ctaId={`pricing_${plan.id.toLowerCase()}`} label={meta.cta} location="pricing_page"
                   className={cn(
                     'mb-8 text-center py-3 rounded-2xl text-sm font-semibold transition-all',
                     meta.highlight
@@ -120,7 +109,7 @@ export default function PricingPage() {
                       : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600'
                   )}>
                   {meta.cta}
-                </RouteLink>
+                </TrackedLink>
               </div>
             )
           })}
@@ -239,22 +228,7 @@ export default function PricingPage() {
       {/* Pricing FAQ */}
       <div className="page-container max-w-2xl">
         <h2 className="text-2xl font-display font-bold text-midnight text-center mb-10">Questions fréquentes sur les tarifs</h2>
-        <div className="flex flex-col divide-y divide-midnight/[0.07]">
-          {PRICING_FAQS.map((faq, i) => (
-            <div key={i} className="py-5">
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                className="w-full flex items-start justify-between gap-4 text-left"
-              >
-                <span className={cn('font-medium text-sm transition-colors', openFaq === i ? 'text-sage-600' : 'text-midnight/75')}>
-                  {faq.q}
-                </span>
-                {openFaq === i ? <ChevronUp className="w-4 h-4 text-sage-500 mt-0.5 shrink-0" /> : <ChevronDown className="w-4 h-4 text-midnight/30 mt-0.5 shrink-0" />}
-              </button>
-              {openFaq === i && <p className="mt-3 text-sm text-midnight/50 leading-relaxed">{faq.a}</p>}
-            </div>
-          ))}
-        </div>
+        <PricingFaqAccordion />
       </div>
     </div>
   )
