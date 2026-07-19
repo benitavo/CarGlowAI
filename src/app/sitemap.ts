@@ -6,8 +6,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const articles = getAllArticles()
   const guide = getGuide()
 
-  // /solutions/* is deliberately excluded — leftover car-dealership marketing content
-  // from before the pivot to landscapers, mismatched to the current product.
   const marketingPages: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
     { path: '/pricing', changeFrequency: 'weekly', priority: 0.9 },
     { path: '/features', changeFrequency: 'monthly', priority: 0.7 },
