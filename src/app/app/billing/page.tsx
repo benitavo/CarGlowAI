@@ -148,6 +148,15 @@ export default function BillingPage() {
     if (!workspace?.workspaceId) return
     const key = body.plan ?? body.pack ?? ''
     setCheckoutLoading(key)
+
+    // Fires before the checkout redirect — the only mid-funnel Meta signal that exists
+    // today (PostHog's CHECKOUT_STARTED already covers this server-side, but Meta had
+    // nothing between signup and a completed Purchase, which starves ad optimization).
+    const price = body.plan
+      ? pricing?.plans.find(p => p.id === body.plan)?.price
+      : pricing?.packs.find(p => p.id === body.pack)?.price
+    trackEvent('InitiateCheckout', { value: price, currency: 'EUR' })
+
     try {
       const res = await fetch('/api/billing/checkout', {
         method:  'POST',
@@ -161,7 +170,7 @@ export default function BillingPage() {
       console.error('[billing] checkout error:', e)
       setCheckoutLoading(null)
     }
-  }, [workspace])
+  }, [workspace, pricing])
 
   const renewalDateLabel = workspace?.renewalDate
     ? new Date(workspace.renewalDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
