@@ -11,17 +11,21 @@ declare global {
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
-// Meta's standard base snippet, unchanged, minus the trailing `fbq('init', ...)` /
-// `fbq('track', 'PageView')` calls — those only run from onLoad below, which only ever
-// happens once this component has mounted, which only happens once marketing consent
-// is granted (see the early return). No non-essential tracker fires before that.
-const PIXEL_BASE_CODE = `
-  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-  document,'script','https://connect.facebook.net/en_US/fbevents.js');
-`
+// Meta's standard base snippet. The init + first PageView calls are inlined directly in
+// this same script body (not deferred to Script's `onLoad`) — `onLoad` is meant for
+// external `src` scripts and isn't reliably fired for inline script content, which
+// silently meant the pixel's own fbq() proxy loaded but was never actually initialized.
+function pixelBaseCode(pixelId: string): string {
+  return `
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '${pixelId}');
+    fbq('track', 'PageView');
+  `
+}
 
 export function MetaPixel() {
   const { marketingGranted } = useConsent()
@@ -31,26 +35,22 @@ export function MetaPixel() {
 
   // App Router has no built-in "page loaded" event, so subsequent client-side
   // navigations fire their own PageView — same pattern as the PostHog integration.
-  // Guarded by `initialized` so it never double-fires alongside the onLoad below.
+  // The very first PageView is already covered by the inline script itself above, so
+  // this only fires on real navigations after that (guarded by `initialized`).
   useEffect(() => {
-    if (!marketingGranted || !initialized.current || !window.fbq) return
-    window.fbq('track', 'PageView')
+    if (!marketingGranted) return
+    if (!initialized.current) {
+      initialized.current = true
+      return
+    }
+    if (window.fbq) window.fbq('track', 'PageView')
   }, [marketingGranted, pathname, searchParams])
 
   if (!marketingGranted || !PIXEL_ID) return null
 
   return (
-    <Script
-      id="meta-pixel-base"
-      strategy="afterInteractive"
-      onLoad={() => {
-        if (!window.fbq) return
-        window.fbq('init', PIXEL_ID)
-        window.fbq('track', 'PageView')
-        initialized.current = true
-      }}
-    >
-      {PIXEL_BASE_CODE}
+    <Script id="meta-pixel-base" strategy="afterInteractive">
+      {pixelBaseCode(PIXEL_ID)}
     </Script>
   )
 }
