@@ -77,7 +77,24 @@ export async function POST(req: NextRequest) {
     )
 
     if (!graphRes.ok) {
-      console.error('[meta-capi] Graph API error:', graphRes.status, await graphRes.text().catch(() => ''))
+      const rawText = await graphRes.text().catch(() => '')
+      let graphJson: unknown = rawText
+      try { graphJson = JSON.parse(rawText) } catch { /* not JSON — keep raw text */ }
+
+      console.error('[meta-capi] Graph API error:', {
+        pixelId,
+        graphVersion: GRAPH_VERSION,
+        accessTokenPresent: !!accessToken,
+        accessTokenPrefix: accessToken ? `${accessToken.slice(0, 8)}***` : null,
+        status: graphRes.status,
+        response: graphJson,
+      })
+
+      // Dev-only: surface the real Graph API failure in the response body so it's
+      // visible in the browser's Network tab, not just Vercel's server logs.
+      if (process.env.NODE_ENV !== 'production') {
+        return NextResponse.json({ ok: false, graph_status: graphRes.status, graph_response: graphJson })
+      }
     }
 
     return NextResponse.json({ ok: true })
