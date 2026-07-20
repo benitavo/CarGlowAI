@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { getLocale } from 'next-intl/server'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Providers } from '@/components/Providers'
 import './globals.css'
 
@@ -35,6 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-cream text-midnight antialiased">
         <Providers>{children}</Providers>
+        <SpeedInsights />
       </body>
     </html>
   )
