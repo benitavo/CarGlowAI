@@ -4,21 +4,20 @@ import { useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
-  Building2, Upload, Palette, UserPlus, Sparkles, ArrowRight, ArrowLeft,
-  Check, X, Mail, Loader2, ImagePlus, RotateCw, Wand2, ChevronDown, Plus,
+  Building2, Upload, Palette, Sparkles, ArrowRight, ArrowLeft,
+  Check, Loader2, ImagePlus, RotateCw, Wand2, ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { styles, currentUser } from '@/lib/mock-data'
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-type StepId = 'workspace' | 'brand' | 'style' | 'team' | 'first-photo'
+type StepId = 'workspace' | 'brand' | 'style' | 'first-photo'
 
 const STEPS: { id: StepId; label: string; icon: typeof Building2 }[] = [
   { id: 'workspace',   label: 'Workspace',  icon: Building2 },
   { id: 'brand',       label: 'Brand',      icon: Palette },
   { id: 'style',       label: 'Style',      icon: Sparkles },
-  { id: 'team',        label: 'Team',       icon: UserPlus },
   { id: 'first-photo', label: 'First photo', icon: ImagePlus },
 ]
 
@@ -39,8 +38,6 @@ type State = {
   primaryColor: string
   logo: { name: string; preview: string } | null
   defaultStyleId: string | null
-  invites: string[]
-  inviteInput: string
   photoUploaded: boolean
   photoProcessing: boolean
   photoDone: boolean
@@ -58,8 +55,6 @@ export default function OnboardingPage() {
     primaryColor: '#35A070',
     logo: null,
     defaultStyleId: null,
-    invites: [],
-    inviteInput: '',
     photoUploaded: false,
     photoProcessing: false,
     photoDone: false,
@@ -74,7 +69,6 @@ export default function OnboardingPage() {
       case 'workspace':   return state.workspaceName.trim().length > 1 && state.businessType !== ''
       case 'brand':       return true // logo optional
       case 'style':       return state.defaultStyleId !== null
-      case 'team':        return true // skippable
       case 'first-photo': return state.photoDone
     }
   }, [currentStep, state])
@@ -147,7 +141,6 @@ export default function OnboardingPage() {
             {currentStep.id === 'workspace'   && <WorkspaceStep state={state} update={update} />}
             {currentStep.id === 'brand'       && <BrandStep state={state} update={update} />}
             {currentStep.id === 'style'       && <StyleStep state={state} update={update} />}
-            {currentStep.id === 'team'        && <TeamStep state={state} update={update} />}
             {currentStep.id === 'first-photo' && <FirstPhotoStep state={state} update={update} />}
           </div>
 
@@ -164,7 +157,7 @@ export default function OnboardingPage() {
 
             <div className="flex items-center gap-3">
               {/* Skip for optional steps */}
-              {(currentStep.id === 'team' || (currentStep.id === 'brand' && !state.logo)) && (
+              {currentStep.id === 'brand' && !state.logo && (
                 <button
                   onClick={next}
                   className="text-sm text-offwhite/55 hover:text-offwhite py-2"
@@ -198,7 +191,7 @@ function WorkspaceStep({ state, update }: StepProps) {
   return (
     <div>
       <StepHeader
-        eyebrow="Step 1 of 5"
+        eyebrow="Step 1 of 4"
         title={`Welcome, ${currentUser.firstName}.`}
         description="Let's set up your workspace. You can change any of this later in settings."
       />
@@ -280,7 +273,7 @@ function BrandStep({ state, update }: StepProps) {
   return (
     <div>
       <StepHeader
-        eyebrow="Step 2 of 5"
+        eyebrow="Step 2 of 4"
         title="Add your brand."
         description="Your logo will appear as a watermark on every enhanced photo. Optional, but recommended."
       />
@@ -428,7 +421,7 @@ function StyleStep({ state, update }: StepProps) {
   return (
     <div>
       <StepHeader
-        eyebrow="Step 3 of 5"
+        eyebrow="Step 3 of 4"
         title="Pick a default style."
         description="Applied automatically to every new enhancement. You can switch styles per photo anytime."
       />
@@ -478,99 +471,7 @@ function StyleStep({ state, update }: StepProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Step 4 — Team
-// ─────────────────────────────────────────────────────────────────────────────
-
-function TeamStep({ state, update }: StepProps) {
-  const addInvite = () => {
-    const email = state.inviteInput.trim()
-    if (!email || !/\S+@\S+\.\S+/.test(email) || state.invites.includes(email)) return
-    update({ invites: [...state.invites, email], inviteInput: '' })
-  }
-  const removeInvite = (email: string) => {
-    update({ invites: state.invites.filter((e) => e !== email) })
-  }
-
-  return (
-    <div>
-      <StepHeader
-        eyebrow="Step 4 of 5"
-        title="Bring your team."
-        description="Invite collaborators to share photos, brand kits, and listings. You can do this later too."
-      />
-
-      <Field label="Invite by email">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Mail className="w-4 h-4 text-offwhite/40 absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.75} />
-            <input
-              type="email"
-              value={state.inviteInput}
-              onChange={(e) => update({ inviteInput: e.target.value })}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addInvite())}
-              placeholder="teammate@dealership.com"
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-offwhite/35 focus:outline-none focus:border-sage-500/50"
-            />
-          </div>
-          <button
-            onClick={addInvite}
-            disabled={!state.inviteInput.trim()}
-            className="rounded-lg border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2.5 text-sm flex items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" strokeWidth={2} />
-            Add
-          </button>
-        </div>
-        <div className="text-[11px] text-offwhite/45 mt-1.5">Everyone gets the Editor role by default. Adjust later in Team settings.</div>
-      </Field>
-
-      {/* Invite list */}
-      {state.invites.length > 0 && (
-        <div className="mt-5">
-          <div className="text-[11px] font-semibold tracking-widest uppercase text-offwhite/55 mb-2">
-            To invite ({state.invites.length})
-          </div>
-          <div className="space-y-2">
-            {state.invites.map((email) => (
-              <div
-                key={email}
-                className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-white/[0.04] border border-dashed border-white/15 flex items-center justify-center">
-                    <Mail className="w-3 h-3 text-offwhite/50" strokeWidth={1.75} />
-                  </div>
-                  <span className="text-sm">{email}</span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-1.5 py-0.5 rounded">
-                    Editor
-                  </span>
-                </div>
-                <button
-                  onClick={() => removeInvite(email)}
-                  className="p-1 rounded hover:bg-white/[0.06] text-offwhite/45 hover:text-offwhite"
-                >
-                  <X className="w-3.5 h-3.5" strokeWidth={1.75} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {state.invites.length === 0 && (
-        <div className="mt-6 rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] p-6 text-center">
-          <UserPlus className="w-6 h-6 text-offwhite/30 mx-auto mb-2" strokeWidth={1.5} />
-          <div className="text-sm text-offwhite/55">
-            Working solo? No worries — skip this step.
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 5 — First photo
+// Step 4 — First photo
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SAMPLE_BEFORE = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=70&sat=-30&blur=10'
@@ -591,7 +492,7 @@ function FirstPhotoStep({ state, update }: StepProps) {
   return (
     <div>
       <StepHeader
-        eyebrow="Step 5 of 5"
+        eyebrow="Step 4 of 4"
         title="Let's enhance your first photo."
         description="Drop a real vehicle photo, or try our sample to see what CarGlow can do."
       />
