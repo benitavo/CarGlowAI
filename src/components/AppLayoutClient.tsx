@@ -33,11 +33,26 @@ interface WorkspaceSummary {
   isSuperuser:      boolean
 }
 
-export default function AppLayoutClient({ children }: { children: React.ReactNode }) {
+interface InitialWorkspace {
+  workspaceId: string
+  plan: string
+  creditsRemaining: number
+  isSuperuser: boolean
+}
+
+export default function AppLayoutClient({
+  children, initialWorkspace,
+}: {
+  children: React.ReactNode
+  initialWorkspace: InitialWorkspace | null
+}) {
   const pathname          = usePathname()
   const router            = useRouter()
   const { data: session } = useSession()
-  const [ws, setWs]       = useState<WorkspaceSummary | null>(null)
+  // Seeded from the server (layout.tsx already fetched this) — the sidebar shows real
+  // numbers immediately instead of "—" while a client fetch resolves. The effect below
+  // still refreshes once client-side to pick up anything that changed since that render.
+  const [ws, setWs] = useState<WorkspaceSummary | null>(initialWorkspace)
 
   useEffect(() => {
     if (!session?.user?.id) return
