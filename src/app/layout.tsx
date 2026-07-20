@@ -33,6 +33,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <head>
         <style>{`:root { --font-display: var(--font-inter); }`}</style>
+        {/* Warms up the TCP+TLS handshake ahead of time for third-party origins the site
+            actually loads (PostHog, Meta Pixel, Calendly) — each is still deferred/lazy on
+            its own terms, this just means the connection is already half-open by the time
+            they're needed instead of paying that cost cold. */}
+        <link rel="preconnect" href="https://eu.i.posthog.com" />
+        <link rel="preconnect" href="https://connect.facebook.net" />
+        <link rel="preconnect" href="https://calendly.com" />
       </head>
       <body className="bg-cream text-midnight antialiased">
         <Providers>{children}</Providers>

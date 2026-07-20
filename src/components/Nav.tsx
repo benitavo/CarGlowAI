@@ -22,7 +22,11 @@ export function Nav() {
 
   return (
     <header className={cn(
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-xl border-b border-midnight/[0.07]',
+      // No backdrop-blur here: at 98% opacity almost nothing shows through anyway, and
+      // backdrop-filter on a fixed header forces a real-time re-blur of everything
+      // scrolling underneath it on every frame — one of the most expensive things you can
+      // ask mobile Safari to do continuously. Same fix below on the mobile menu panel.
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/98 border-b border-midnight/[0.07]',
       scrolled ? 'shadow-sm py-2' : 'py-3'
     )}>
       <nav className="page-container flex items-center justify-between gap-6">
@@ -90,7 +94,7 @@ export function Nav() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-midnight/[0.07]">
+        <div className="lg:hidden bg-white/98 border-t border-midnight/[0.07]">
           <div className="page-container py-6 flex flex-col gap-2">
             {[
               { label: 'Comment ça marche', href: '/#comment-ca-marche' },

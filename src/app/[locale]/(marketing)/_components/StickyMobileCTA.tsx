@@ -21,7 +21,9 @@ export function StickyMobileCTA() {
     <div
       className={cn(
         'lg:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3',
-        'bg-white/95 backdrop-blur-sm border-t border-midnight/[0.08] shadow-[0_-8px_24px_-8px_rgba(13,31,17,0.12)]',
+        // No backdrop-blur — same reasoning as Nav.tsx: this bar is fixed and visible
+        // during scroll, exactly when a live backdrop re-blur costs the most.
+        'bg-white/98 border-t border-midnight/[0.08] shadow-[0_-8px_24px_-8px_rgba(13,31,17,0.12)]',
         'transition-transform duration-300',
         // Both this bar and the cookie banner are fixed to the bottom of the screen —
         // a new mobile visitor who scrolls before deciding on cookies would otherwise
