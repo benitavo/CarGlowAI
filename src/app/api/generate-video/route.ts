@@ -3,7 +3,6 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { GARDEN_STYLES, buildVideoPrompt } from '@/lib/gardenPrompts'
 import { generateStyledImage } from '@/lib/gemini'
-import { uploadBufferToFal } from '@/lib/fal-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
@@ -147,12 +146,10 @@ export async function POST(req: NextRequest) {
     const videoUri = await pollOperation(operationName, apiKey)
     const videoRes = await fetch(`${videoUri}${videoUri.includes('?') ? '&' : '?'}key=${apiKey}`)
     if (!videoRes.ok) throw new Error(`Téléchargement vidéo ${videoRes.status}`)
-    const videoBuffer = Buffer.from(await videoRes.arrayBuffer())
-    const thumbExt = styled.mimeType.split('/')[1] ?? 'jpg'
-    const [videoUrl, thumbnailUrl] = await Promise.all([
-      uploadBufferToFal(videoBuffer, 'video/mp4', `video-${photo.id}.mp4`),
-      uploadBufferToFal(Buffer.from(styled.base64, 'base64'), styled.mimeType, `video-thumb-${photo.id}.${thumbExt}`),
-    ])
+    // Temporarily reverted — see the matching note in /api/generate/route.ts.
+    const videoBase64 = Buffer.from(await videoRes.arrayBuffer()).toString('base64')
+    const videoUrl = `data:video/mp4;base64,${videoBase64}`
+    const thumbnailUrl = `data:${styled.mimeType};base64,${styled.base64}`
 
     const processingMs = Date.now() - startMs
 

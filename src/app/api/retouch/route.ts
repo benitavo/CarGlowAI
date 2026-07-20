@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { retouchImage } from '@/lib/gemini'
-import { uploadBufferToFal } from '@/lib/fal-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
@@ -83,8 +82,8 @@ export async function POST(req: NextRequest) {
     if (!apiKey) throw new Error('GEMINI_API_KEY absent')
 
     const retouched = await retouchImage(apiKey, imageData, mimeType ?? 'image/png', instruction.trim())
-    const ext = retouched.mimeType.split('/')[1] ?? 'png'
-    const enhancedUrl = await uploadBufferToFal(Buffer.from(retouched.base64, 'base64'), retouched.mimeType, `retouch-${photo.id}.${ext}`)
+    // Temporarily reverted — see the matching note in /api/generate/route.ts.
+    const enhancedUrl = `data:${retouched.mimeType};base64,${retouched.base64}`
     const processingMs = Date.now() - startMs
 
     await db.photo.update({
