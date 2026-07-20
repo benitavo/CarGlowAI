@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Download, ImageIcon, ArrowRight, X, ChevronLeft, ChevronRight, Play, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -116,12 +117,24 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
               className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-white border border-sage-100 ring-2 ring-transparent hover:ring-sage-300 hover:border-sage-300 shadow-sm hover:shadow-md hover:shadow-sage-500/10 transition-all text-left"
             >
               {p.thumbnailUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.thumbnailUrl}
-                  alt={p.vehicleName ?? 'Rendu jardin'}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                // Older photos still have a base64 data: URI (pre-fal.ai-storage migration) —
+                // next/image can't optimize those, so they fall back to a plain <img>.
+                p.thumbnailUrl.startsWith('data:') ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.thumbnailUrl}
+                    alt={p.vehicleName ?? 'Rendu jardin'}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <Image
+                    src={p.thumbnailUrl}
+                    alt={p.vehicleName ?? 'Rendu jardin'}
+                    fill
+                    sizes="(min-width: 1536px) 20vw, (min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                )
               ) : (
                 <div className="absolute inset-0 bg-sage-50 flex items-center justify-center">
                   <ImageIcon className="w-8 h-8 text-sage-300" strokeWidth={1.5} />

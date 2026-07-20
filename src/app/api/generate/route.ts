@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { GARDEN_STYLES } from '@/lib/gardenPrompts'
 import { generateStyledImage } from '@/lib/gemini'
+import { uploadBufferToFal } from '@/lib/fal-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
@@ -91,7 +92,8 @@ export async function POST(req: NextRequest) {
     if (!apiKey) throw new Error('GEMINI_API_KEY absent')
 
     const styled = await generateStyledImage(apiKey, imageData, mimeType ?? 'image/jpeg', style, characteristics)
-    const enhancedUrl = `data:${styled.mimeType};base64,${styled.base64}`
+    const ext = styled.mimeType.split('/')[1] ?? 'jpg'
+    const enhancedUrl = await uploadBufferToFal(Buffer.from(styled.base64, 'base64'), styled.mimeType, `render-${photo.id}.${ext}`)
     const processingMs = Date.now() - startMs
 
     await db.photo.update({

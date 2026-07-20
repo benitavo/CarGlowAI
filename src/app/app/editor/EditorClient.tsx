@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Upload, Loader2, Download, ArrowLeft, Sparkles,
   Leaf, RotateCcw, Video, Image as ImageIcon, PenLine,
@@ -410,9 +411,15 @@ export default function EditorClient() {
                         >
                           {v.mode === 'video' ? (
                             <video src={v.url} className="w-full aspect-[4/3] object-cover pointer-events-none" muted />
-                          ) : (
+                          ) : v.url.startsWith('data:') ? (
+                            // Older versions still have a base64 data: URI (pre-fal.ai-storage
+                            // migration) — next/image can't optimize those.
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={v.url} alt="" className="w-full aspect-[4/3] object-cover" />
+                          ) : (
+                            <div className="relative w-full aspect-[4/3]">
+                              <Image src={v.url} alt="" fill sizes="96px" className="object-cover" />
+                            </div>
                           )}
                           <p className="text-[10px] text-center text-midnight/45 py-1 truncate px-1">Version {i + 1}</p>
                         </button>
@@ -585,8 +592,7 @@ export default function EditorClient() {
                       : 'border border-transparent hover:bg-cream-100 hover:border-sage-100',
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={style.image} alt="" className="w-11 h-11 rounded-lg object-cover shrink-0" />
+                  <Image src={style.image} alt="" width={44} height={44} className="w-11 h-11 rounded-lg object-cover shrink-0" />
                   <div>
                     <p className={cn(
                       'text-sm font-semibold',
