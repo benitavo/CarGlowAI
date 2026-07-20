@@ -28,12 +28,17 @@ export async function POST(req: NextRequest) {
   try {
     const consent = parseConsentCookie(req.cookies.get(CONSENT_COOKIE_NAME)?.value)
     if (consent?.categories.marketing !== true) {
+      console.log('[meta-capi] skipped: no-consent', { marketingGranted: consent?.categories.marketing ?? null })
       return NextResponse.json({ ok: true, skipped: 'no-consent' })
     }
 
     const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
     const accessToken = process.env.META_CAPI_ACCESS_TOKEN
     if (!pixelId || !accessToken) {
+      console.log('[meta-capi] skipped: not-configured', {
+        pixelIdPresent: !!pixelId,
+        accessTokenPresent: !!accessToken,
+      })
       return NextResponse.json({ ok: true, skipped: 'not-configured' })
     }
 
@@ -95,6 +100,15 @@ export async function POST(req: NextRequest) {
       if (process.env.NODE_ENV !== 'production') {
         return NextResponse.json({ ok: false, graph_status: graphRes.status, graph_response: graphJson })
       }
+    } else {
+      console.log('[meta-capi] success', {
+        pixelId,
+        graphVersion: GRAPH_VERSION,
+        accessTokenPrefix: `${accessToken.slice(0, 8)}***`,
+        eventName: body.eventName,
+        eventId: body.eventId,
+        status: graphRes.status,
+      })
     }
 
     return NextResponse.json({ ok: true })
