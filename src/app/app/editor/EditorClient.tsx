@@ -49,6 +49,13 @@ function splitDataUrl(dataUrl: string): { base64: string; mimeType: string } {
   return { mimeType: match[1], base64: match[2] }
 }
 
+function focusAndScroll(ref: React.RefObject<HTMLElement | null>) {
+  ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  if (ref.current instanceof HTMLInputElement || ref.current instanceof HTMLTextAreaElement) {
+    window.setTimeout(() => ref.current?.focus(), 300)
+  }
+}
+
 export default function EditorClient() {
   const { data: session } = useSession()
 
@@ -66,6 +73,7 @@ export default function EditorClient() {
   const [retouchStatus, setRetouchStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [retouchError, setRetouchError]   = useState<string | undefined>()
   const [creditError, setCreditError]     = useState<CreditError | null>(null)
+  const uploadSectionRef  = useRef<HTMLDivElement>(null)
   const styleSectionRef   = useRef<HTMLDivElement>(null)
   const characteristicsRef = useRef<HTMLTextAreaElement>(null)
   const retouchInputRef    = useRef<HTMLInputElement>(null)
@@ -112,13 +120,6 @@ export default function EditorClient() {
     setSelectedIdx(null)
   }, [previewUrl])
 
-  const focusAndScroll = (ref: React.RefObject<HTMLElement | null>) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    if (ref.current instanceof HTMLInputElement || ref.current instanceof HTMLTextAreaElement) {
-      window.setTimeout(() => ref.current?.focus(), 300)
-    }
-  }
-
   const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     const f = e.dataTransfer.files[0]
@@ -126,7 +127,12 @@ export default function EditorClient() {
   }, [loadFile])
 
   const handleGenerate = useCallback(async () => {
-    if (!file || !session?.user?.workspaceId) return
+    if (!file) {
+      setGen({ status: 'error', error: 'Ajoutez une photo de votre jardin avant de générer.' })
+      focusAndScroll(uploadSectionRef)
+      return
+    }
+    if (!session?.user?.workspaceId) return
     setGen({ status: 'loading' })
     try {
       const base64 = await fileToBase64(file)
@@ -211,7 +217,11 @@ export default function EditorClient() {
     URL.revokeObjectURL(blobUrl)
   }
 
-  const canGenerate = !!file && gen.status !== 'loading'
+  // Deliberately does NOT require `file` — the button always stays clickable so a click with
+  // no photo yet still reaches handleGenerate(), which shows a clear "add a photo" message and
+  // scrolls to the upload zone, instead of silently doing nothing (a real bug report: a user
+  // clicked a disabled-looking button repeatedly and assumed the site was broken).
+  const canGenerate = gen.status !== 'loading'
   const canRetouch  = !!selected && selected.mode === 'image' && retouchStatus !== 'loading'
 
   return (
@@ -242,6 +252,7 @@ export default function EditorClient() {
 
           {/* Upload zone */}
           <div
+            ref={uploadSectionRef}
             className={cn(
               'order-1 lg:order-none relative rounded-3xl border-2 border-dashed transition-all',
               file
