@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import {
   ArrowLeftRight, Handshake, Share2, Link2, ArrowRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TrackedLink } from './TrackedLink'
+import { BeforeAfterSlider } from './GallerySection'
 
 const FEATURES = [
   {
@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: Link2,
     title: '100 % intégré à Verdia',
-    desc: "Passez d'une photo à un devis puis à un rendu IA sans changer d'outil.",
+    desc: "Passez d'une photo à un rendu IA sans changer d'outil.",
   },
 ]
 
@@ -109,18 +109,15 @@ export function AiContentSection() {
           {/* Right: before/after showcase */}
           <div
             className={cn(
-              'relative rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card transition-all duration-700 ease-out',
+              'transition-all duration-700 ease-out',
               visible ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.97]',
             )}
             style={{ transitionDelay: visible ? '150ms' : '0ms' }}
           >
-            <Image
-              src="/marketing/social-before-after.jpg"
-              alt="Jardin avant/après transformé par le rendu IA Verdia"
-              width={1536}
-              height={1024}
-              sizes="(min-width: 1024px) 45vw, 100vw"
-              className="w-full h-auto"
+            <BeforeAfterSlider
+              before="/marketing/garden-before.jpg"
+              after="/marketing/garden-after.jpg"
+              className="aspect-[4/5] lg:aspect-[3/4]"
             />
           </div>
         </div>

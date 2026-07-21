@@ -30,7 +30,7 @@ const STYLE_PHOTOS = [
 ]
 
 // ─── BEFORE / AFTER SLIDER ───────────────────────────────────────────────────
-function BeforeAfterSlider({
+export function BeforeAfterSlider({
   before, after, className, initialPos = 45,
 }: { before: string; after: string; className?: string; initialPos?: number }) {
   const [pos, setPos]           = useState(initialPos)
