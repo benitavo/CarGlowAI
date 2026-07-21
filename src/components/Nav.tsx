@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { Menu, X, LayoutDashboard } from 'lucide-react'
 import Image from 'next/image'
@@ -13,6 +13,9 @@ export function Nav() {
   const isAuthenticated = status === 'authenticated' && !!session?.user
   const [scrolled, setScrolled]     = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const headerRef  = useRef<HTMLElement>(null)
+  const mobileOpenRef = useRef(mobileOpen)
+  mobileOpenRef.current = mobileOpen
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -20,13 +23,44 @@ export function Nav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Publishes the header's real rendered height as a CSS variable so any page can reserve
+  // exactly that much space with `padding-top: var(--nav-height)` — no more guessing a
+  // pixel value per breakpoint that drifts out of sync the next time the header's own
+  // size changes (responsive logo, scroll-state padding, font load, browser zoom, ...).
+  // Skipped while the mobile dropdown is open: it's a sibling that grows the header's own
+  // box, not part of the "always-visible bar" height content below it should clear.
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+
+    const publish = () => {
+      if (mobileOpenRef.current) return
+      document.documentElement.style.setProperty('--nav-height', `${el.getBoundingClientRect().height}px`)
+    }
+
+    publish()
+    const observer = new ResizeObserver(publish)
+    observer.observe(el)
+    window.addEventListener('resize', publish)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', publish)
+    }
+  }, [])
+
+  // Mobile menu toggling changes the header's own height (dropdown is a sibling inside
+  // it) — re-publish right when it closes back to the "bar only" height.
+  useEffect(() => {
+    if (mobileOpen || !headerRef.current) return
+    document.documentElement.style.setProperty('--nav-height', `${headerRef.current.getBoundingClientRect().height}px`)
+  }, [mobileOpen])
+
   return (
-    <header className={cn(
-      // No backdrop-blur here: at 98% opacity almost nothing shows through anyway, and
-      // backdrop-filter on a fixed header forces a real-time re-blur of everything
-      // scrolling underneath it on every frame — one of the most expensive things you can
-      // ask mobile Safari to do continuously. Same fix below on the mobile menu panel.
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/98 border-b border-midnight/[0.07]',
+    <header ref={headerRef} className={cn(
+      // Fully opaque — no backdrop-blur, no partial transparency. A fixed header re-blurring
+      // or showing through content scrolling underneath it is both a real perf cost on
+      // mobile Safari and a correctness risk (content must never show through the header).
+      'fixed top-0 left-0 right-0 z-[100] transition-all duration-300 bg-white border-b border-midnight/[0.07]',
       scrolled ? 'shadow-sm py-2' : 'py-3'
     )}>
       <nav className="page-container flex items-center justify-between gap-6">
@@ -94,7 +128,7 @@ export function Nav() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white/98 border-t border-midnight/[0.07]">
+        <div className="lg:hidden bg-white border-t border-midnight/[0.07]">
           <div className="page-container py-6 flex flex-col gap-2">
             {[
               { label: 'Comment ça marche', href: '/#comment-ca-marche' },

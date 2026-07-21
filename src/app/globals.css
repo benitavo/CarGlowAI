@@ -4,6 +4,11 @@
 
 @layer base {
   :root {
+    /* Fallback used until Nav measures its own real height on mount (see Nav.tsx) —
+       sized to the largest expected header (desktop, unscrolled), so if anything content
+       starts slightly over-cleared for one frame rather than ever overlapping the header. */
+    --nav-height: 132px;
+
     /* Light marketing theme tokens */
     --background:            140 30% 97%;
     --foreground:            140 40% 10%;

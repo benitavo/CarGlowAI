@@ -29,10 +29,13 @@ const MIN_RENDER_COUNT_TO_SHOW = 20
 
 function HeroSection({ renderCount }: { renderCount: number }) {
   return (
-    // Padding clears the fixed Nav with real breathing room, not an exact match — Nav's
-    // height itself shrinks slightly once scrolled (py-3 -> py-2), and a razor-exact
-    // clearance at the unscrolled height left zero visual gap once that happened.
-    <section className="relative flex flex-col items-center justify-center pt-20 sm:pt-[104px] lg:pt-36 pb-16 overflow-hidden bg-cream-50">
+    // Clears the fixed Nav using its real measured height (--nav-height, published by
+    // Nav.tsx via ResizeObserver) plus a fixed visual gap — never a guessed pixel value
+    // that drifts out of sync whenever the header's own height changes.
+    <section
+      className="relative flex flex-col items-center justify-center pb-16 overflow-hidden bg-cream-50"
+      style={{ paddingTop: 'calc(var(--nav-height, 132px) + 2rem)' }}
+    >
       <div className="absolute top-0 right-0 w-[600px] h-[500px] bg-sage-200/40 rounded-full blur-[140px] pointer-events-none -translate-y-1/4 translate-x-1/4" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-petal-100/50 rounded-full blur-[120px] pointer-events-none translate-y-1/4 -translate-x-1/4" />
 
