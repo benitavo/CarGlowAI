@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import {
   LayoutDashboard, Wand2, FolderOpen,
-  CreditCard, LogOut, ShieldCheck, Palette,
+  CreditCard, LogOut, ShieldCheck, Palette, Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { identifyUser } from '@/lib/analytics/client'
@@ -78,7 +78,11 @@ export default function AppLayoutClient({
   }, [session?.user?.id])
 
   const nav = ws?.isSuperuser
-    ? [...NAV, { label: 'Admin tarifs', href: '/app/admin/pricing', icon: ShieldCheck }]
+    ? [
+        ...NAV,
+        { label: 'Admin utilisateurs', href: '/app/admin/users',   icon: Users },
+        { label: 'Admin tarifs',       href: '/app/admin/pricing', icon: ShieldCheck },
+      ]
     : NAV
 
   const handleSignOut = async () => {
