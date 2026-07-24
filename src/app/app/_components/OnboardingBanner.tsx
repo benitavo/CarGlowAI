@@ -6,19 +6,17 @@ import { Check, ChevronRight, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Props {
-  photoCount:  number
-  memberCount: number
+  photoCount: number
 }
 
 // Only steps with a real, checkable signal end up here — a checklist item that can
 // never actually be marked done (no backing data) is worse than not showing one at all.
-export default function OnboardingBanner({ photoCount, memberCount }: Props) {
+export default function OnboardingBanner({ photoCount }: Props) {
   const [dismissed, setDismissed] = useState(false)
 
   const steps = [
-    { id: 'account', label: 'Créer votre compte',           done: true,            href: null },
-    { id: 'first',   label: 'Générer votre premier rendu',  done: photoCount > 0,  href: '/app/editor' },
-    { id: 'invite',  label: 'Inviter un collègue',           done: memberCount > 1, href: '/app/team' },
+    { id: 'account', label: 'Créer votre compte',          done: true,           href: null },
+    { id: 'first',   label: 'Générer votre premier rendu', done: photoCount > 0, href: '/app/editor' },
   ]
 
   const completed = steps.filter(s => s.done).length
