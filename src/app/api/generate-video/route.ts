@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { GARDEN_STYLES, buildVideoPrompt } from '@/lib/gardenPrompts'
 import { generateStyledImage } from '@/lib/gemini'
+import { uploadBase64WithFallback, uploadBufferWithFallback } from '@/lib/blob-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
@@ -111,6 +112,10 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error('GEMINI_API_KEY absent')
 
+    // Independent of the Gemini/Veo pipeline below, so it's kicked off now and only awaited
+    // right before the final DB write — its latency is fully absorbed by the video generation.
+    const originalUrlPromise = uploadBase64WithFallback(imageData, mimeType ?? 'image/jpeg', `original-${photo.id}.jpg`)
+
     // Step 1: style the garden with Gemini image generation (same as /api/generate)
     const styled = await generateStyledImage(apiKey, imageData, mimeType ?? 'image/jpeg', style, characteristics)
 
@@ -146,16 +151,18 @@ export async function POST(req: NextRequest) {
     const videoUri = await pollOperation(operationName, apiKey)
     const videoRes = await fetch(`${videoUri}${videoUri.includes('?') ? '&' : '?'}key=${apiKey}`)
     if (!videoRes.ok) throw new Error(`Téléchargement vidéo ${videoRes.status}`)
-    // Temporarily reverted — see the matching note in /api/generate/route.ts.
-    const videoBase64 = Buffer.from(await videoRes.arrayBuffer()).toString('base64')
-    const videoUrl = `data:video/mp4;base64,${videoBase64}`
-    const thumbnailUrl = `data:${styled.mimeType};base64,${styled.base64}`
+
+    const [videoUrl, thumbnailUrl, originalUrl] = await Promise.all([
+      uploadBufferWithFallback(Buffer.from(await videoRes.arrayBuffer()), 'video/mp4', `video-${photo.id}.mp4`),
+      uploadBase64WithFallback(styled.base64, styled.mimeType, `video-thumb-${photo.id}.png`),
+      originalUrlPromise,
+    ])
 
     const processingMs = Date.now() - startMs
 
     await db.photo.update({
       where: { id: photo.id },
-      data: { enhancedUrl: videoUrl, thumbnailUrl, status: 'ENHANCED', processingMs },
+      data: { originalUrl, enhancedUrl: videoUrl, thumbnailUrl, status: 'ENHANCED', processingMs },
     })
 
     if (deduction) {
@@ -179,7 +186,7 @@ export async function POST(req: NextRequest) {
       trackServerEvent(ANALYTICS_EVENTS.FIRST_VIDEO_GENERATED, { ...analyticsIdentity, remainingCredits })
     }
 
-    return NextResponse.json({ photoId: photo.id, videoUrl, processingMs, credits })
+    return NextResponse.json({ photoId: photo.id, originalUrl, videoUrl, processingMs, credits })
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur inconnue'

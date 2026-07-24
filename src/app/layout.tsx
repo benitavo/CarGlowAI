@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: '%s | Verdia',
   },
   description:
-    'Verdia transforme la photo de votre jardin actuel en rendu photoréaliste de votre futur aménagement paysager, propulsé par l\'IA.',
+    'Verdia transforme la photo de votre jardin actuel en rendu photo ou vidéo de votre futur aménagement paysager, propulsé par l\'IA.',
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
   // Meta Business domain verification — rendered server-side via Next's Metadata API,
   // so it's present in the initial HTML <head> rather than injected by client JS

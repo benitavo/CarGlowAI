@@ -52,8 +52,8 @@ export interface EventPropertiesMap {
   [ANALYTICS_EVENTS.LANDING_VIEWED]: Record<string, unknown>
   [ANALYTICS_EVENTS.CTA_CLICKED]: { ctaId: string; label?: string; location?: string }
   [ANALYTICS_EVENTS.PRICING_VIEWED]: { source?: string }
-  [ANALYTICS_EVENTS.ACCOUNT_CREATED]: { method: 'credentials' }
-  [ANALYTICS_EVENTS.LOGIN]: { method: 'credentials' }
+  [ANALYTICS_EVENTS.ACCOUNT_CREATED]: { method: 'credentials' | 'google' }
+  [ANALYTICS_EVENTS.LOGIN]: { method: 'credentials' | 'google' }
   [ANALYTICS_EVENTS.IMAGE_GENERATED]: { styleSlug?: string; processingMs?: number }
   [ANALYTICS_EVENTS.IMAGE_RETOUCHED]: { processingMs?: number }
   [ANALYTICS_EVENTS.VIDEO_GENERATED]: { styleSlug?: string; processingMs?: number }

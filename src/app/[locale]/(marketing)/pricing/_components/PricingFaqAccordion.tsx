@@ -4,17 +4,28 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const PRICING_FAQS = [
-  { q: 'Qu\'est-ce qu\'un crédit ?', a: 'Un crédit est consommé à chaque action IA : une génération d\'image coûte 1 crédit, une retouche 1 crédit, une génération de vidéo 15 crédits.' },
-  { q: 'Les crédits mensuels non utilisés sont-ils reportés ?', a: 'Non. Les crédits inclus dans votre abonnement sont renouvelés chaque mois et n\'expirent pas d\'un mois sur l\'autre — mais ils ne se cumulent pas non plus. Les crédits achetés en pack, eux, n\'expirent jamais.' },
-  { q: 'Que contient l\'offre Découverte ?', a: 'Un crédit gratuit chaque mois, sans carte bancaire, avec accès à tous les styles disponibles.' },
-  { q: 'Puis-je changer de forfait à tout moment ?', a: 'Oui. La mise à niveau est immédiate, la rétrogradation prend effet à la fin de la période de facturation en cours. Aucun frais de résiliation.' },
-  { q: 'Puis-je acheter des crédits supplémentaires ?', a: 'Oui — des packs de crédits ponctuels sont disponibles depuis votre compte, en plus de votre abonnement. Ils n\'expirent jamais.' },
-  { q: 'Proposez-vous des tarifs pour les grandes équipes ?', a: 'Oui — contactez notre équipe pour un tarif sur mesure au-delà du forfait Business ou pour des groupes multi-sites.' },
-]
+interface Props {
+  imageGenerationCost: number
+  imageRetouchCost: number
+  videoGenerationCost: number
+}
 
-export function PricingFaqAccordion() {
+// Costs come in as props from the server-rendered parent (pricing/page.tsx, which already
+// reads them via listAiFeatures()) rather than being fetched or hardcoded here — same
+// "single source of truth" rule as everywhere else pricing numbers show up, so this text
+// can never drift from what an admin actually configured.
+export function PricingFaqAccordion({ imageGenerationCost, imageRetouchCost, videoGenerationCost }: Props) {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  const PRICING_FAQS = [
+    { q: 'Qu\'est-ce qu\'un crédit ?', a: `Un crédit est consommé à chaque action IA : une génération d'image coûte ${imageGenerationCost} crédit${imageGenerationCost === 1 ? '' : 's'}, une retouche ${imageRetouchCost} crédit${imageRetouchCost === 1 ? '' : 's'}, une génération de vidéo ${videoGenerationCost} crédits.` },
+    { q: 'Combien coûte une vidéo avant/après ?', a: 'TODO' },
+    { q: 'Les crédits mensuels non utilisés sont-ils reportés ?', a: 'Non. Les crédits inclus dans votre abonnement sont renouvelés chaque mois et n\'expirent pas d\'un mois sur l\'autre — mais ils ne se cumulent pas non plus. Les crédits achetés en pack, eux, n\'expirent jamais.' },
+    { q: 'Que contient l\'offre Découverte ?', a: 'Un crédit gratuit chaque mois, sans carte bancaire, avec accès à tous les styles disponibles.' },
+    { q: 'Puis-je changer de forfait à tout moment ?', a: 'Oui. La mise à niveau est immédiate, la rétrogradation prend effet à la fin de la période de facturation en cours. Aucun frais de résiliation.' },
+    { q: 'Puis-je acheter des crédits supplémentaires ?', a: 'Oui — des packs de crédits ponctuels sont disponibles depuis votre compte, en plus de votre abonnement. Ils n\'expirent jamais.' },
+    { q: 'Proposez-vous des tarifs pour les grandes équipes ?', a: 'Oui — contactez notre équipe pour un tarif sur mesure au-delà du forfait Business ou pour des groupes multi-sites.' },
+  ]
 
   return (
     <div className="flex flex-col divide-y divide-midnight/[0.07]">

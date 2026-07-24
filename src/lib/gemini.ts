@@ -61,3 +61,25 @@ export async function retouchImage(
 ): Promise<StyledImage> {
   return callGeminiImage(apiKey, buildRetouchPrompt(instruction), imageData, mimeType)
 }
+
+// Plain text completion (no image in/out) — used for the Marketing Kit's social-post caption.
+export async function generateText(apiKey: string, prompt: string): Promise<string> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    },
+  )
+
+  if (!response.ok) {
+    const errText = await response.text()
+    throw new Error(`Gemini API ${response.status}: ${errText}`)
+  }
+
+  const data = await response.json()
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text as string | undefined
+  if (!text) throw new Error('Gemini n\'a renvoyé aucun texte')
+  return text.trim()
+}

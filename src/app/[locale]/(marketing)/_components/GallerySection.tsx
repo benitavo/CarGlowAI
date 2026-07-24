@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GridAvatar } from './GridAvatar'
+import { gardenImagePath } from '@/lib/showcase-data'
 
 interface ShowcaseItem { before: string; after: string; video?: string; style: string; desc: string }
 
@@ -18,6 +19,12 @@ const SHOWCASE: ShowcaseItem[] = [
     style: 'Naturel & Sauvage', desc: 'Prairie fleurie et plantes locales' },
   { before: '/garden-before-5.jpg', after: '/garden-after-5.jpg',
     style: 'Gazon & Fleurs',    desc: 'Pelouse verte et massifs fleuris' },
+  // Added from the real garden assets Benoit provided (Phase 0 showcase pipeline) — the three
+  // above predate that batch entirely.
+  { before: gardenImagePath('jardin-01', 'before'), after: gardenImagePath('jardin-01', 'after-mediterraneen'),
+    style: 'Méditerranéen', desc: 'Olivier, lavande et pierre naturelle' },
+  { before: gardenImagePath('jardin-03', 'before'), after: gardenImagePath('jardin-03', 'after-contemporain'),
+    style: 'Contemporain',  desc: 'Lignes épurées et végétation structurée' },
 ]
 
 const STYLE_PHOTOS = [
@@ -275,8 +282,11 @@ export function GallerySection({ landscaperCount }: { landscaperCount: number })
                 <button
                   key={i}
                   onClick={() => { setActive(i); setShowVideo(false) }}
+                  aria-current={i === active}
+                  aria-label={`Voir la transformation ${s.style}`}
                   className={cn(
                     'relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
                     i === active
                       ? 'border-sage-500 shadow-sage-sm scale-[1.05]'
                       : 'border-transparent opacity-55 hover:opacity-85 hover:border-sage-300',

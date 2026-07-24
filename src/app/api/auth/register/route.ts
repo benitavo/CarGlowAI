@@ -17,6 +17,7 @@ import crypto from 'crypto'
  *   - email: required, must be a valid format
  *   - password: required, minimum 8 characters
  *   - name: optional; defaults to the email local-part
+ *   - companyName: optional; used as the workspace name if provided, falling back to `name`
  *
  * Special handling:
  *   - If an account exists *without* a password (legacy email-only user) and
@@ -26,16 +27,17 @@ import crypto from 'crypto'
  *   - If an account already has a password, we reject with 409.
  */
 export async function POST(req: NextRequest) {
-  let body: { email?: string; password?: string; name?: string }
+  let body: { email?: string; password?: string; name?: string; companyName?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const email    = body.email?.trim().toLowerCase()
-  const password = body.password ?? ''
-  const name     = body.name?.trim() || undefined
+  const email       = body.email?.trim().toLowerCase()
+  const password    = body.password ?? ''
+  const name        = body.name?.trim() || undefined
+  const companyName = body.companyName?.trim() || undefined
 
   // ── Validation ─────────────────────────────────────────────────────────
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -85,7 +87,9 @@ export async function POST(req: NextRequest) {
 
     const workspace = await db.workspace.create({
       data: {
-        name:           name ?? 'My Workspace',
+        // The company name is what the Marketing Kit end card falls back to when no BrandKit
+        // exists (see src/lib/brand-kit.ts) — prefer it over the person's own name.
+        name:           companyName ?? name ?? 'My Workspace',
         slug:           `ws-${user.id}`,
         plan:           'FREE',
         monthlyCredits: freeCredits,

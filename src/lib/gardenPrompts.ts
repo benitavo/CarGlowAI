@@ -153,3 +153,19 @@ reinforces the wow effect from the still image — calm, inviting, real —
 without introducing anything that wasn't already validated in the image
 generation step.`
 }
+
+export function buildSocialCaptionPrompt(styleName: string, businessName?: string, ctaText?: string) {
+  return `Tu es community manager pour une entreprise de paysagisme.
+
+Écris une légende Instagram/Facebook courte (3 à 5 phrases maximum), chaleureuse et
+professionnelle, pour accompagner une vidéo avant/après montrant la transformation d'un
+jardin dans un style "${styleName}".
+${businessName ? `\nL'entreprise s'appelle "${businessName}".` : ''}
+${ctaText ? `\nTermine par un appel à l'action reprenant l'idée : "${ctaText}".` : ''}
+
+Ajoute ensuite, sur une ligne séparée, 4 à 6 hashtags pertinents en français (paysagisme,
+jardin, avant/après, etc.).
+
+Réponds uniquement avec le texte de la légende et les hashtags, sans introduction ni
+commentaire, sans guillemets autour du texte.`
+}

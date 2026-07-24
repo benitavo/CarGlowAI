@@ -7,23 +7,25 @@ import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import {
   LayoutDashboard, Wand2, FolderOpen,
-  CreditCard, LogOut, ShieldCheck,
+  CreditCard, LogOut, ShieldCheck, Palette,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { identifyUser } from '@/lib/analytics/client'
 
 const NAV = [
-  { label: 'Tableau de bord', href: '/app',         icon: LayoutDashboard },
-  { label: 'Générateur',      href: '/app/editor',  icon: Wand2 },
-  { label: 'Mes rendus',      href: '/app/library', icon: FolderOpen },
-  { label: 'Abonnement',      href: '/app/billing', icon: CreditCard },
+  { label: 'Tableau de bord', href: '/app',           icon: LayoutDashboard },
+  { label: 'Générateur',      href: '/app/editor',    icon: Wand2 },
+  { label: 'Mes rendus',      href: '/app/library',   icon: FolderOpen },
+  { label: 'Marque',          href: '/app/brand-kit', icon: Palette },
+  { label: 'Abonnement',      href: '/app/billing',   icon: CreditCard },
 ]
 
 const NAV_MOBILE = [
-  { label: 'Accueil',  href: '/app',         icon: LayoutDashboard },
-  { label: 'Générer',  href: '/app/editor',  icon: Wand2 },
-  { label: 'Rendus',   href: '/app/library', icon: FolderOpen },
-  { label: 'Plan',     href: '/app/billing', icon: CreditCard },
+  { label: 'Accueil',  href: '/app',           icon: LayoutDashboard },
+  { label: 'Générer',  href: '/app/editor',    icon: Wand2 },
+  { label: 'Rendus',   href: '/app/library',   icon: FolderOpen },
+  { label: 'Marque',   href: '/app/brand-kit', icon: Palette },
+  { label: 'Plan',     href: '/app/billing',   icon: CreditCard },
 ]
 
 interface WorkspaceSummary {
