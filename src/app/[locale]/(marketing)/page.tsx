@@ -13,6 +13,8 @@ import { TabletVideoPlayer } from './_components/TabletVideoPlayer'
 import { LazyCalendlyEmbed } from './_components/LazyCalendlyEmbed'
 import { TestimonialsSection } from './_components/TestimonialsSection'
 import { AiContentSection } from './_components/AiContentSection'
+import { VideoShowcaseSection } from './_components/VideoShowcaseSection'
+import { MarketingKit } from './_components/MarketingKit'
 import { PricingSection } from './_components/PricingSection'
 import { FAQSection } from './_components/FAQSection'
 import { StickyMobileCTA } from './_components/StickyMobileCTA'
@@ -514,6 +516,8 @@ export default async function HomePage() {
       <ScrollingGallerySection />
       <StylesSection />
       <AiContentSection />
+      <VideoShowcaseSection />
+      <MarketingKit />
       <AutomationSection />
       <ArgumentsSection />
       <MidPageCTASection />

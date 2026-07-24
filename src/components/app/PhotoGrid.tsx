@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Download, ImageIcon, ArrowRight, X, ChevronLeft, ChevronRight, Play, Clock } from 'lucide-react'
+import { Download, ImageIcon, ArrowRight, X, ChevronLeft, ChevronRight, Play, Clock, Clapperboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { MarketingKitModal } from '@/components/app/MarketingKitModal'
 
 interface Photo {
   id:           string
@@ -16,6 +17,7 @@ interface Photo {
   createdAt:    string
   processingMs: number | null
   isVideo:      boolean
+  isRetouch:    boolean
 }
 
 const STATUS_CLS: Record<string, string> = {
@@ -57,20 +59,26 @@ function markDownloaded(id: string) {
 
 export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   const [previewIdx, setPreviewIdx] = useState<number | null>(null)
+  const [showMarketingKit, setShowMarketingKit] = useState(false)
 
   const preview   = previewIdx !== null ? photos[previewIdx] : null
   const hasPrev   = previewIdx !== null && previewIdx > 0
   const hasNext   = previewIdx !== null && previewIdx < photos.length - 1
 
   const goPrev = useCallback(() => {
+    setShowMarketingKit(false)
     setPreviewIdx(i => (i !== null && i > 0 ? i - 1 : i))
   }, [])
 
   const goNext = useCallback(() => {
+    setShowMarketingKit(false)
     setPreviewIdx(i => (i !== null && i < photos.length - 1 ? i + 1 : i))
   }, [photos.length])
 
-  const close = useCallback(() => setPreviewIdx(null), [])
+  const close = useCallback(() => {
+    setShowMarketingKit(false)
+    setPreviewIdx(null)
+  }, [])
 
   useEffect(() => {
     if (previewIdx === null) return
@@ -205,6 +213,14 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                {preview.status === 'ENHANCED' && !preview.isRetouch && (
+                  <button
+                    onClick={() => setShowMarketingKit(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-white/[0.12] hover:bg-white/[0.06] text-offwhite font-semibold text-sm transition-all"
+                  >
+                    <Clapperboard className="w-4 h-4" strokeWidth={2} /> Kit marketing
+                  </button>
+                )}
                 {preview.fullUrl && (
                   <a
                     href={preview.fullUrl}
@@ -294,6 +310,10 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             </div>
           </div>
         </div>
+      )}
+
+      {showMarketingKit && preview && (
+        <MarketingKitModal photoId={preview.id} onClose={() => setShowMarketingKit(false)} hasVideoAfter={preview.isVideo} />
       )}
     </>
   )

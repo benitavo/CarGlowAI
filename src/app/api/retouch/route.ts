@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { retouchImage } from '@/lib/gemini'
+import { uploadBase64WithFallback } from '@/lib/blob-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
@@ -81,14 +82,16 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error('GEMINI_API_KEY absent')
 
-    const retouched = await retouchImage(apiKey, imageData, mimeType ?? 'image/png', instruction.trim())
-    // Temporarily reverted — see the matching note in /api/generate/route.ts.
-    const enhancedUrl = `data:${retouched.mimeType};base64,${retouched.base64}`
+    const [retouched, originalUrl] = await Promise.all([
+      retouchImage(apiKey, imageData, mimeType ?? 'image/png', instruction.trim()),
+      uploadBase64WithFallback(imageData, mimeType ?? 'image/png', `original-${photo.id}.png`),
+    ])
+    const enhancedUrl = await uploadBase64WithFallback(retouched.base64, retouched.mimeType, `enhanced-${photo.id}.png`)
     const processingMs = Date.now() - startMs
 
     await db.photo.update({
       where: { id: photo.id },
-      data: { enhancedUrl, thumbnailUrl: enhancedUrl, status: 'ENHANCED', processingMs },
+      data: { originalUrl, enhancedUrl, thumbnailUrl: enhancedUrl, status: 'ENHANCED', processingMs },
     })
 
     if (deduction) {
@@ -109,7 +112,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    return NextResponse.json({ photoId: photo.id, enhancedUrl, processingMs, credits })
+    return NextResponse.json({ photoId: photo.id, originalUrl, enhancedUrl, processingMs, credits })
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur inconnue'

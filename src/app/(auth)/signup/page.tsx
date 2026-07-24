@@ -3,7 +3,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Mail, User, KeyRound, ArrowRight, Check, Loader2 } from 'lucide-react'
+import { Mail, User, Building2, KeyRound, ArrowRight, Check, Loader2 } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/meta'
@@ -19,6 +19,7 @@ function validatePassword(pwd: string): string | null {
 export default function SignUpPage() {
   const router = useRouter()
   const [name, setName]         = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
@@ -53,7 +54,7 @@ export default function SignUpPage() {
       const res = await fetch('/api/auth/register', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name: name.trim() }),
+        body: JSON.stringify({ email, password, name: name.trim(), companyName: companyName.trim() || undefined }),
       })
       const body = await res.json()
       if (!res.ok) {
@@ -102,6 +103,11 @@ export default function SignUpPage() {
         <Field label="Nom complet" icon={User}>
           <input type="text" required autoComplete="name" value={name}
             onChange={e => setName(e.target.value)} placeholder="Thomas Bernard" className="auth-input" />
+        </Field>
+
+        <Field label="Nom de l'entreprise (optionnel)" icon={Building2}>
+          <input type="text" autoComplete="organization" value={companyName}
+            onChange={e => setCompanyName(e.target.value)} placeholder="Jardins Bernard" className="auth-input" />
         </Field>
 
         <Field label="Email" icon={Mail}>

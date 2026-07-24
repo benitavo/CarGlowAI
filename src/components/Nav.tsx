@@ -80,6 +80,7 @@ export function Nav() {
         <ul className="hidden lg:flex items-center gap-1">
           {[
             { label: 'Comment ça marche', href: '/#comment-ca-marche' },
+            { label: 'Kit marketing',     href: '/#kit-marketing' },
             { label: 'Tarifs',            href: '/#tarifs' },
             { label: 'Guide',             href: '/guide' },
             { label: 'Blog',              href: '/blog' },
@@ -132,6 +133,7 @@ export function Nav() {
           <div className="page-container py-6 flex flex-col gap-2">
             {[
               { label: 'Comment ça marche', href: '/#comment-ca-marche' },
+              { label: 'Kit marketing',     href: '/#kit-marketing' },
               { label: 'Tarifs',            href: '/#tarifs' },
               { label: 'Guide',             href: '/guide' },
               { label: 'Blog',              href: '/blog' },

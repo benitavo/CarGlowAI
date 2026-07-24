@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { GARDEN_STYLES } from '@/lib/gardenPrompts'
 import { generateStyledImage } from '@/lib/gemini'
+import { uploadBase64WithFallback } from '@/lib/blob-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
@@ -90,17 +91,19 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error('GEMINI_API_KEY absent')
 
-    const styled = await generateStyledImage(apiKey, imageData, mimeType ?? 'image/jpeg', style, characteristics)
-    // Temporarily reverted to a data URI — the fal.storage.upload() path (below) failed in
-    // production and was never actually exercised by any real request before today, so it
-    // needs verifying with real logs before going back live. See uploadBufferToFal in
-    // src/lib/fal-storage.ts for the CDN-upload version this is reverting from.
-    const enhancedUrl = `data:${styled.mimeType};base64,${styled.base64}`
+    // The original upload is independent of the Gemini call, so it runs in parallel rather
+    // than adding its own latency on top. uploadBase64WithFallback never throws — a storage
+    // outage falls back to a data URI instead of failing the whole generation.
+    const [styled, originalUrl] = await Promise.all([
+      generateStyledImage(apiKey, imageData, mimeType ?? 'image/jpeg', style, characteristics),
+      uploadBase64WithFallback(imageData, mimeType ?? 'image/jpeg', `original-${photo.id}.jpg`),
+    ])
+    const enhancedUrl = await uploadBase64WithFallback(styled.base64, styled.mimeType, `enhanced-${photo.id}.png`)
     const processingMs = Date.now() - startMs
 
     await db.photo.update({
       where: { id: photo.id },
-      data: { enhancedUrl, thumbnailUrl: enhancedUrl, status: 'ENHANCED', processingMs },
+      data: { originalUrl, enhancedUrl, thumbnailUrl: enhancedUrl, status: 'ENHANCED', processingMs },
     })
 
     if (deduction) {
@@ -124,7 +127,7 @@ export async function POST(req: NextRequest) {
       trackServerEvent(ANALYTICS_EVENTS.FIRST_IMAGE_GENERATED, { ...analyticsIdentity, remainingCredits })
     }
 
-    return NextResponse.json({ photoId: photo.id, enhancedUrl, processingMs, credits })
+    return NextResponse.json({ photoId: photo.id, originalUrl, enhancedUrl, processingMs, credits })
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur inconnue'

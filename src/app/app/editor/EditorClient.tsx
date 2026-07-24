@@ -7,10 +7,12 @@ import Image from 'next/image'
 import {
   Upload, Loader2, Download, ArrowLeft, Sparkles,
   Leaf, RotateCcw, Video, Image as ImageIcon, PenLine,
-  Wand2, RefreshCw, Palette, Send, AlertTriangle, X,
+  Wand2, RefreshCw, Palette, Send, AlertTriangle, X, Clapperboard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GARDEN_STYLES } from '@/lib/gardenStyles'
+import { downloadUrlAsFile } from '@/lib/download-file'
+import { MarketingKitModal } from '@/components/app/MarketingKitModal'
 
 type Mode = 'image' | 'video'
 
@@ -73,6 +75,7 @@ export default function EditorClient() {
   const [retouchStatus, setRetouchStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [retouchError, setRetouchError]   = useState<string | undefined>()
   const [creditError, setCreditError]     = useState<CreditError | null>(null)
+  const [showMarketingKit, setShowMarketingKit] = useState(false)
   const uploadSectionRef  = useRef<HTMLDivElement>(null)
   const styleSectionRef   = useRef<HTMLDivElement>(null)
   const characteristicsRef = useRef<HTMLTextAreaElement>(null)
@@ -132,7 +135,10 @@ export default function EditorClient() {
       focusAndScroll(uploadSectionRef)
       return
     }
-    if (!session?.user?.workspaceId) return
+    if (!session?.user?.workspaceId) {
+      setGen({ status: 'error', error: 'Session non chargée — rechargez la page et réessayez.' })
+      return
+    }
     setGen({ status: 'loading' })
     try {
       const base64 = await fileToBase64(file)
@@ -167,7 +173,12 @@ export default function EditorClient() {
   }, [file, session, styleSlug, characteristics, mode, pushVersion, refreshCredits])
 
   const handleRetouch = useCallback(async () => {
-    if (!retouchText.trim() || !selected || selected.mode !== 'image' || !session?.user?.workspaceId) return
+    if (!retouchText.trim() || !selected || selected.mode !== 'image') return
+    if (!session?.user?.workspaceId) {
+      setRetouchError('Session non chargée — rechargez la page et réessayez.')
+      setRetouchStatus('error')
+      return
+    }
     setRetouchStatus('loading')
     setRetouchError(undefined)
     try {
@@ -205,16 +216,8 @@ export default function EditorClient() {
   const handleDownload = async () => {
     const url = selected?.url ?? gen.resultUrl
     if (!url) return
-    const res = await fetch(url)
-    const blob = await res.blob()
-    const blobUrl = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = blobUrl
-    a.download = `verdia-${styleSlug}-${Date.now()}.${(selected?.mode ?? mode) === 'video' ? 'mp4' : 'png'}`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(blobUrl)
+    const ext = (selected?.mode ?? mode) === 'video' ? 'mp4' : 'png'
+    await downloadUrlAsFile(url, `verdia-${styleSlug}-${Date.now()}.${ext}`)
   }
 
   // Deliberately does NOT require `file` — the button always stays clickable so a click with
@@ -326,13 +329,24 @@ export default function EditorClient() {
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold transition-all"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Télécharger
-                </button>
+                <div className="flex items-center gap-2">
+                  {selected.kind === 'generate' && (
+                    <button
+                      onClick={() => setShowMarketingKit(true)}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-sage-200 text-sage-700 hover:bg-sage-50 text-xs font-semibold transition-all"
+                    >
+                      <Clapperboard className="w-3.5 h-3.5" />
+                      Kit marketing
+                    </button>
+                  )}
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-white text-xs font-semibold transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Télécharger
+                  </button>
+                </div>
               </div>
 
               {/* Quick actions — horizontal scroll strip on mobile, vertical rail from sm+ */}
@@ -669,6 +683,10 @@ export default function EditorClient() {
           required={creditError.required}
           onClose={() => setCreditError(null)}
         />
+      )}
+
+      {showMarketingKit && selected && (
+        <MarketingKitModal photoId={selected.id} onClose={() => setShowMarketingKit(false)} hasVideoAfter={selected.mode === 'video'} />
       )}
     </div>
   )

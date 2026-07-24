@@ -132,6 +132,7 @@ export default async function DashboardPage() {
             createdAt:    p.createdAt.toISOString(),
             processingMs: p.processingMs ?? null,
             isVideo:      Array.isArray(p.toolsUsed) && p.toolsUsed.includes('veo_video_generation'),
+            isRetouch:    Array.isArray(p.toolsUsed) && p.toolsUsed.includes('gemini_image_retouch'),
           }))} />
         </section>
       </div>
