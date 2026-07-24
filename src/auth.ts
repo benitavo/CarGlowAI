@@ -1,7 +1,10 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GoogleProvider from 'next-auth/providers/google'
+import { PrismaAdapter } from '@auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { getPricingConfig, monthlyCreditsForPlan } from '@/lib/pricing'
 import { trackServerEvent } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
@@ -10,10 +13,32 @@ import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 // allow a route module to export GET/POST/etc — anything else (auth, signIn, signOut) fails
 // the build's route type-check. The route file just re-exports { GET, POST } from here.
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // JWT sessions — no adapter, users managed directly in authorize()
+  // Still JWT sessions (required — Credentials providers can't use database sessions). The
+  // adapter below is only exercised by the Google provider: Auth.js's Credentials handling
+  // never touches the adapter, authorize()'s return value goes straight into the JWT exactly
+  // as before. This is what lets both providers coexist without changing the Credentials path.
+  adapter: PrismaAdapter(db),
   session: { strategy: 'jwt' },
 
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // Google verifies the email before issuing it in the profile, so treating it as
+      // pre-verified and auto-linking to an existing password account with the same email is
+      // the standard, low-risk case for this flag — it would NOT be safe with an arbitrary or
+      // unverified-email provider.
+      allowDangerousEmailAccountLinking: true,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          emailVerified: profile.email_verified ? new Date() : null,
+        }
+      },
+    }),
     CredentialsProvider({
       id:   'credentials',
       name: 'Email',
@@ -94,7 +119,44 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   events: {
-    async signIn({ user }) {
+    // Fires once, right after the adapter inserts a brand-new User row — in this app that only
+    // ever happens for the Google provider (Credentials' authorize() bypasses the adapter
+    // entirely, exactly as before). Mirrors /api/auth/register's user+workspace+membership
+    // bundle so a first-time Google sign-in ends up with somewhere to attach credits/photos to,
+    // instead of a bare User row and a broken workspaceId lookup in the jwt() callback above.
+    async createUser({ user }) {
+      if (!user.id) return
+      try {
+        const config = await getPricingConfig()
+        const freeCredits = monthlyCreditsForPlan(config, 'FREE')
+        const nextReset = new Date()
+        nextReset.setMonth(nextReset.getMonth() + 1)
+
+        const workspace = await db.workspace.create({
+          data: {
+            name:           user.name ?? 'My Workspace',
+            slug:           `ws-${user.id}`,
+            plan:           'FREE',
+            monthlyCredits: freeCredits,
+            renewalDate:    nextReset,
+            members: { create: { userId: user.id, role: 'OWNER' } },
+          },
+        })
+
+        trackServerEvent(ANALYTICS_EVENTS.ACCOUNT_CREATED, {
+          userId: user.id,
+          email: user.email ?? null,
+          plan: 'FREE',
+          remainingCredits: freeCredits,
+          workspaceId: workspace.id,
+          method: 'google',
+        })
+      } catch (err) {
+        console.error('[auth] createUser workspace provisioning failed:', err)
+      }
+    },
+
+    async signIn({ user, account }) {
       if (!user?.id) return
       try {
         const member = await db.workspaceMember.findFirst({
@@ -108,7 +170,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           plan: member?.workspace.plan ?? 'FREE',
           remainingCredits: member ? member.workspace.monthlyCredits + member.workspace.bonusCredits : 0,
           workspaceId: member?.workspace.id,
-          method: 'credentials',
+          method: account?.provider === 'google' ? 'google' : 'credentials',
         })
       } catch {
         // analytics must never break the login flow

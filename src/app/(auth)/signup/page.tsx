@@ -7,6 +7,7 @@ import { Mail, User, Building2, KeyRound, ArrowRight, Check, Loader2 } from 'luc
 import { signIn } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/meta'
+import { GoogleIcon } from '@/components/GoogleIcon'
 
 function validatePassword(pwd: string): string | null {
   if (pwd.length < 8)        return 'Le mot de passe doit contenir au moins 8 caractères.'
@@ -149,6 +150,21 @@ export default function SignUpPage() {
           <Link href="/privacy" className="text-midnight/60 underline-offset-2 hover:underline">Politique de confidentialité</Link>.
         </p>
       </form>
+
+      <div className="flex items-center gap-3 my-6">
+        <div className="h-px flex-1 bg-midnight/[0.08]" />
+        <span className="text-[11px] uppercase tracking-widest text-midnight/35">ou</span>
+        <div className="h-px flex-1 bg-midnight/[0.08]" />
+      </div>
+
+      <button
+        type="button"
+        onClick={() => signIn('google', { callbackUrl: '/app' })}
+        className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-midnight/[0.12] hover:border-midnight/[0.25] hover:bg-midnight/[0.02] px-4 py-2.5 text-sm font-medium text-midnight/75 transition-colors"
+      >
+        <GoogleIcon className="w-4 h-4" />
+        S&apos;inscrire avec Google
+      </button>
 
       <ul className="mt-8 pt-6 border-t border-midnight/[0.07] space-y-2">
         {benefits.map(b => (
