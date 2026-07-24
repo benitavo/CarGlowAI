@@ -20,35 +20,18 @@ const KIT_FORMATS: { videoName: string; label: string; aspectClass: string }[] =
   { videoName: 'jardin-04-carre', label: 'Carré · 1:1',  aspectClass: 'w-[306px] aspect-square' },
 ]
 
-// Absorbed from the now-retired VideoShowcaseSection.tsx (Phase 4 fusion) — real generated
-// examples across different gardens/styles, where KIT_FORMATS above only ever shows the same
-// single garden. Source clips are hosted on Vercel Blob from the marketing-video pipeline;
-// none of this is Phase 0 showcase data, so it doesn't go through src/lib/showcase-data.ts.
-const REAL_EXAMPLES: { id: string; videoSrc: string; poster: string; style: string; label: string; aspectClass: string }[] = [
-  {
-    id: 'cottage-gravier',
-    videoSrc: 'https://ntezmlg9oymf1peu.public.blob.vercel-storage.com/marketing-kit/examples/cottage-gravier.mp4',
-    poster: '/garden-after-1.jpg',
-    style: 'Cottage & Naturel',
-    label: 'Reel · 9:16',
-    aspectClass: 'w-[172px] aspect-[9/16]',
-  },
-  {
-    id: 'zen-japonais',
-    videoSrc: 'https://ntezmlg9oymf1peu.public.blob.vercel-storage.com/marketing-kit/examples/zen-japonais.mp4',
-    poster: '/garden-after-7.png',
-    style: 'Zen & Japonais',
-    label: 'Paysage · 16:9',
-    aspectClass: 'w-[280px] aspect-video',
-  },
-  {
-    id: 'gazon-roses',
-    videoSrc: 'https://ntezmlg9oymf1peu.public.blob.vercel-storage.com/marketing-kit/examples/gazon-roses.mp4',
-    poster: '/garden-after-6.jpg',
-    style: 'Gazon & Roses',
-    label: 'Carré · 1:1',
-    aspectClass: 'w-[172px] aspect-square',
-  },
+// Absorbed from the now-retired VideoShowcaseSection.tsx (Phase 4 fusion), then expanded with
+// more of the real garden clips Benoit provided (only jardin-04's 3 formats were shown, in
+// KIT_FORMATS above — this row covers jardin-01/02/03 instead, 2 clips each, so the whole
+// section actually uses all 4 gardens rather than just one). Real showcase-data.ts videos, not
+// the earlier placeholder examples hosted separately on Vercel Blob.
+const REAL_EXAMPLES: { videoName: string; gardenLabel: string; label: string; aspectClass: string }[] = [
+  { videoName: 'jardin-01-dynamique-1', gardenLabel: 'Jardin 1', label: 'Paysage · 16:9', aspectClass: 'w-[280px] aspect-video' },
+  { videoName: 'jardin-01-dynamique-2', gardenLabel: 'Jardin 1', label: 'Paysage · 16:9', aspectClass: 'w-[280px] aspect-video' },
+  { videoName: 'jardin-02-dynamique',   gardenLabel: 'Jardin 2', label: 'Reel · 9:16',    aspectClass: 'w-[172px] aspect-[9/16]' },
+  { videoName: 'jardin-02-reel-1',      gardenLabel: 'Jardin 2', label: 'Reel · 9:16',    aspectClass: 'w-[172px] aspect-[9/16]' },
+  { videoName: 'jardin-03-story-1',     gardenLabel: 'Jardin 3', label: 'Story · 9:16',   aspectClass: 'w-[172px] aspect-[9/16]' },
+  { videoName: 'jardin-03-paysage',     gardenLabel: 'Jardin 3', label: 'Paysage · 16:9', aspectClass: 'w-[280px] aspect-video' },
 ]
 
 // Not shared with AiContentSection.tsx's own copy of this same hook shape — Phase 3's brief
@@ -228,13 +211,18 @@ export function MarketingKit() {
               Exemples réels
             </div>
           </div>
-          <div className="flex gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none pb-2 md:pb-0 justify-start md:justify-center items-end">
-            {REAL_EXAMPLES.map(ex => (
-              <div key={ex.id} className="flex flex-col gap-2 shrink-0">
-                <FormatCard videoSrc={ex.videoSrc} poster={ex.poster} label={ex.label} aspectClass={ex.aspectClass} />
-                <p className="text-center text-xs text-midnight/40">{ex.style}</p>
-              </div>
-            ))}
+          {/* Always a horizontal scroll strip, even on desktop — 6 cards of mixed real
+              ratios don't reliably fit one visible row the way row 1's 3 cards do. */}
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 justify-start items-end">
+            {REAL_EXAMPLES.map(ex => {
+              const { mp4, poster } = videoPaths(ex.videoName)
+              return (
+                <div key={ex.videoName} className="flex flex-col gap-2 shrink-0">
+                  <FormatCard videoSrc={mp4} poster={poster} label={ex.label} aspectClass={ex.aspectClass} />
+                  <p className="text-center text-xs text-midnight/40">{ex.gardenLabel}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -242,6 +230,10 @@ export function MarketingKit() {
           <h3 className="font-display font-bold text-midnight mb-6" style={{ fontSize: 'clamp(1.4rem,2.6vw,2rem)' }}>
             Photographiez une fois, publiez partout.
           </h3>
+          <p className="text-midnight/45 text-sm leading-relaxed mb-8">
+            Kit entièrement personnalisable : votre logo, votre couleur de marque, votre texte
+            de fin et votre musique.
+          </p>
           <TrackedLink href="/signup" ctaId="marketing_kit_section" label="Essayer le kit marketing" location="marketing_kit_section"
             className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all">
             Essayer le kit marketing

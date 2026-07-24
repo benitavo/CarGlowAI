@@ -58,20 +58,23 @@ export interface ShowcaseVideo {
   durationSeconds: number
 }
 
-// width/height/durationSeconds re-verified against the actual processed files (ffmpeg -i) after
-// the 12 Mo budget pass — every video is now uniformly 6s and capped at 720px wide.
+// width/height/durationSeconds re-verified against the actual processed files (ffmpeg -i).
+// Durations are no longer force-trimmed to 6s: the original 6s cap was silently slicing off a
+// real, professionally-made branded outro (Verdia logo + tagline) present at the end of every
+// source clip except the two jardin-01 "dynamique" ones (which are a genuine 6s with no outro
+// at all). Full source duration is kept instead so that outro always plays.
 export const SHOWCASE_VIDEOS: ShowcaseVideo[] = [
   { name: 'jardin-01-dynamique-1', gardenId: 'jardin-01', aspect: '16:9', width: 720, height: 406,  durationSeconds: 6 },
   { name: 'jardin-01-dynamique-2', gardenId: 'jardin-01', aspect: '16:9', width: 720, height: 406,  durationSeconds: 6 },
-  { name: 'jardin-02-dynamique',   gardenId: 'jardin-02', aspect: '9:16', width: 720, height: 1280, durationSeconds: 6 },
-  { name: 'jardin-02-reel-1',      gardenId: 'jardin-02', aspect: '9:16', width: 720, height: 1280, durationSeconds: 6 },
-  { name: 'jardin-02-reel-2',      gardenId: 'jardin-02', aspect: '9:16', width: 720, height: 1280, durationSeconds: 6 },
-  { name: 'jardin-03-story-1',     gardenId: 'jardin-03', aspect: '9:16', width: 720, height: 1280, durationSeconds: 6 },
-  { name: 'jardin-03-story-2',     gardenId: 'jardin-03', aspect: '9:16', width: 720, height: 1280, durationSeconds: 6 },
-  { name: 'jardin-03-paysage',     gardenId: 'jardin-03', aspect: '16:9', width: 720, height: 406,  durationSeconds: 6 },
-  { name: 'jardin-04-reel',        gardenId: 'jardin-04', aspect: '9:16', width: 720, height: 1280, durationSeconds: 6 },
-  { name: 'jardin-04-story',       gardenId: 'jardin-04', aspect: '9:16', width: 720, height: 1280, durationSeconds: 6 },
-  { name: 'jardin-04-carre',       gardenId: 'jardin-04', aspect: '1:1',  width: 720, height: 720,  durationSeconds: 6 },
+  { name: 'jardin-02-dynamique',   gardenId: 'jardin-02', aspect: '9:16', width: 720, height: 1280, durationSeconds: 14 },
+  { name: 'jardin-02-reel-1',      gardenId: 'jardin-02', aspect: '9:16', width: 720, height: 1280, durationSeconds: 12 },
+  { name: 'jardin-02-reel-2',      gardenId: 'jardin-02', aspect: '9:16', width: 720, height: 1280, durationSeconds: 12 },
+  { name: 'jardin-03-story-1',     gardenId: 'jardin-03', aspect: '9:16', width: 720, height: 1280, durationSeconds: 12 },
+  { name: 'jardin-03-story-2',     gardenId: 'jardin-03', aspect: '9:16', width: 720, height: 1280, durationSeconds: 12 },
+  { name: 'jardin-03-paysage',     gardenId: 'jardin-03', aspect: '16:9', width: 720, height: 406,  durationSeconds: 12 },
+  { name: 'jardin-04-reel',        gardenId: 'jardin-04', aspect: '9:16', width: 720, height: 1280, durationSeconds: 12 },
+  { name: 'jardin-04-story',       gardenId: 'jardin-04', aspect: '9:16', width: 720, height: 1280, durationSeconds: 12 },
+  { name: 'jardin-04-carre',       gardenId: 'jardin-04', aspect: '1:1',  width: 720, height: 720,  durationSeconds: 12 },
 ]
 
 export function videoPaths(name: string) {

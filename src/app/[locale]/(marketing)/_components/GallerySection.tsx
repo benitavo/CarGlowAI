@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GridAvatar } from './GridAvatar'
+import { gardenImagePath } from '@/lib/showcase-data'
 
 interface ShowcaseItem { before: string; after: string; video?: string; style: string; desc: string }
 
@@ -18,6 +19,12 @@ const SHOWCASE: ShowcaseItem[] = [
     style: 'Naturel & Sauvage', desc: 'Prairie fleurie et plantes locales' },
   { before: '/garden-before-5.jpg', after: '/garden-after-5.jpg',
     style: 'Gazon & Fleurs',    desc: 'Pelouse verte et massifs fleuris' },
+  // Added from the real garden assets Benoit provided (Phase 0 showcase pipeline) — the three
+  // above predate that batch entirely.
+  { before: gardenImagePath('jardin-01', 'before'), after: gardenImagePath('jardin-01', 'after-mediterraneen'),
+    style: 'Méditerranéen', desc: 'Olivier, lavande et pierre naturelle' },
+  { before: gardenImagePath('jardin-03', 'before'), after: gardenImagePath('jardin-03', 'after-contemporain'),
+    style: 'Contemporain',  desc: 'Lignes épurées et végétation structurée' },
 ]
 
 const STYLE_PHOTOS = [
