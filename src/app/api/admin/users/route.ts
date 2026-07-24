@@ -8,6 +8,10 @@ function requireSuperuser(email: string | null | undefined) {
   return !!email && SUPERUSER_EMAILS.includes(email.toLowerCase())
 }
 
+// Everything before this was Benoit and friends testing the signup flow itself, not real
+// prospects — excluded so this view reflects actual usage instead of noise.
+const REAL_SIGNUPS_SINCE = new Date('2026-07-20T00:00:00Z')
+
 export async function GET() {
   const session = await auth()
   if (!requireSuperuser(session?.user?.email)) {
@@ -15,6 +19,7 @@ export async function GET() {
   }
 
   const users = await db.user.findMany({
+    where: { createdAt: { gte: REAL_SIGNUPS_SINCE } },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
