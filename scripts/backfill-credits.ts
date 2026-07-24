@@ -26,6 +26,10 @@ async function main() {
     { key: 'imageGeneration', label: 'Image generation', creditCost: 1 },
     { key: 'imageRetouch', label: 'Image retouch', creditCost: 1 },
     { key: 'videoGeneration', label: 'Video generation', creditCost: 15 },
+    // 1 credit per format generated (Reel/Story/Landscape/Square are 4 separate Shotstack
+    // calls, not one bundled "kit" render) — confirmed 2026-07-24, matches the value already
+    // live in prod/dev DBs (added out-of-band when the feature was first built, never seeded here).
+    { key: 'marketingVideo', label: 'Marketing video kit', creditCost: 1 },
   ]
   for (const f of features) {
     await prisma.aiFeature.upsert({

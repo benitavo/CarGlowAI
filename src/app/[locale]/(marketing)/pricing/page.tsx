@@ -228,7 +228,11 @@ export default async function PricingPage() {
       {/* Pricing FAQ */}
       <div className="page-container max-w-2xl">
         <h2 className="text-2xl font-display font-bold text-midnight text-center mb-10">Questions fréquentes sur les tarifs</h2>
-        <PricingFaqAccordion />
+        <PricingFaqAccordion
+          imageGenerationCost={costFor('imageGeneration') ?? 1}
+          imageRetouchCost={costFor('imageRetouch') ?? 1}
+          videoGenerationCost={costFor('videoGeneration') ?? 15}
+        />
       </div>
     </div>
   )

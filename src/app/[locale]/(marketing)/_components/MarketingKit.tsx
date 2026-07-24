@@ -12,17 +12,48 @@ import { gardenImagePath, videoPaths } from '@/lib/showcase-data'
 // square (1:1) card reads as a starker contrast against the two 9:16 cards than jardin-03's
 // 16:9 would at a glance. Only 3 format cards below, not 4 — there is no real "Paysage" video
 // for this garden, and duplicating a ratio or borrowing another garden's clip would misrepresent
-// "one photo, several formats" as the actual premise of this section.
+// "one photo, several formats" as the actual premise of this row.
 const KIT_GARDEN_ID = 'jardin-04'
-const KIT_FORMATS: { videoName: string; label: string }[] = [
-  { videoName: 'jardin-04-reel',  label: 'Reel · 9:16' },
-  { videoName: 'jardin-04-story', label: 'Story · 9:16' },
-  { videoName: 'jardin-04-carre', label: 'Carré · 1:1' },
+const KIT_FORMATS: { videoName: string; label: string; aspectClass: string }[] = [
+  { videoName: 'jardin-04-reel',  label: 'Reel · 9:16',  aspectClass: 'w-[172px] aspect-[9/16]' },
+  { videoName: 'jardin-04-story', label: 'Story · 9:16', aspectClass: 'w-[172px] aspect-[9/16]' },
+  { videoName: 'jardin-04-carre', label: 'Carré · 1:1',  aspectClass: 'w-[306px] aspect-square' },
 ]
 
-// Not shared with AiContentSection.tsx / VideoShowcaseSection.tsx's own copies of this same
-// hook shape — Phase 3's brief only lists this file, so the de-duplication flagged in the
-// Phase 1 report is deferred rather than touching those two files out of scope here.
+// Absorbed from the now-retired VideoShowcaseSection.tsx (Phase 4 fusion) — real generated
+// examples across different gardens/styles, where KIT_FORMATS above only ever shows the same
+// single garden. Source clips are hosted on Vercel Blob from the marketing-video pipeline;
+// none of this is Phase 0 showcase data, so it doesn't go through src/lib/showcase-data.ts.
+const REAL_EXAMPLES: { id: string; videoSrc: string; poster: string; style: string; label: string; aspectClass: string }[] = [
+  {
+    id: 'cottage-gravier',
+    videoSrc: 'https://ntezmlg9oymf1peu.public.blob.vercel-storage.com/marketing-kit/examples/cottage-gravier.mp4',
+    poster: '/garden-after-1.jpg',
+    style: 'Cottage & Naturel',
+    label: 'Reel · 9:16',
+    aspectClass: 'w-[172px] aspect-[9/16]',
+  },
+  {
+    id: 'zen-japonais',
+    videoSrc: 'https://ntezmlg9oymf1peu.public.blob.vercel-storage.com/marketing-kit/examples/zen-japonais.mp4',
+    poster: '/garden-after-7.png',
+    style: 'Zen & Japonais',
+    label: 'Paysage · 16:9',
+    aspectClass: 'w-[280px] aspect-video',
+  },
+  {
+    id: 'gazon-roses',
+    videoSrc: 'https://ntezmlg9oymf1peu.public.blob.vercel-storage.com/marketing-kit/examples/gazon-roses.mp4',
+    poster: '/garden-after-6.jpg',
+    style: 'Gazon & Roses',
+    label: 'Carré · 1:1',
+    aspectClass: 'w-[172px] aspect-square',
+  },
+]
+
+// Not shared with AiContentSection.tsx's own copy of this same hook shape — Phase 3's brief
+// only listed this file, so the de-duplication flagged in the Phase 1 report is deferred
+// rather than touching that file out of scope here.
 function useRevealOnScroll<T extends HTMLElement>() {
   const ref = useRef<T>(null)
   const [visible, setVisible] = useState(false)
@@ -43,7 +74,9 @@ function useRevealOnScroll<T extends HTMLElement>() {
 
 // Plays only while >=50% in view, pauses on exit — not a one-shot "seen once" flag like the
 // other lazy-mount hooks in this codebase, since this genuinely starts/stops repeatedly as the
-// user scrolls (and, on mobile, as the snap-carousel moves between cards).
+// user scrolls (and, on mobile, as the snap-carousel moves between cards). Every card on this
+// page — both rows — goes through this same hook, so both are muted/no-audio-control alike;
+// there is no per-card sound toggle anywhere in this section.
 function useAutoplayInView(threshold = 0.5) {
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -77,9 +110,8 @@ function useAutoplayInView(threshold = 0.5) {
   return { containerRef, videoRef, reducedMotion, manuallyPlaying, setManuallyPlaying }
 }
 
-function FormatCard({ videoName, label, aspectClass }: { videoName: string; label: string; aspectClass: string }) {
+function FormatCard({ videoSrc, poster, label, aspectClass }: { videoSrc: string; poster: string; label: string; aspectClass: string }) {
   const { containerRef, videoRef, reducedMotion, manuallyPlaying, setManuallyPlaying } = useAutoplayInView()
-  const { mp4, poster } = videoPaths(videoName)
   const showPosterOnly = reducedMotion && !manuallyPlaying
 
   return (
@@ -103,7 +135,7 @@ function FormatCard({ videoName, label, aspectClass }: { videoName: string; labe
           poster={poster}
           className="absolute inset-0 w-full h-full object-cover"
         >
-          <source src={mp4} type="video/mp4" />
+          <source src={videoSrc} type="video/mp4" />
         </video>
       )}
 
@@ -151,7 +183,8 @@ export function MarketingKit() {
           </p>
         </div>
 
-        {/* Desktop: three blocks side by side. Mobile: stacked, kit becomes a snap-scroll row. */}
+        {/* Row 1: the mechanism — one photo becomes three real-ratio formats side by side.
+            Desktop: three blocks side by side. Mobile: stacked, kit becomes a snap-scroll row. */}
         <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-6">
           {/* 1. Starting photo — small, static */}
           <div className="md:w-[140px] shrink-0 mx-auto md:mx-0">
@@ -178,10 +211,30 @@ export function MarketingKit() {
           {/* 3. The kit — real ratios, side by side */}
           <div className="flex-1 min-w-0">
             <div className="flex gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none pb-2 md:pb-0 justify-start md:justify-center items-end">
-              <FormatCard videoName={KIT_FORMATS[0].videoName} label={KIT_FORMATS[0].label} aspectClass="w-[172px] aspect-[9/16]" />
-              <FormatCard videoName={KIT_FORMATS[1].videoName} label={KIT_FORMATS[1].label} aspectClass="w-[172px] aspect-[9/16]" />
-              <FormatCard videoName={KIT_FORMATS[2].videoName} label={KIT_FORMATS[2].label} aspectClass="w-[306px] aspect-square" />
+              {KIT_FORMATS.map(f => {
+                const { mp4, poster } = videoPaths(f.videoName)
+                return <FormatCard key={f.videoName} videoSrc={mp4} poster={poster} label={f.label} aspectClass={f.aspectClass} />
+              })}
             </div>
+          </div>
+        </div>
+
+        {/* Row 2: absorbed from VideoShowcaseSection.tsx — real examples across different
+            gardens/styles, showing the range rather than the single-photo mechanism above.
+            Same card component, same silent autoplay-in-view behaviour, no sound control. */}
+        <div className="mt-14 lg:mt-16">
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-50 border border-sage-200 text-sage-600 text-xs font-bold uppercase tracking-wider">
+              Exemples réels
+            </div>
+          </div>
+          <div className="flex gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none pb-2 md:pb-0 justify-start md:justify-center items-end">
+            {REAL_EXAMPLES.map(ex => (
+              <div key={ex.id} className="flex flex-col gap-2 shrink-0">
+                <FormatCard videoSrc={ex.videoSrc} poster={ex.poster} label={ex.label} aspectClass={ex.aspectClass} />
+                <p className="text-center text-xs text-midnight/40">{ex.style}</p>
+              </div>
+            ))}
           </div>
         </div>
 

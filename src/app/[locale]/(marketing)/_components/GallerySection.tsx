@@ -275,8 +275,11 @@ export function GallerySection({ landscaperCount }: { landscaperCount: number })
                 <button
                   key={i}
                   onClick={() => { setActive(i); setShowVideo(false) }}
+                  aria-current={i === active}
+                  aria-label={`Voir la transformation ${s.style}`}
                   className={cn(
                     'relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
                     i === active
                       ? 'border-sage-500 shadow-sage-sm scale-[1.05]'
                       : 'border-transparent opacity-55 hover:opacity-85 hover:border-sage-300',

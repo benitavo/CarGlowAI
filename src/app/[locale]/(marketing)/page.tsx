@@ -1,10 +1,11 @@
 import Image from 'next/image'
 import {
   ArrowRight, Check, Leaf,
-  Phone, Wallet, Clock, ScanSearch, Layers, Wand2, PackageCheck,
+  Phone, Wallet, Clock, ScanSearch, Layers, Wand2, PackageCheck, Clapperboard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
+import { getAiFeature } from '@/lib/pricing'
 import { GridAvatar } from './_components/GridAvatar'
 import { TrackedLink } from './_components/TrackedLink'
 import { LandingViewedTracker } from './_components/LandingViewedTracker'
@@ -13,7 +14,6 @@ import { TabletVideoPlayer } from './_components/TabletVideoPlayer'
 import { LazyCalendlyEmbed } from './_components/LazyCalendlyEmbed'
 import { TestimonialsSection } from './_components/TestimonialsSection'
 import { AiContentSection } from './_components/AiContentSection'
-import { VideoShowcaseSection } from './_components/VideoShowcaseSection'
 import { MarketingKit } from './_components/MarketingKit'
 import { PricingSection } from './_components/PricingSection'
 import { FAQSection } from './_components/FAQSection'
@@ -59,7 +59,7 @@ function HeroSection({ renderCount }: { renderCount: number }) {
         </h1>
 
         <p className="text-lg text-midnight/55 leading-relaxed max-w-[560px] mx-auto mb-10">
-          Photographiez le terrain de votre client. Notre IA génère un rendu photoréaliste
+          Photographiez le terrain de votre client. Notre IA génère un rendu photo et vidéo
           de l&apos;aménagement en 60 secondes. Présentez, convainquez, signez.
         </p>
 
@@ -247,14 +247,22 @@ function ScrollingGallerySection() {
 }
 
 // ─── HOW IT WORKS ─────────────────────────────────────────────────────────────
-function HowItWorksSection() {
+// Reads real credit costs directly via Prisma (same "no client-side fetch waterfall"
+// approach as PricingSection.tsx) rather than hardcoding numbers here that would silently
+// drift from whatever an admin sets on the pricing page.
+async function HowItWorksSection() {
+  const [retouchCost, videoCost] = await Promise.all([
+    getAiFeature('imageRetouch'),
+    getAiFeature('videoGeneration'),
+  ])
+
   const steps = [
     { num: '1', title: 'Importez vos photos', img: '/howitworks-import-crop.png',
       desc: "Uploadez les photos du jardin ou du terrain. Jusqu'à 3 photos par projet, tous les formats acceptés." },
     { num: '2', title: "L'IA applique le rendu paysager", img: '/howitworks-generate-crop.png',
       desc: "Choisissez un style parmi nos options. L'IA transforme automatiquement chaque photo en rendu photoréaliste professionnel." },
     { num: '3', title: 'Retouchez à la demande', img: '/howitworks-retouch-crop.png',
-      desc: "Affinez chaque rendu dans l'éditeur intégré. Changez de style, ajustez les détails — chaque retouche coûte 1 crédit." },
+      desc: `Affinez chaque rendu dans l'éditeur intégré, ou transformez-le en vidéo animée. Chaque retouche coûte ${retouchCost?.creditCost ?? 1} crédit, chaque vidéo ${videoCost?.creditCost ?? 15} crédits.` },
   ]
 
   return (
@@ -406,7 +414,9 @@ const AUTOMATION_STEPS = [
     desc: "Téléchargez le rendu HD et le comparatif avant/après, prêts à présenter à vos clients ou à joindre à votre devis." },
 ]
 
-function AutomationSection() {
+async function AutomationSection() {
+  const videoCost = await getAiFeature('videoGeneration')
+
   return (
     <section className="section-pad bg-white">
       <div className="page-container max-w-3xl">
@@ -450,6 +460,7 @@ function AutomationSection() {
             { icon: Clock,  text: '60 secondes par rendu' },
             { icon: Layers, text: 'Styles illimités' },
             { icon: Wand2,  text: 'Retouche dès 1 crédit' },
+            { icon: Clapperboard, text: `Vidéo dès ${videoCost?.creditCost ?? 15} crédits` },
           ].map(pill => (
             <div key={pill.text} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sage-50 border border-sage-200/60 text-sage-700 text-sm font-medium">
               <pill.icon className="w-4 h-4 text-sage-500" strokeWidth={1.75} />
@@ -516,7 +527,6 @@ export default async function HomePage() {
       <ScrollingGallerySection />
       <StylesSection />
       <AiContentSection />
-      <VideoShowcaseSection />
       <MarketingKit />
       <AutomationSection />
       <ArgumentsSection />
