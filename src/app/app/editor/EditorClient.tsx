@@ -376,22 +376,6 @@ export default function EditorClient() {
                 >
                   <RotateCcw className="w-3 h-3" /> Changer
                 </button>
-
-                {/* Always the same guaranteed-visible element while generating, regardless of
-                    whether a result from a previous version already exists elsewhere on the
-                    page — a first generation with nothing else on screen yet must still show
-                    unmistakably that something is happening. */}
-                {gen.status === 'loading' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-midnight/55 backdrop-blur-sm text-center px-6">
-                    <Loader2 className="w-8 h-8 text-white animate-spin" />
-                    <p className="text-white font-semibold text-sm">
-                      {mode === 'video' ? 'Génération de la vidéo…' : 'Génération du rendu…'}
-                    </p>
-                    <p className="text-white/70 text-xs">
-                      {mode === 'video' ? 'Comptez 60 à 120 secondes.' : 'Comptez 30 à 60 secondes.'}
-                    </p>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -788,6 +772,11 @@ export default function EditorClient() {
         </div>
       </div>
 
+      {/* Blocking popup — the guaranteed-visible warning that a render is in progress and the
+          user needs to wait, regardless of whether a previous result already fills the main
+          content area (a first-ever generation has nothing else on screen to signal this). */}
+      {gen.status === 'loading' && <GeneratingModal mode={mode} />}
+
       {creditError && (
         <InsufficientCreditsModal
           available={creditError.available}
@@ -800,6 +789,31 @@ export default function EditorClient() {
         <MarketingKitModal photoId={selected.id} onClose={() => setShowMarketingKit(false)} hasVideoAfter={selected.mode === 'video'} />
       )}
     </div>
+  )
+}
+
+// No close button and the backdrop doesn't dismiss it — unlike InsufficientCreditsModal below,
+// there is nothing to cancel here: the fetch keeps running either way, so offering a "close"
+// affordance would just let the user believe they stopped something they didn't. It disappears
+// on its own the moment gen.status leaves 'loading', which is the real signal, not a timer.
+function GeneratingModal({ mode }: { mode: Mode }) {
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-midnight/40 backdrop-blur-sm" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl w-full max-w-sm p-7 pointer-events-auto shadow-card text-center">
+          <Loader2 className="w-9 h-9 mx-auto text-sage-500 animate-spin mb-4" />
+          <h3 className="font-display font-semibold text-lg text-midnight mb-2">
+            {mode === 'video' ? 'Génération de la vidéo en cours' : 'Génération du rendu en cours'}
+          </h3>
+          <p className="text-sm text-midnight/50">
+            Merci de patienter, ne fermez pas cette page.
+            <br />
+            {mode === 'video' ? 'Comptez 60 à 120 secondes.' : 'Comptez 30 à 60 secondes.'}
+          </p>
+        </div>
+      </div>
+    </>
   )
 }
 
