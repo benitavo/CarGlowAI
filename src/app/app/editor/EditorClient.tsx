@@ -6,8 +6,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   Upload, Loader2, Download, ArrowLeft, Sparkles,
-  Leaf, RotateCcw, Video, Image as ImageIcon, PenLine,
-  Wand2, RefreshCw, Palette, Send, AlertTriangle, X, Clapperboard,
+  RotateCcw, Video, Image as ImageIcon, PenLine,
+  Wand2, RefreshCw, Palette, Send, AlertTriangle, X, Clapperboard, Check,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GARDEN_STYLES } from '@/lib/gardenStyles'
@@ -15,6 +15,19 @@ import { downloadUrlAsFile } from '@/lib/download-file'
 import { MarketingKitModal } from '@/components/app/MarketingKitModal'
 
 type Mode = 'image' | 'video'
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024 // matches the "jusqu'à 20 Mo" copy on the dropzone
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+
+function validateImageFile(f: File): string | null {
+  if (!ACCEPTED_TYPES.includes(f.type) && !f.type.startsWith('image/')) {
+    return 'Ce fichier n\'est pas une image. Formats acceptés : JPG, PNG, HEIC.'
+  }
+  if (f.size > MAX_FILE_SIZE) {
+    return `Cette photo pèse ${(f.size / (1024 * 1024)).toFixed(1)} Mo, la limite est de 20 Mo.`
+  }
+  return null
+}
 
 interface GenState {
   status: 'idle' | 'loading' | 'done' | 'error'
@@ -67,6 +80,9 @@ export default function EditorClient() {
   const [styleSlug, setStyleSlug]            = useState('gazon-fleurs')
   const [characteristics, setCharacteristics] = useState('')
   const [gen, setGen]                        = useState<GenState>({ status: 'idle' })
+  const [uploadError, setUploadError]        = useState<string | null>(null)
+  const [isDragging, setIsDragging]          = useState(false)
+  const dragCounter                          = useRef(0)
   const fileInputRef                         = useRef<HTMLInputElement>(null)
 
   const [versions, setVersions]     = useState<Version[]>([])
@@ -115,6 +131,12 @@ export default function EditorClient() {
   }, [])
 
   const loadFile = useCallback((f: File) => {
+    const error = validateImageFile(f)
+    if (error) {
+      setUploadError(error)
+      return
+    }
+    setUploadError(null)
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setFile(f)
     setPreviewUrl(URL.createObjectURL(f))
@@ -125,9 +147,29 @@ export default function EditorClient() {
 
   const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    dragCounter.current = 0
+    setIsDragging(false)
     const f = e.dataTransfer.files[0]
-    if (f?.type.startsWith('image/')) loadFile(f)
+    if (f) loadFile(f)
   }, [loadFile])
+
+  // Counter-based (not a single boolean) because dragging over a child element fires
+  // dragleave on the parent before dragenter on the child — a naive enter/leave toggle would
+  // flicker the highlight off while the pointer is still inside the dropzone.
+  const onDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    dragCounter.current += 1
+    setIsDragging(true)
+  }, [])
+
+  const onDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    dragCounter.current -= 1
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0
+      setIsDragging(false)
+    }
+  }, [])
 
   const handleGenerate = useCallback(async () => {
     if (!file) {
@@ -247,6 +289,34 @@ export default function EditorClient() {
         </Link>
       </header>
 
+      {/* Step tracker — the layout below already follows this exact order (see the order-*
+          comment further down); this just makes that implicit sequence visible so a first-time
+          user knows what's coming before they start, and where they are once they have. */}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-5 pt-5 sm:pt-6">
+        <ol className="flex items-center justify-center gap-2 sm:gap-3">
+          {([
+            { n: 1, label: 'Photo', done: !!file },
+            { n: 2, label: 'Style', done: !!file },
+            { n: 3, label: 'Résultat', done: versions.length > 0 },
+          ] as const).map((step, i) => (
+            <li key={step.n} className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-colors',
+                  step.done ? 'bg-sage-500 text-white' : 'bg-sage-100 text-sage-500 border border-sage-200',
+                )}>
+                  {step.done ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> : step.n}
+                </span>
+                <span className={cn('text-xs font-medium transition-colors', step.done ? 'text-midnight/70' : 'text-midnight/40')}>
+                  {step.label}
+                </span>
+              </div>
+              {i < 2 && <div className={cn('w-6 sm:w-12 h-px transition-colors', step.done ? 'bg-sage-400' : 'bg-sage-200')} />}
+            </li>
+          ))}
+        </ol>
+      </div>
+
       <div className="max-w-[1200px] mx-auto px-4 sm:px-5 py-6 sm:py-8 grid lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 items-start">
 
         {/* Left: upload + result — `contents` on mobile lets children join the outer grid's
@@ -258,12 +328,16 @@ export default function EditorClient() {
             ref={uploadSectionRef}
             className={cn(
               'order-1 lg:order-none relative rounded-3xl border-2 border-dashed transition-all',
-              file
-                ? 'border-sage-200'
-                : 'border-sage-200 bg-sage-50/40 hover:border-sage-400 hover:bg-sage-50 cursor-pointer',
+              isDragging
+                ? 'border-sage-500 bg-sage-100 scale-[1.01]'
+                : file
+                  ? 'border-sage-200'
+                  : 'border-sage-200 bg-sage-50/40 hover:border-sage-400 hover:bg-sage-50 cursor-pointer',
             )}
             onDrop={onDrop}
             onDragOver={e => e.preventDefault()}
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
             onClick={() => !file && fileInputRef.current?.click()}
           >
             {!file ? (
@@ -272,7 +346,9 @@ export default function EditorClient() {
                   <Upload className="w-7 h-7 text-sage-400" />
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-midnight/55 mb-1">Déposez votre photo de jardin</p>
+                  <p className="font-semibold text-midnight/55 mb-1">
+                    {isDragging ? 'Lâchez votre photo ici' : 'Déposez votre photo de jardin'}
+                  </p>
                   <p className="text-sm text-midnight/35">JPG, PNG, HEIC · jusqu&apos;à 20 Mo</p>
                 </div>
                 <button
@@ -300,9 +376,34 @@ export default function EditorClient() {
                 >
                   <RotateCcw className="w-3 h-3" /> Changer
                 </button>
+
+                {/* Always the same guaranteed-visible element while generating, regardless of
+                    whether a result from a previous version already exists elsewhere on the
+                    page — a first generation with nothing else on screen yet must still show
+                    unmistakably that something is happening. */}
+                {gen.status === 'loading' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-midnight/55 backdrop-blur-sm text-center px-6">
+                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    <p className="text-white font-semibold text-sm">
+                      {mode === 'video' ? 'Génération de la vidéo…' : 'Génération du rendu…'}
+                    </p>
+                    <p className="text-white/70 text-xs">
+                      {mode === 'video' ? 'Comptez 60 à 120 secondes.' : 'Comptez 30 à 60 secondes.'}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
+
+          {/* Shown right where the scroll-to-upload-zone behaviour above actually lands the
+              user, instead of only in the generic error box further down the page which they'd
+              have to keep scrolling to find. */}
+          {(uploadError || (!file && gen.status === 'error')) && (
+            <p className="order-1 lg:order-none -mt-3 text-sm text-rose-600 text-center">
+              {uploadError ?? gen.error}
+            </p>
+          )}
 
           <input
             ref={fileInputRef}
@@ -541,7 +642,10 @@ export default function EditorClient() {
             </ul>
           </div>
 
-          {gen.status === 'error' && (
+          {/* The "no photo yet" case is already shown right next to the upload zone above
+              (that's where handleGenerate scrolls to) — only render this one for errors that
+              happen once a file exists, e.g. an API failure, so the message isn't duplicated. */}
+          {gen.status === 'error' && file && (
             <div className="order-10 lg:order-none rounded-2xl bg-rose-50 border border-rose-200 px-5 py-4 text-sm text-rose-700">
               {gen.error}
             </div>
@@ -555,8 +659,10 @@ export default function EditorClient() {
           <div className="order-3 lg:order-none rounded-2xl border border-sage-200 bg-white p-1.5 flex gap-1 shadow-sm">
             <button
               onClick={() => { setMode('image'); setGen({ status: 'idle' }) }}
+              aria-pressed={mode === 'image'}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
                 mode === 'image'
                   ? 'bg-sage-500 text-white shadow-sm'
                   : 'text-midnight/45 hover:text-midnight hover:bg-sage-50',
@@ -575,8 +681,10 @@ export default function EditorClient() {
             </button>
             <button
               onClick={() => { setMode('video'); setGen({ status: 'idle' }) }}
+              aria-pressed={mode === 'video'}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
                 mode === 'video'
                   ? 'bg-sage-500 text-white shadow-sm'
                   : 'text-midnight/45 hover:text-midnight hover:bg-sage-50',
@@ -610,8 +718,10 @@ export default function EditorClient() {
                 <button
                   key={style.slug}
                   onClick={() => setStyleSlug(style.slug)}
+                  aria-pressed={styleSlug === style.slug}
                   className={cn(
                     'flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
                     styleSlug === style.slug
                       ? 'bg-sage-50 border border-sage-300'
                       : 'border border-transparent hover:bg-cream-100 hover:border-sage-100',
@@ -638,6 +748,7 @@ export default function EditorClient() {
             disabled={!canGenerate}
             className={cn(
               'order-6 lg:order-none w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm transition-all',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2',
               canGenerate
                 ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sm hover:shadow-md cursor-pointer'
                 : 'bg-sage-100 text-sage-300 cursor-not-allowed border border-sage-200',
