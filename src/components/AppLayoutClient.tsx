@@ -125,10 +125,21 @@ export default function AppLayoutClient({
         </nav>
 
         <div className="border-t border-sage-100 p-3 space-y-2">
-          <Link href="/app/billing"
-            className="flex items-center justify-between px-3 py-2 rounded-xl bg-sage-50 border border-sage-200 hover:border-sage-300 transition-colors">
-            <span className="text-xs text-midnight/50">Crédits</span>
-            <span className="text-sm font-semibold tabular-nums text-sage-700">
+          {/* Present on every /app page (this is the persistent sidebar) — the single most
+              reliable place to catch a user at 0 credits regardless of which page they're on. */}
+          <Link
+            href={ws?.creditsRemaining === 0 ? '/app/billing?topup=1' : '/app/billing'}
+            className={cn(
+              'flex items-center justify-between px-3 py-2 rounded-xl border transition-colors',
+              ws?.creditsRemaining === 0
+                ? 'bg-rose-50 border-rose-200 hover:border-rose-300 animate-pulse'
+                : 'bg-sage-50 border-sage-200 hover:border-sage-300',
+            )}
+          >
+            <span className={cn('text-xs', ws?.creditsRemaining === 0 ? 'text-rose-600' : 'text-midnight/50')}>
+              {ws?.creditsRemaining === 0 ? 'Recharger' : 'Crédits'}
+            </span>
+            <span className={cn('text-sm font-semibold tabular-nums', ws?.creditsRemaining === 0 ? 'text-rose-700' : 'text-sage-700')}>
               {ws ? ws.creditsRemaining.toLocaleString() : '—'}
             </span>
           </Link>

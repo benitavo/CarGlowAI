@@ -96,6 +96,13 @@ export default function BillingPage() {
       .catch(() => {})
   }, [workspace?.workspaceId])
 
+  // Landing here from the "out of credits" redirect (editor, retouch, kit marketing) should
+  // open straight into the purchase flow, not just the general billing overview one more click
+  // away from it.
+  useEffect(() => {
+    if (searchParams.get('topup') === '1') setShowTopUp(true)
+  }, [searchParams])
+
   // Fires once, right after a credit-pack purchase actually succeeds on Stripe's side
   // (real amount pulled from the completed Checkout session, not a hardcoded price) —
   // guarded so a refresh of this same URL never double-counts the same purchase.

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -350,11 +351,19 @@ export default function EditorClient() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo%20verdia%20without%20background.png" alt="Verdia" className="h-8 sm:h-14 w-auto object-contain" />
         </Link>
+        {/* Turns into a standing "recharge" prompt at 0 rather than a passive "0 crédits" —
+            this is a permanent, always-visible reminder regardless of where the zero-credit
+            moment was actually triggered (generate, video, retouch, kit marketing). */}
         <Link
-          href="/app/billing"
-          className="shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-sage-50 border border-sage-200 text-xs sm:text-sm font-semibold text-sage-700 hover:bg-sage-100 transition-colors"
+          href={credits === 0 ? '/app/billing?topup=1' : '/app/billing'}
+          className={cn(
+            'shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs sm:text-sm font-semibold transition-colors',
+            credits === 0
+              ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 animate-pulse'
+              : 'bg-sage-50 border-sage-200 text-sage-700 hover:bg-sage-100',
+          )}
         >
-          {credits === null ? '…' : `${credits.toLocaleString()} crédit${credits === 1 ? '' : 's'}`}
+          {credits === null ? '…' : credits === 0 ? 'Recharger des crédits' : `${credits.toLocaleString()} crédit${credits === 1 ? '' : 's'}`}
         </Link>
       </header>
 
@@ -895,7 +904,28 @@ function GeneratingModal({ mode }: { mode: Mode }) {
   )
 }
 
+// Auto-redirects to the recharge flow after a few seconds instead of waiting for the user to
+// notice and click a link — the credit-pack modal is pre-opened there (?topup=1) so arriving
+// there is already the purchase flow, not one more click away from it. Still cancelable
+// ("Rester ici") rather than forced, and the countdown is visible rather than a surprise jump.
+const CREDIT_MODAL_REDIRECT_SECONDS = 5
+
 function InsufficientCreditsModal({ available, required, onClose }: { available: number; required: number; onClose: () => void }) {
+  const router = useRouter()
+  const [secondsLeft, setSecondsLeft] = useState(CREDIT_MODAL_REDIRECT_SECONDS)
+  const [autoRedirect, setAutoRedirect] = useState(true)
+  const isFullyOut = available === 0
+
+  useEffect(() => {
+    if (!autoRedirect) return
+    if (secondsLeft <= 0) {
+      router.push('/app/billing?topup=1')
+      return
+    }
+    const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [autoRedirect, secondsLeft, router])
+
   return (
     <>
       <div className="fixed inset-0 z-40 bg-midnight/30 backdrop-blur-sm" onClick={onClose} />
@@ -911,20 +941,30 @@ function InsufficientCreditsModal({ available, required, onClose }: { available:
           <div className="w-12 h-12 mx-auto rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mb-4">
             <AlertTriangle className="w-6 h-6 text-rose-500" strokeWidth={1.75} />
           </div>
-          <h3 className="font-display font-semibold text-lg text-midnight mb-2">Crédits insuffisants</h3>
+          <h3 className="font-display font-semibold text-lg text-midnight mb-2">
+            {isFullyOut ? 'Vous avez utilisé tous vos crédits' : 'Crédits insuffisants pour cette action'}
+          </h3>
           <p className="text-sm text-midnight/50 mb-6">
-            Il vous faut {required} crédit{required === 1 ? '' : 's'} pour cette action, il vous en reste {available}.
+            {isFullyOut
+              ? 'Rechargez en quelques secondes pour continuer à générer des rendus et convaincre vos prochains clients.'
+              : <>Il vous faut {required} crédit{required === 1 ? '' : 's'} pour cette action, il vous en reste {available}.</>}
           </p>
           <div className="flex flex-col gap-2">
             <Link
-              href="/app/billing"
+              href="/app/billing?topup=1"
               className="rounded-xl bg-sage-500 hover:bg-sage-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors"
             >
-              Recharger des crédits
+              Recharger mes crédits
             </Link>
-            <button onClick={onClose} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
-              Fermer
-            </button>
+            {autoRedirect ? (
+              <button onClick={() => setAutoRedirect(false)} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
+                Rester ici <span className="tabular-nums">· redirection dans {secondsLeft}s</span>
+              </button>
+            ) : (
+              <button onClick={onClose} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
+                Fermer
+              </button>
+            )}
           </div>
         </div>
       </div>

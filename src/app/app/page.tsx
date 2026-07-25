@@ -49,7 +49,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <Link
-            href="/app/billing"
+            href="/app/billing?topup=1"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold transition-colors shrink-0"
           >
             <CreditCard className="w-3.5 h-3.5" /> Recharger

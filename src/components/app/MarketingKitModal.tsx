@@ -327,7 +327,7 @@ export function MarketingKitModal({ photoId, onClose, hasVideoAfter = false }: P
                       Il vous faut {insufficientCredits.required} crédit{insufficientCredits.required === 1 ? '' : 's'}
                       {' '}pour cette action, il vous en reste {insufficientCredits.available}.
                     </p>
-                    <Link href="/app/billing" className="font-semibold underline underline-offset-2 hover:text-rose-800">
+                    <Link href="/app/billing?topup=1" className="font-semibold underline underline-offset-2 hover:text-rose-800">
                       Recharger des crédits →
                     </Link>
                   </div>
