@@ -19,16 +19,37 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { imageData, mimeType, instruction, workspaceId, styleSlug } = body as {
-    imageData: string
-    mimeType: string
+  const { imageData, imageUrl, mimeType, instruction, workspaceId, styleSlug } = body as {
+    imageData?: string
+    imageUrl?: string
+    mimeType?: string
     instruction: string
     workspaceId: string
     styleSlug?: string
   }
 
-  if (!imageData || !workspaceId || !instruction?.trim()) {
-    return NextResponse.json({ error: 'imageData, workspaceId et instruction sont requis' }, { status: 400 })
+  if ((!imageData && !imageUrl) || !workspaceId || !instruction?.trim()) {
+    return NextResponse.json({ error: 'imageData (ou imageUrl), workspaceId et instruction sont requis' }, { status: 400 })
+  }
+
+  // The photo being retouched is normally a hosted Vercel Blob URL by this point (that's the
+  // whole point of the Blob migration), not a base64 data: URI — fetching it server-side keeps
+  // the request body tiny regardless of the image's size, instead of asking the client to
+  // download and re-upload it as base64 (which is exactly the payload-size trap the upload flow
+  // itself was just fixed for).
+  let resolvedImageData = imageData
+  let resolvedMimeType = mimeType ?? 'image/png'
+  let reusableOriginalUrl: string | null = null
+
+  if (!resolvedImageData && imageUrl) {
+    const imgRes = await fetch(imageUrl)
+    if (!imgRes.ok) {
+      return NextResponse.json({ error: 'Impossible de récupérer le rendu à retoucher.' }, { status: 400 })
+    }
+    const buffer = Buffer.from(await imgRes.arrayBuffer())
+    resolvedImageData = buffer.toString('base64')
+    resolvedMimeType = imgRes.headers.get('content-type') ?? resolvedMimeType
+    reusableOriginalUrl = imageUrl
   }
 
   const isSuperuser = !!session.user.email &&
@@ -82,9 +103,13 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error('GEMINI_API_KEY absent')
 
+    // reusableOriginalUrl means the "before" image was already a hosted Blob URL — reuse it
+    // instead of re-uploading a byte-identical duplicate copy under a new name.
     const [retouched, originalUrl] = await Promise.all([
-      retouchImage(apiKey, imageData, mimeType ?? 'image/png', instruction.trim()),
-      uploadBase64WithFallback(imageData, mimeType ?? 'image/png', `original-${photo.id}.png`),
+      retouchImage(apiKey, resolvedImageData!, resolvedMimeType, instruction.trim()),
+      reusableOriginalUrl
+        ? Promise.resolve(reusableOriginalUrl)
+        : uploadBase64WithFallback(resolvedImageData!, resolvedMimeType, `original-${photo.id}.png`),
     ])
     const enhancedUrl = await uploadBase64WithFallback(retouched.base64, retouched.mimeType, `enhanced-${photo.id}.png`)
     const processingMs = Date.now() - startMs

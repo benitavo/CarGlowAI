@@ -18,9 +18,16 @@ type Mode = 'image' | 'video'
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // matches the "jusqu'à 20 Mo" copy on the dropzone
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+const ACCEPTED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif']
 
+// A real bug: `file.type` for .heic/.heif is empty on a lot of Windows/Chromium setups (no
+// registered MIME mapping), which made this reject valid HEIC uploads outright — exactly the
+// format iPhones capture in by default. Falls back to the extension when the browser can't or
+// won't report a type, rather than trusting `file.type` alone.
 function validateImageFile(f: File): string | null {
-  if (!ACCEPTED_TYPES.includes(f.type) && !f.type.startsWith('image/')) {
+  const hasAcceptedType = ACCEPTED_TYPES.includes(f.type) || f.type.startsWith('image/')
+  const hasAcceptedExtension = ACCEPTED_EXTENSIONS.some(ext => f.name.toLowerCase().endsWith(ext))
+  if (!hasAcceptedType && !hasAcceptedExtension) {
     return 'Ce fichier n\'est pas une image. Formats acceptés : JPG, PNG, HEIC.'
   }
   if (f.size > MAX_FILE_SIZE) {
@@ -276,19 +283,29 @@ export default function EditorClient() {
     setRetouchStatus('loading')
     setRetouchError(undefined)
     try {
-      const { base64, mimeType } = splitDataUrl(selected.url)
+      // selected.url is a real hosted Blob URL in the normal case (that's the whole point of
+      // the Blob migration) — only genuinely-old data: URIs (from before that migration, or a
+      // storage-outage fallback) need the base64 split. Sending the URL and letting the server
+      // fetch it keeps this request tiny regardless of the image's size, same reasoning as the
+      // upload-side fix.
+      const payload = selected.url.startsWith('data:')
+        ? (() => { const { base64, mimeType } = splitDataUrl(selected.url); return { imageData: base64, mimeType } })()
+        : { imageUrl: selected.url }
       const res = await fetch('/api/retouch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageData:   base64,
-          mimeType,
+          ...payload,
           instruction: retouchText.trim(),
           workspaceId: session.user.workspaceId,
           styleSlug,
         }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => {
+        throw new Error(res.status === 413
+          ? 'Ce rendu est trop volumineux pour être retouché.'
+          : 'Le serveur a renvoyé une réponse inattendue. Réessayez.')
+      })
       if (!res.ok) {
         if (res.status === 402 || data.error === 'insufficient_credits') {
           setRetouchStatus('idle')
