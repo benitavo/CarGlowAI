@@ -49,13 +49,54 @@ interface Version {
   processingMs?: number
 }
 
-async function fileToBase64(file: File): Promise<string> {
+function readFileAsDataUrl(file: File | Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => resolve((reader.result as string).split(',')[1])
+    reader.onload = () => resolve(reader.result as string)
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+// Real bug (a user's upload failed with a raw "Request Entity Too Large" — Vercel hard-caps
+// serverless function request bodies at 4.5 Mo, and a phone photo sent at full resolution
+// blows well past that once base64-encoded, which inflates size by ~33%). Downscaling here
+// means the 20 Mo the dropzone advertises is honest — the actual upload the AI receives stays
+// small regardless of the source photo's resolution, since a style-transfer render doesn't
+// benefit from more than ~2000px on the long edge anyway.
+const MAX_UPLOAD_DIMENSION = 2000
+const UPLOAD_JPEG_QUALITY = 0.85
+
+async function prepareImageForUpload(file: File): Promise<{ base64: string; mimeType: string }> {
+  try {
+    const dataUrl = await readFileAsDataUrl(file)
+    const img = new window.Image()
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve()
+      img.onerror = () => reject(new Error('decode failed'))
+      img.src = dataUrl
+    })
+
+    const scale = Math.min(1, MAX_UPLOAD_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight))
+    const width  = Math.round(img.naturalWidth * scale)
+    const height = Math.round(img.naturalHeight * scale)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('no canvas context')
+    ctx.drawImage(img, 0, 0, width, height)
+
+    const resizedDataUrl = canvas.toDataURL('image/jpeg', UPLOAD_JPEG_QUALITY)
+    return { base64: resizedDataUrl.split(',')[1], mimeType: 'image/jpeg' }
+  } catch {
+    // HEIC in particular can't be decoded into a canvas by every browser (Safari can, Chrome
+    // generally can't) — fall back to sending the original file untouched rather than fail the
+    // whole generation over a resize step that's a nice-to-have, not a requirement.
+    const dataUrl = await readFileAsDataUrl(file)
+    return { base64: dataUrl.split(',')[1], mimeType: file.type || 'image/jpeg' }
+  }
 }
 
 function splitDataUrl(dataUrl: string): { base64: string; mimeType: string } {
@@ -183,20 +224,27 @@ export default function EditorClient() {
     }
     setGen({ status: 'loading' })
     try {
-      const base64 = await fileToBase64(file)
+      const { base64, mimeType } = await prepareImageForUpload(file)
       const endpoint = mode === 'video' ? '/api/generate-video' : '/api/generate'
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageData:       base64,
-          mimeType:        file.type || 'image/jpeg',
+          mimeType,
           styleSlug,
           characteristics: characteristics.trim() || undefined,
           workspaceId:     session.user.workspaceId,
         }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => {
+        // A non-JSON body means the request never reached our route handler at all (e.g. the
+        // platform itself rejecting an oversized payload with a plain-text "Request Entity Too
+        // Large") — surface something a user can act on instead of the raw parse exception.
+        throw new Error(res.status === 413
+          ? 'Cette photo est trop volumineuse. Essayez une version compressée ou une autre photo.'
+          : 'Le serveur a renvoyé une réponse inattendue. Réessayez.')
+      })
       if (!res.ok) {
         if (res.status === 402 || data.error === 'insufficient_credits') {
           setGen({ status: 'idle' })
