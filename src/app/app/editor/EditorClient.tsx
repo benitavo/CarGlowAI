@@ -133,6 +133,9 @@ export default function EditorClient() {
   const [retouchError, setRetouchError]   = useState<string | undefined>()
   const [creditError, setCreditError]     = useState<CreditError | null>(null)
   const [showMarketingKit, setShowMarketingKit] = useState(false)
+  // Starts true (badge hidden) to avoid a server/client mismatch flash — localStorage doesn't
+  // exist during SSR, so we can only know the real answer after mount.
+  const [marketingKitSeen, setMarketingKitSeen] = useState(true)
   const uploadSectionRef  = useRef<HTMLDivElement>(null)
   const styleSectionRef   = useRef<HTMLDivElement>(null)
   const characteristicsRef = useRef<HTMLTextAreaElement>(null)
@@ -160,6 +163,7 @@ export default function EditorClient() {
   }, [])
 
   useEffect(() => { refreshCredits() }, [refreshCredits])
+  useEffect(() => { setMarketingKitSeen(localStorage.getItem('verdia-marketing-kit-seen') === '1') }, [])
 
   const selected = selectedIdx !== null ? versions[selectedIdx] : null
 
@@ -465,9 +469,18 @@ export default function EditorClient() {
                 <div className="flex items-center gap-2">
                   {selected.kind === 'generate' && (
                     <button
-                      onClick={() => setShowMarketingKit(true)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-sage-200 text-sage-700 hover:bg-sage-50 text-xs font-semibold transition-all"
+                      onClick={() => {
+                        setShowMarketingKit(true)
+                        localStorage.setItem('verdia-marketing-kit-seen', '1')
+                        setMarketingKitSeen(true)
+                      }}
+                      className="relative flex items-center gap-1.5 px-4 py-2 rounded-xl border border-sage-200 text-sage-700 hover:bg-sage-50 text-xs font-semibold transition-all"
                     >
+                      {/* Fades away for good once clicked once — a badge that never goes away
+                          stops meaning "new" and just becomes decoration nobody trusts. */}
+                      {!marketingKitSeen && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white" />
+                      )}
                       <Clapperboard className="w-3.5 h-3.5" />
                       Kit marketing
                     </button>
