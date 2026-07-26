@@ -29,6 +29,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // the standard, low-risk case for this flag — it would NOT be safe with an arbitrary or
       // unverified-email provider.
       allowDangerousEmailAccountLinking: true,
+      // NOTE: this emailVerified is currently dead for brand-new sign-ups — Auth.js's own
+      // core (handle-login.js, the no-existing-account OAuth branch) unconditionally does
+      // `createUser({ ...profile, emailVerified: null })`, which overwrites whatever this
+      // callback returns. Left in place in case that ever changes upstream; the real fix is
+      // the explicit update in events.createUser below.
       profile(profile) {
         return {
           id: profile.sub,
@@ -124,6 +129,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // entirely, exactly as before). Mirrors /api/auth/register's user+workspace+membership
     // bundle so a first-time Google sign-in ends up with somewhere to attach credits/photos to,
     // instead of a bare User row and a broken workspaceId lookup in the jwt() callback above.
+    //
+    // Also re-sets emailVerified here: Auth.js's core forces it to null on this exact code
+    // path regardless of what the provider's profile() callback returns (verified by reading
+    // node_modules/@auth/core/lib/actions/callback/handle-login.js directly — the no-existing-
+    // account OAuth branch does `createUser({ ...profile, emailVerified: null })`, which wins
+    // over our profile() mapping). Safe to always set here rather than re-check Google's claim,
+    // since this handler only ever runs for Google sign-ups in this app.
     async createUser({ user }) {
       if (!user.id) return
       try {
@@ -132,16 +144,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const nextReset = new Date()
         nextReset.setMonth(nextReset.getMonth() + 1)
 
-        const workspace = await db.workspace.create({
-          data: {
-            name:           user.name ?? 'My Workspace',
-            slug:           `ws-${user.id}`,
-            plan:           'FREE',
-            monthlyCredits: freeCredits,
-            renewalDate:    nextReset,
-            members: { create: { userId: user.id, role: 'OWNER' } },
-          },
-        })
+        const [workspace] = await Promise.all([
+          db.workspace.create({
+            data: {
+              name:           user.name ?? 'My Workspace',
+              slug:           `ws-${user.id}`,
+              plan:           'FREE',
+              monthlyCredits: freeCredits,
+              renewalDate:    nextReset,
+              members: { create: { userId: user.id, role: 'OWNER' } },
+            },
+          }),
+          db.user.update({ where: { id: user.id }, data: { emailVerified: new Date() } }),
+        ])
 
         trackServerEvent(ANALYTICS_EVENTS.ACCOUNT_CREATED, {
           userId: user.id,
