@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPricingConfig, creditPacks, listAiFeatures } from '@/lib/pricing'
+import { getPricingConfig, creditPacks, listAiFeatures, activePromo } from '@/lib/pricing'
 
 // Public, read-only. The whole app (pricing page, account page, editor cost labels) fetches
 // numbers from here instead of hardcoding them — this is the single source of truth.
@@ -16,5 +16,6 @@ export async function GET() {
     ],
     packs: creditPacks(config),
     features: features.map(f => ({ key: f.key, label: f.label, creditCost: f.creditCost, enabled: f.enabled })),
+    promo: activePromo(config),
   })
 }

@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Link } from '@/i18n/routing'
 import RouteLink from 'next/link'
+import { PromoBanner } from './PromoBanner'
 
 export function Nav() {
   const { data: session, status } = useSession()
@@ -63,6 +64,11 @@ export function Nav() {
       'fixed top-0 left-0 right-0 z-[100] transition-all duration-300 bg-white border-b border-midnight/[0.07]',
       scrolled ? 'shadow-sm py-2' : 'py-3'
     )}>
+      {/* Rendered inside the same fixed header that publishes --nav-height (see the
+          ResizeObserver effect above) — its height is automatically included in that
+          measurement, so every page that pads for --nav-height (the Hero, etc.) adjusts with
+          zero extra plumbing when the banner appears or disappears. */}
+      <PromoBanner ctaHref="/pricing" />
       <nav className="page-container flex items-center justify-between gap-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">

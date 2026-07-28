@@ -1,15 +1,17 @@
 import { Check } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
-import { getPricingConfig } from '@/lib/pricing'
+import { getPricingConfig, activePromo } from '@/lib/pricing'
 import { PricingViewedTracker } from './PricingViewedTracker'
 
 interface MarketingPlan {
   name: string
   price: string
+  originalPrice?: string
   per: string
   sub: string
   badge?: string
+  promoLabel?: string
   features: string[]
   cta: string
   href: string
@@ -27,6 +29,7 @@ const PLAN_META: Record<string, { name: string; badge?: string; highlight: boole
 // fetch waterfall) — never hardcode credits or prices here.
 async function getPlans(): Promise<MarketingPlan[]> {
   const config = await getPricingConfig()
+  const promo = activePromo(config)
   const raw = [
     { id: 'FREE', price: 0, credits: config.freeCredits },
     { id: 'ESSENTIAL', price: config.essentialPrice, credits: config.essentialCredits },
@@ -36,12 +39,15 @@ async function getPlans(): Promise<MarketingPlan[]> {
   return raw.map(p => {
     const meta = PLAN_META[p.id]
     const creditsLabel = `${p.credits.toLocaleString()} crédit${p.credits === 1 ? '' : 's'} / mois`
+    const isPromo = promo && promo.plan === p.id
     return {
       name: meta.name,
-      price: p.price > 0 ? `€${p.price}` : 'Gratuit',
+      price: isPromo ? `€${promo.discountedPrice}` : p.price > 0 ? `€${p.price}` : 'Gratuit',
+      originalPrice: isPromo ? `€${promo.originalPrice}` : undefined,
       per: p.price > 0 ? '/mois' : '',
       sub: creditsLabel,
-      badge: meta.badge,
+      badge: isPromo ? promo.label : meta.badge,
+      promoLabel: isPromo ? promo.label : undefined,
       features: [creditsLabel, ...meta.extraFeatures],
       cta: meta.cta,
       href: meta.href,
@@ -77,9 +83,15 @@ export async function PricingSection() {
                 <h3 className={cn('font-display font-semibold mb-1', plan.highlight ? 'text-offwhite' : 'text-midnight')}>{plan.name}</h3>
                 <p className={cn('text-xs', plan.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>{plan.sub}</p>
               </div>
-              <div className="flex items-baseline gap-1 mb-6">
+              <div className="flex items-baseline gap-1.5 mb-6 flex-wrap">
+                {plan.originalPrice && (
+                  <span className={cn('text-lg line-through', plan.highlight ? 'text-offwhite/35' : 'text-midnight/30')}>{plan.originalPrice}</span>
+                )}
                 <span className={cn('text-4xl font-display font-bold', plan.highlight ? 'text-offwhite' : 'text-midnight')}>{plan.price}</span>
                 {plan.per && <span className={cn('text-sm', plan.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>{plan.per}</span>}
+                {plan.originalPrice && (
+                  <span className="text-[11px] font-semibold text-sage-500 w-full mt-0.5">1ère année</span>
+                )}
               </div>
               <ul className="flex flex-col gap-2.5 mb-8 flex-1">
                 {plan.features.map(f => (

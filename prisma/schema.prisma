@@ -436,6 +436,20 @@ model PricingConfig {
   pack3Price       Int      @default(99)
   pack3Credits     Int      @default(400)
 
+  // Promotional pricing — a single active promo at a time, editable from the admin pricing
+  // page instead of a hardcoded banner/date, so it can be started, changed or stopped without
+  // a redeploy. Applies to the Essentiel plan only for now (promoPlan is still a real column,
+  // not hardcoded, so a future promo can target a different plan without a migration).
+  promoEnabled         Boolean   @default(false)
+  promoLabel           String?   // e.g. "Offre d'été"
+  promoPlan            String?   // which plan's displayed price is discounted, e.g. "ESSENTIAL"
+                                  // (plain string, not the Plan enum — avoids a Prisma db push
+                                  // ordering bug when adding an enum-typed column in the same
+                                  // push as removing legacy enum variants; see commit notes)
+  promoDiscountedPrice Int?      // e.g. 19 — shown as the new price for promoPlan
+  promoCode            String?   // Stripe Promotion Code string, e.g. "ETE19"
+  promoEndDate         DateTime? // promo stops showing/applying after this date
+
   updatedAt        DateTime @updatedAt
 }
 

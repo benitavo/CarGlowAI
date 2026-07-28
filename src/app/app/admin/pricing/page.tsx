@@ -19,7 +19,21 @@ interface PricingConfig {
   pack2Credits: number
   pack3Price: number
   pack3Credits: number
+  promoEnabled: boolean
+  promoLabel: string | null
+  promoPlan: string | null
+  promoDiscountedPrice: number | null
+  promoCode: string | null
+  promoEndDate: string | null
 }
+
+// The plain-number fields ConfigRow/updateConfigField work with — narrower than keyof
+// PricingConfig now that the interface also has boolean/nullable-string promo fields, which
+// would otherwise widen config[field] to a union including those types.
+type NumericPricingField =
+  | 'freeCredits' | 'essentialPrice' | 'essentialCredits' | 'proPrice' | 'proCredits'
+  | 'businessPrice' | 'businessCredits' | 'pack1Price' | 'pack1Credits'
+  | 'pack2Price' | 'pack2Credits' | 'pack3Price' | 'pack3Credits'
 
 interface AiFeature {
   key: string
@@ -54,7 +68,11 @@ export default function AdminPricingPage() {
 
   useEffect(() => { load() }, [load])
 
-  const updateConfigField = (field: keyof PricingConfig, value: number) => {
+  const updateConfigField = (field: NumericPricingField, value: number) => {
+    setConfig(c => c ? { ...c, [field]: value } : c)
+  }
+
+  const updatePromoField = <K extends keyof PricingConfig>(field: K, value: PricingConfig[K]) => {
     setConfig(c => c ? { ...c, [field]: value } : c)
   }
 
@@ -160,6 +178,81 @@ export default function AdminPricingPage() {
                 <ConfigRow label="Business" priceField="businessPrice" creditsField="businessCredits" config={config} onChange={updateConfigField} />
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Promotion — a single active promo at a time, read by the public /api/pricing
+            endpoint (activePromo() in src/lib/pricing.ts), which is what the sitewide banner
+            and every pricing display actually check. Toggling this off or letting the end
+            date pass turns it off everywhere at once, no redeploy needed. */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display font-bold text-lg text-midnight">Promotion</h2>
+            <button
+              onClick={() => updatePromoField('promoEnabled', !config.promoEnabled)}
+              className={cn(
+                'px-3 py-1 rounded-full text-xs font-semibold transition-colors',
+                config.promoEnabled ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-rose-50 border border-rose-200 text-rose-600',
+              )}
+            >
+              {config.promoEnabled ? 'Active' : 'Désactivée'}
+            </button>
+          </div>
+          <p className="text-sm text-midnight/45 mb-3">
+            Affiche un prix barré partout (accueil, /pricing, facturation) et un bandeau sur tout le site tant qu&apos;elle est active et que la date de fin n&apos;est pas dépassée. Le code doit correspondre exactement au Code promotionnel créé dans Stripe (Produits → Coupons).
+          </p>
+          <div className="rounded-2xl border border-sage-100 bg-white shadow-sm p-4 grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-midnight/40 block mb-1">Libellé</label>
+              <input
+                value={config.promoLabel ?? ''}
+                onChange={e => updatePromoField('promoLabel', e.target.value)}
+                placeholder="Offre d'été"
+                className="w-full rounded-lg border border-sage-200 px-3 py-2 text-sm focus:outline-none focus:border-sage-400"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-midnight/40 block mb-1">Plan concerné</label>
+              <select
+                value={config.promoPlan ?? ''}
+                onChange={e => updatePromoField('promoPlan', e.target.value || null)}
+                className="w-full rounded-lg border border-sage-200 px-3 py-2 text-sm bg-white focus:outline-none focus:border-sage-400"
+              >
+                <option value="">— Aucun —</option>
+                <option value="ESSENTIAL">Essentiel</option>
+                <option value="PRO">Pro</option>
+                <option value="BUSINESS">Business</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-midnight/40 block mb-1">Prix promo (€/mois)</label>
+              <input
+                type="number"
+                min={0}
+                value={config.promoDiscountedPrice ?? ''}
+                onChange={e => updatePromoField('promoDiscountedPrice', e.target.value === '' ? null : Number(e.target.value))}
+                placeholder="19"
+                className="w-full rounded-lg border border-sage-200 px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-sage-400"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-midnight/40 block mb-1">Code promotionnel Stripe</label>
+              <input
+                value={config.promoCode ?? ''}
+                onChange={e => updatePromoField('promoCode', e.target.value.toUpperCase())}
+                placeholder="ETE19"
+                className="w-full rounded-lg border border-sage-200 px-3 py-2 text-sm font-mono focus:outline-none focus:border-sage-400"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-midnight/40 block mb-1">Date de fin</label>
+              <input
+                type="date"
+                value={config.promoEndDate ? config.promoEndDate.slice(0, 10) : ''}
+                onChange={e => updatePromoField('promoEndDate', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                className="rounded-lg border border-sage-200 px-3 py-2 text-sm focus:outline-none focus:border-sage-400"
+              />
+            </div>
           </div>
         </div>
 
@@ -311,10 +404,10 @@ function ConfigRow({
   label, priceField, creditsField, config, onChange,
 }: {
   label: string
-  priceField: keyof PricingConfig | null
-  creditsField: keyof PricingConfig
+  priceField: NumericPricingField | null
+  creditsField: NumericPricingField
   config: PricingConfig
-  onChange: (field: keyof PricingConfig, value: number) => void
+  onChange: (field: NumericPricingField, value: number) => void
 }) {
   return (
     <tr className="border-b border-sage-50 last:border-0">

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { identifyUser } from '@/lib/analytics/client'
+import { PromoBanner } from './PromoBanner'
 
 const NAV = [
   { label: 'Tableau de bord', href: '/app',           icon: LayoutDashboard },
@@ -164,6 +165,9 @@ export default function AppLayoutClient({
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
+        {/* No fixed header to account for here (unlike the marketing Nav) — this layout is a
+            plain flex column, so the banner just pushes `main` down normally. */}
+        <PromoBanner ctaHref="/app/billing" />
         <main className="flex-1 min-w-0 overflow-auto pb-16 lg:pb-0">{children}</main>
       </div>
 

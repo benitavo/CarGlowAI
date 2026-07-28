@@ -81,3 +81,38 @@ export function creditPacks(config: PricingConfig): CreditPack[] {
     { id: 'pack3', credits: config.pack3Credits, price: config.pack3Price },
   ]
 }
+
+export interface ActivePromo {
+  label: string
+  plan: string
+  originalPrice: number
+  discountedPrice: number
+  code: string
+  endDate: string // ISO date, for display ("jusqu'au ...") — not used for the active check itself
+}
+
+// The single place that decides whether the promo is actually live right now — reused by the
+// public pricing API (banner, pricing cards) and the checkout route (auto-applying the Stripe
+// code), so none of them can drift out of sync with each other about whether it's still on.
+// Toggling promoEnabled off (or letting promoEndDate pass) turns it off everywhere at once,
+// no redeploy needed.
+export function activePromo(config: PricingConfig): ActivePromo | null {
+  if (!config.promoEnabled) return null
+  if (!config.promoPlan || config.promoDiscountedPrice == null || !config.promoCode || !config.promoLabel) return null
+  if (config.promoEndDate && config.promoEndDate.getTime() < Date.now()) return null
+
+  const originalPrice = config.promoPlan === 'ESSENTIAL' ? config.essentialPrice
+    : config.promoPlan === 'PRO' ? config.proPrice
+    : config.promoPlan === 'BUSINESS' ? config.businessPrice
+    : null
+  if (originalPrice == null) return null
+
+  return {
+    label: config.promoLabel,
+    plan: config.promoPlan,
+    originalPrice,
+    discountedPrice: config.promoDiscountedPrice,
+    code: config.promoCode,
+    endDate: config.promoEndDate?.toISOString() ?? '',
+  }
+}

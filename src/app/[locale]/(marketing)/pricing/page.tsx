@@ -1,7 +1,7 @@
 import { Link } from '@/i18n/routing'
 import { Check, Minus, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getPricingConfig, listAiFeatures } from '@/lib/pricing'
+import { getPricingConfig, listAiFeatures, activePromo } from '@/lib/pricing'
 import { TrackedLink } from '../_components/TrackedLink'
 import { PricingViewedTracker } from '../_components/PricingViewedTracker'
 import { PricingFaqAccordion } from './_components/PricingFaqAccordion'
@@ -38,7 +38,7 @@ function CellIcon({ value, highlight }: { value: CellValue; highlight: boolean }
   )
 }
 
-async function getPlansAndFeatures(): Promise<{ plans: Plan[]; costFor: (key: string) => number | undefined }> {
+async function getPlansAndFeatures() {
   const config = await getPricingConfig()
   const features = await listAiFeatures()
   const plans: Plan[] = [
@@ -49,12 +49,13 @@ async function getPlansAndFeatures(): Promise<{ plans: Plan[]; costFor: (key: st
   ]
   return {
     plans,
+    promo: activePromo(config),
     costFor: (key: string) => features.find(f => f.key === key)?.creditCost,
   }
 }
 
 export default async function PricingPage() {
-  const { plans, costFor } = await getPlansAndFeatures()
+  const { plans, promo, costFor } = await getPlansAndFeatures()
 
   return (
     <div className="pt-32 pb-20 bg-cream-50">
@@ -77,24 +78,29 @@ export default async function PricingPage() {
           {plans.map((plan) => {
             const meta = PLAN_META[plan.id]
             if (!meta) return null
+            const isPromo = promo && promo.plan === plan.id
             return (
               <div key={plan.id} className={cn(
                 'relative rounded-3xl p-8 flex flex-col border transition-all',
                 meta.highlight ? 'bg-midnight border-sage-500/30 shadow-sage-md' : 'bg-white border-midnight/[0.07] shadow-card',
               )}>
-                {meta.badge && (
+                {(isPromo || meta.badge) && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-sage-500 text-white text-xs font-bold whitespace-nowrap">
-                    {meta.badge}
+                    {isPromo ? promo.label : meta.badge}
                   </span>
                 )}
                 <div className="mb-6">
                   <h2 className={cn('font-display font-bold text-xl mb-1', meta.highlight ? 'text-offwhite' : 'text-midnight')}>{plan.label}</h2>
                   <p className={cn('text-xs mb-4', meta.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>{meta.desc}</p>
-                  <div className="flex items-baseline gap-1.5 mb-1">
+                  <div className="flex items-baseline gap-1.5 mb-1 flex-wrap">
+                    {isPromo && (
+                      <span className={cn('text-lg line-through', meta.highlight ? 'text-offwhite/35' : 'text-midnight/30')}>€{promo.originalPrice}</span>
+                    )}
                     <span className={cn('text-[2.75rem] font-display font-bold leading-none', meta.highlight ? 'text-offwhite' : 'text-midnight')}>
-                      {plan.price > 0 ? `€${plan.price}` : 'Gratuit'}
+                      {isPromo ? `€${promo.discountedPrice}` : plan.price > 0 ? `€${plan.price}` : 'Gratuit'}
                     </span>
                     {plan.price > 0 && <span className={cn('text-sm', meta.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>/mois</span>}
+                    {isPromo && <span className="text-[11px] font-semibold text-sage-400 w-full">1ère année</span>}
                   </div>
                   <p className={cn('text-xs mt-1', meta.highlight ? 'text-offwhite/40' : 'text-midnight/40')}>
                     {plan.credits.toLocaleString()} crédit{plan.credits === 1 ? '' : 's'} / mois

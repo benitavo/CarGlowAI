@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Check, ExternalLink, Plus, Lock, Zap, X, ArrowUpRight, Clock } from 'lucide-react'
+import { Check, ExternalLink, Plus, Lock, Zap, X, ArrowUpRight, Clock, ShieldCheck, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/meta'
 
@@ -19,9 +19,28 @@ interface CreditPack {
   price: number
 }
 
+interface Promo {
+  label: string
+  plan: string
+  originalPrice: number
+  discountedPrice: number
+  code: string
+  endDate: string
+}
+
 interface PricingData {
   plans: PricingPlan[]
   packs: CreditPack[]
+  promo: Promo | null
+}
+
+// A short, reassuring reason to pick each paid plan — this page is a purchase decision point,
+// bare credit numbers alone don't sell it. Kept local rather than importing the marketing
+// site's PLAN_META to keep the app section's copy independent of the marketing pages'.
+const PLAN_PITCH: Record<string, string> = {
+  ESSENTIAL: 'Le choix des paysagistes indépendants qui présentent des projets chaque semaine.',
+  PRO:       'Pour les équipes qui produisent des rendus au quotidien, sans compter.',
+  BUSINESS:  'Volume et support dédié pour les groupes multi-sites.',
 }
 
 interface WorkspaceInfo {
@@ -63,6 +82,7 @@ export default function BillingPage() {
   const [history, setHistory]             = useState<CreditTx[]>([])
   const [portalLoading, setPortalLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError]     = useState<string | null>(null)
 
   const plan             = workspace?.plan ?? 'FREE'
   const monthlyCredits   = workspace?.monthlyCredits ?? 0
@@ -155,6 +175,7 @@ export default function BillingPage() {
     if (!workspace?.workspaceId) return
     const key = body.plan ?? body.pack ?? ''
     setCheckoutLoading(key)
+    setCheckoutError(null)
 
     // Fires before the checkout redirect — the only mid-funnel Meta signal that exists
     // today (PostHog's CHECKOUT_STARTED already covers this server-side, but Meta had
@@ -170,10 +191,16 @@ export default function BillingPage() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ ...body, workspaceId: workspace.workspaceId }),
       })
-      const { url, error } = await res.json()
-      if (!res.ok) throw new Error(error)
+      // A caught-elsewhere real bug this session: an unhandled server exception (e.g. Stripe
+      // misconfigured) returns a non-JSON body, and res.json() throwing was previously
+      // swallowed silently here — the button just stopped spinning with zero explanation.
+      const { url, error } = await res.json().catch(() => {
+        throw new Error('Le paiement est temporairement indisponible. Réessayez dans un instant.')
+      })
+      if (!res.ok) throw new Error(error ?? 'Le paiement a échoué. Réessayez.')
       window.location.href = url
     } catch (e) {
+      setCheckoutError(e instanceof Error ? e.message : 'Le paiement a échoué. Réessayez.')
       console.error('[billing] checkout error:', e)
       setCheckoutLoading(null)
     }
@@ -309,49 +336,90 @@ export default function BillingPage() {
         {pricing && (
           <div>
             <h2 className="font-display font-bold text-lg text-midnight mb-3">Changer de plan</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
               {pricing.plans.map((p) => {
                 const isCurrent = p.id === plan
+                const isPromo = pricing.promo && pricing.promo.plan === p.id
+                // Recommended defaults to Essentiel; a live promo on a different plan takes
+                // over that visual slot instead, so there's still exactly one emphasized card,
+                // not two competing for attention.
+                const isFeatured = isPromo || (p.id === 'ESSENTIAL' && !pricing.promo)
                 return (
                   <div
                     key={p.id}
                     className={cn(
-                      'rounded-2xl border p-5 flex flex-col',
-                      isCurrent ? 'border-sage-400 bg-sage-50' : 'border-sage-100 bg-white',
+                      'relative rounded-2xl border p-5 flex flex-col transition-all',
+                      isCurrent ? 'border-sage-400 bg-sage-50'
+                        : isFeatured ? 'border-sage-300 bg-white shadow-card ring-1 ring-sage-200'
+                        : 'border-sage-100 bg-white',
                     )}
                   >
+                    {isFeatured && !isCurrent && (
+                      <span className={cn(
+                        'absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-white text-[11px] font-bold whitespace-nowrap flex items-center gap-1',
+                        isPromo ? 'bg-rose-500' : 'bg-sage-500',
+                      )}>
+                        {isPromo ? <Sparkles className="w-3 h-3" /> : null}
+                        {isPromo ? pricing.promo!.label : 'Recommandé'}
+                      </span>
+                    )}
                     <div className="font-display font-bold text-midnight mb-1">{p.label}</div>
-                    <div className="text-2xl font-display font-bold text-midnight mb-1">
-                      {p.price > 0 ? `€${p.price}` : 'Gratuit'}
+                    <div className="flex items-baseline gap-1.5 mb-1 flex-wrap">
+                      {isPromo && (
+                        <span className="text-sm line-through text-midnight/30">€{pricing.promo!.originalPrice}</span>
+                      )}
+                      <span className="text-2xl font-display font-bold text-midnight">
+                        {isPromo ? `€${pricing.promo!.discountedPrice}` : p.price > 0 ? `€${p.price}` : 'Gratuit'}
+                      </span>
                       {p.price > 0 && <span className="text-xs text-midnight/40 font-normal">/mois</span>}
                     </div>
-                    <div className="text-xs text-midnight/50 mb-4">
+                    {isPromo && <div className="text-[11px] font-semibold text-rose-500 mb-1">1ère année</div>}
+                    <div className="text-xs text-midnight/50 mb-3">
                       {p.credits.toLocaleString()} crédit{p.credits === 1 ? '' : 's'} / mois
                     </div>
-                    {isCurrent ? (
-                      <span className="mt-auto text-center text-xs font-semibold uppercase tracking-wide text-sage-600 py-2">
-                        Plan actuel
-                      </span>
-                    ) : p.id === 'FREE' ? (
-                      <button
-                        onClick={openPortal}
-                        className="mt-auto rounded-lg border border-sage-200 hover:bg-cream-50 text-midnight/70 text-sm font-semibold py-2 transition-colors"
-                      >
-                        Rétrograder
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => startCheckout({ plan: p.id })}
-                        disabled={checkoutLoading === p.id}
-                        className="mt-auto rounded-lg bg-sage-500 hover:bg-sage-600 disabled:opacity-50 text-white text-sm font-semibold py-2 flex items-center justify-center gap-1 transition-colors"
-                      >
-                        {checkoutLoading === p.id ? 'Redirection…' : <>Choisir <ArrowUpRight className="w-3.5 h-3.5" /></>}
-                      </button>
+                    {PLAN_PITCH[p.id] && (
+                      <p className="text-xs text-midnight/45 leading-relaxed mb-4">{PLAN_PITCH[p.id]}</p>
                     )}
+                    <div className="mt-auto">
+                      {isCurrent ? (
+                        <span className="block text-center text-xs font-semibold uppercase tracking-wide text-sage-600 py-2">
+                          Plan actuel
+                        </span>
+                      ) : p.id === 'FREE' ? (
+                        <button
+                          onClick={openPortal}
+                          className="w-full rounded-lg border border-sage-200 hover:bg-cream-50 text-midnight/70 text-sm font-semibold py-2 transition-colors"
+                        >
+                          Rétrograder
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => startCheckout({ plan: p.id })}
+                          disabled={checkoutLoading === p.id}
+                          className={cn(
+                            'w-full rounded-lg disabled:opacity-50 text-sm font-semibold py-2.5 flex items-center justify-center gap-1.5 transition-all',
+                            isFeatured
+                              ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm hover:shadow-sage-md'
+                              : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
+                          )}
+                        >
+                          {checkoutLoading === p.id ? 'Redirection…' : <>Passer à {p.label} <ArrowUpRight className="w-3.5 h-3.5" /></>}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )
               })}
             </div>
+            {checkoutError && (
+              <p className="text-center text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-2.5 mt-4 max-w-md mx-auto">
+                {checkoutError}
+              </p>
+            )}
+            <p className="flex items-center justify-center gap-1.5 text-xs text-midnight/35 mt-4">
+              <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.75} />
+              Paiement sécurisé par Stripe · Résiliable à tout moment, sans engagement
+            </p>
           </div>
         )}
 
@@ -391,6 +459,7 @@ export default function BillingPage() {
           onClose={() => setShowTopUp(false)}
           onCheckout={startCheckout}
           loading={checkoutLoading}
+          error={checkoutError}
         />
       )}
     </div>
@@ -398,11 +467,12 @@ export default function BillingPage() {
 }
 
 function TopUpModal({
-  workspaceId, packs, onClose, onCheckout, loading,
+  workspaceId, packs, onClose, onCheckout, loading, error,
 }: {
   workspaceId: string
   packs: CreditPack[]
   onClose: () => void
+  error: string | null
   onCheckout: (body: { pack: string }) => void
   loading: string | null
 }) {
@@ -454,18 +524,30 @@ function TopUpModal({
             <div className="flex justify-between text-midnight/60"><span>Prix / crédit</span><span className="tabular-nums text-midnight">€{perCredit.toFixed(2)}</span></div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-5">
-            <button onClick={onClose} className="rounded-lg border border-sage-200 bg-white hover:bg-cream-50 px-3.5 py-2 text-sm text-midnight/60">
-              Annuler
-            </button>
-            <button
-              onClick={() => onCheckout({ pack: pack.id })}
-              disabled={loading === pack.id || !workspaceId}
-              className="rounded-lg bg-sage-500 hover:bg-sage-600 disabled:opacity-60 text-white px-4 py-2 text-sm font-semibold flex items-center gap-1.5 transition-colors"
-            >
-              <Lock className="w-3.5 h-3.5" strokeWidth={2} />
-              {loading === pack.id ? 'Redirection…' : `Payer €${pack.price}`}
-            </button>
+          {error && (
+            <p className="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-3.5 py-2.5 mt-4">
+              {error}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between gap-2 mt-5">
+            <p className="hidden sm:flex items-center gap-1.5 text-xs text-midnight/35">
+              <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.75} />
+              Paiement sécurisé par Stripe
+            </p>
+            <div className="flex gap-2 ml-auto">
+              <button onClick={onClose} className="rounded-lg border border-sage-200 bg-white hover:bg-cream-50 px-3.5 py-2 text-sm text-midnight/60">
+                Annuler
+              </button>
+              <button
+                onClick={() => onCheckout({ pack: pack.id })}
+                disabled={loading === pack.id || !workspaceId}
+                className="rounded-lg bg-sage-500 hover:bg-sage-600 disabled:opacity-60 text-white px-4 py-2 text-sm font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <Lock className="w-3.5 h-3.5" strokeWidth={2} />
+                {loading === pack.id ? 'Redirection…' : `Payer €${pack.price}`}
+              </button>
+            </div>
           </div>
         </div>
       </div>
