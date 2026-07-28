@@ -58,6 +58,6 @@ export const config = {
     // Auth-required pages (not guest-only)
     '/check-email',
     // Apply next-intl to marketing routes (exclude api, assets, auth pages)
-    '/((?!api|_next/static|_next/image|app|signin|signup|verify|forgot-password|reset-password|check-email|auth|onboarding|favicon\\.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|txt|xml|html|mp4|webm|mov|ogg)).*)',
+    '/((?!api|_next/static|_next/image|app|signin|signup|verify|forgot-password|reset-password|check-email|auth|favicon\\.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|txt|xml|html|mp4|webm|mov|ogg)).*)',
   ],
 }

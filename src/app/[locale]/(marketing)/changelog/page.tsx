@@ -1,82 +1,71 @@
 import { Link } from '@/i18n/routing'
-import { Sparkles, Wrench, Zap, Shield, Plus } from 'lucide-react'
+import { Sparkles, Wrench, Shield, Plus } from 'lucide-react'
 
 const ENTRIES = [
   {
-    version: '2.4',
-    date: 'May 22, 2026',
-    tag: 'Major',
-    title: 'Multiple brand kits',
+    date: '28 juillet 2026',
+    tag: 'Nouveauté',
+    title: 'Offre d\'été',
     items: [
-      { icon: Sparkles, text: 'New: store multiple brand kits per workspace. Switch the active kit per vehicle or folder.' },
-      { icon: Sparkles, text: 'Logo watermark now has per-kit position and opacity controls.' },
-      { icon: Wrench,   text: 'Editor: history scrubber now persists across page reloads.' },
-      { icon: Shield,   text: 'Security: SCIM 2.0 provisioning for Okta and Azure AD.' },
+      { icon: Sparkles, text: 'Le plan Essentiel passe à 19€/mois la première année (au lieu de 39€) jusqu\'au 31 août.' },
+      { icon: Wrench,   text: 'Interface de facturation retravaillée : plans mis en avant, paiement sécurisé par Stripe plus visible.' },
     ],
   },
   {
-    version: '2.3',
-    date: 'Apr 30, 2026',
-    tag: 'Minor',
-    title: 'Webhook signing & delivery log',
+    date: '24-25 juillet 2026',
+    tag: 'Nouveauté',
+    title: 'Kit marketing vidéo',
     items: [
-      { icon: Plus,   text: 'Webhooks now sign every payload with HMAC-SHA256. Rotate signing secrets without downtime.' },
-      { icon: Plus,   text: 'New delivery log in Integrations → Webhooks with retry-on-failure controls.' },
-      { icon: Wrench, text: 'Bulk re-enhance now respects per-vehicle background overrides.' },
-      { icon: Zap,    text: 'Performance: editor cold-start down 40% (1.8s → 1.1s p50).' },
+      { icon: Sparkles, text: 'Transformez un rendu avant/après en courte vidéo prête à publier — format Reel, Story, paysage ou carré.' },
+      { icon: Plus,     text: 'Nouvelle vue admin des inscriptions et de la consommation de crédits.' },
+      { icon: Wrench,   text: 'Correction : la retouche et l\'import de photos HEIC, cassés depuis la migration du stockage.' },
     ],
   },
   {
-    version: '2.2',
-    date: 'Apr 12, 2026',
-    tag: 'Minor',
-    title: 'Library smart folders',
+    date: '21 juillet 2026',
+    tag: 'Amélioration',
+    title: 'Contenu prêt à publier',
     items: [
-      { icon: Plus,   text: 'Smart folders auto-group photos by status (Pending, Failed, This week, Favorites).' },
-      { icon: Plus,   text: 'Multi-select bulk actions: re-enhance, move, tag, share, delete.' },
-      { icon: Wrench, text: 'Fixed: tag chips occasionally disappeared after editing on Safari 17.' },
+      { icon: Sparkles, text: 'Nouvelle section sur la page d\'accueil dédiée au contenu pour les réseaux sociaux.' },
+      { icon: Plus,     text: 'Nouveau favicon et icône Verdia.' },
     ],
   },
   {
-    version: '2.1',
-    date: 'Mar 28, 2026',
-    tag: 'Minor',
-    title: 'Stronger plate masking',
+    date: '18-20 juillet 2026',
+    tag: 'Amélioration',
+    title: 'Confidentialité et performance',
     items: [
-      { icon: Plus, text: 'Plate detection now covers more EU and UK plate formats.' },
-      { icon: Plus, text: 'Plate masking applies automatically on every enhancement — no per-photo toggle needed.' },
+      { icon: Shield, text: 'Bannière de consentement aux cookies conforme RGPD/CNIL, activant Meta Pixel uniquement après accord.' },
+      { icon: Plus,   text: 'Connexion possible avec Google, en plus de l\'e-mail.' },
+      { icon: Wrench, text: 'Optimisations de vitesse de chargement sur mobile.' },
     ],
   },
   {
-    version: '2.0',
-    date: 'Mar 03, 2026',
-    tag: 'Major',
-    title: 'The new editor',
+    date: '17 juillet 2026',
+    tag: 'Nouveauté',
+    title: 'Sécurité du compte',
     items: [
-      { icon: Sparkles, text: 'Rebuilt editor focused on two tools: background swap and plate & logo, with a before/after slider and live history scrubber.' },
-      { icon: Sparkles, text: 'New background library with 15 curated options across Studio, Outdoor, Lifestyle, Premium, and Minimal categories.' },
+      { icon: Shield, text: 'Vérification de l\'adresse e-mail obligatoire à l\'inscription.' },
+      { icon: Plus,   text: 'Ajout de la réinitialisation de mot de passe en cas d\'oubli.' },
     ],
   },
 ]
 
 const TAG_STYLES: Record<string, string> = {
-  Major: 'bg-sage-500/15 text-sage-300 border-sage-500/30',
-  Minor: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
-  Patch: 'bg-white/[0.04] text-offwhite/65 border-white/[0.1]',
+  Nouveauté: 'bg-sage-500/15 text-sage-300 border-sage-500/30',
+  Amélioration: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
 }
 
 export default function ChangelogPage() {
   return (
     <div className="pt-32 pb-20 page-container">
       <div className="max-w-3xl mx-auto">
-        <p className="eyebrow mb-4">Changelog</p>
+        <p className="eyebrow mb-4">Journal des mises à jour</p>
         <h1 className="text-[clamp(2rem,4vw,3.5rem)] font-display font-bold text-offwhite mb-4 leading-[1.1]">
-          What&apos;s new at <span className="text-gradient">CarGlow.</span>
+          Quoi de neuf chez <span className="text-gradient">Verdia.</span>
         </h1>
         <p className="text-offwhite/55 mb-14 text-[15px]">
-          Product updates, every two weeks. Follow us on{' '}
-          <a href="https://twitter.com/carglowai" className="text-sage-400 hover:text-sage-300">X</a>{' '}
-          to get notified.
+          Les dernières améliorations apportées à la plateforme.
         </p>
 
         <div className="space-y-12 relative">
@@ -84,12 +73,11 @@ export default function ChangelogPage() {
           <div className="absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-sage-500/30 via-white/[0.06] to-transparent" />
 
           {ENTRIES.map((e) => (
-            <article key={e.version} className="relative pl-12">
+            <article key={e.title} className="relative pl-12">
               {/* Dot */}
               <div className="absolute left-2 top-2 w-3 h-3 rounded-full bg-sage-500 ring-4 ring-midnight shadow-sage-sm" />
 
               <div className="flex items-baseline gap-3 flex-wrap">
-                <span className="font-mono text-sm text-offwhite/45">v{e.version}</span>
                 <span className={`text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${TAG_STYLES[e.tag]}`}>
                   {e.tag}
                 </span>
@@ -114,7 +102,7 @@ export default function ChangelogPage() {
         </div>
 
         <div className="mt-16 text-center text-sm text-offwhite/45">
-          Want something next? <Link href="/contact" className="text-sage-400 hover:text-sage-300">Tell us</Link>.
+          Une idée à nous soumettre ? <Link href="/contact" className="text-sage-400 hover:text-sage-300">Dites-le-nous</Link>.
         </div>
       </div>
     </div>

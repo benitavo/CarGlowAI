@@ -6,16 +6,16 @@ import { cn } from '@/lib/utils'
 
 const TIPS = [
   {
-    title: 'Watermark every photo automatically',
-    body: 'Set a default watermark in your Brand Kit and CarGlow applies it to every enhanced photo — no per-photo clicks.',
+    title: 'Affinez un rendu par instruction',
+    body: 'Pas besoin de tout régénérer pour un ajustement : décrivez la modification en une phrase et l\'IA l\'applique directement sur le rendu existant.',
   },
   {
-    title: 'Plate masking is on by default',
-    body: 'Every photo you enhance gets license plates auto-detected and replaced with your dealer frame. GDPR-safe without thinking about it.',
+    title: 'Transformez un rendu en vidéo',
+    body: 'Exportez un avant/après au format Reel, Story, paysage ou carré — prêt à publier sur vos réseaux, sans montage.',
   },
   {
-    title: 'Pick a default background',
-    body: 'A consistent background across your listings makes inventory comparisons easier and lifts click-through on classifieds.',
+    title: 'La photo originale reste toujours disponible',
+    body: 'Chaque rendu conserve la photo de départ, pour comparer ou régénérer avec un autre style à tout moment.',
   },
 ]
 

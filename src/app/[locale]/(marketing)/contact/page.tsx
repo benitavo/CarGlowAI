@@ -1,15 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ArrowRight, CheckCircle, Loader2 } from 'lucide-react'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
-export default function ContactPage() {
+function ContactForm() {
+  const params = useSearchParams()
+  const isEnterprise = params.get('type') === 'enterprise'
+
   const [prenom,  setPrenom]  = useState('')
   const [nom,     setNom]     = useState('')
   const [email,   setEmail]   = useState('')
-  const [sujet,   setSujet]   = useState('')
+  const [sujet,   setSujet]   = useState(isEnterprise ? 'Demande commerciale' : '')
   const [message, setMessage] = useState('')
   const [status,  setStatus]  = useState<Status>('idle')
   const [errMsg,  setErrMsg]  = useState('')
@@ -113,5 +117,13 @@ export default function ContactPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ContactPage() {
+  return (
+    <Suspense fallback={null}>
+      <ContactForm />
+    </Suspense>
   )
 }

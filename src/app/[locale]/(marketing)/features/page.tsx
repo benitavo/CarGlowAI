@@ -1,32 +1,49 @@
-import { Check, Layers, Shield } from 'lucide-react'
+import { Check, Sparkles, Wand2, Film, Share2 } from 'lucide-react'
+import { GARDEN_STYLES } from '@/lib/gardenStyles'
 
 const FEATURE_SECTIONS = [
   {
-    id: 'backgrounds',
-    icon: Layers,
-    title: 'Background swap',
+    id: 'generation',
+    icon: Sparkles,
+    title: 'Génération de rendu',
     desc:
-      'Replace the background of any vehicle photo with a clean showroom, an outdoor setting, or a custom scene. Pick from a curated library of 15 backgrounds — applied in seconds, with the car kept exactly as it is.',
+      "Importez une photo du jardin, choisissez un style, et l'IA génère un rendu photoréaliste en environ 60 secondes. La structure existante — bâti, clôtures, terrasse, mobilier — est toujours respectée : seules les zones de végétation et de sol sont transformées.",
+    details: GARDEN_STYLES.map((s) => `${s.emoji} ${s.name} — ${s.desc}`),
+  },
+  {
+    id: 'retouche',
+    icon: Wand2,
+    title: 'Retouche par instruction',
+    desc:
+      "Pas besoin de tout régénérer pour un ajustement. Décrivez la modification en une phrase — \"ajoute une allée en gravier\", \"remplace la haie par des bambous\" — et l'IA applique la retouche directement sur le rendu existant.",
     details: [
-      'Studio backgrounds (white, black, bronze, soft grey)',
-      'Outdoor scenes (coastal, mountain, forest, desert)',
-      'Lifestyle and premium settings',
-      'One-click apply — same style across all your listings',
-      'Original photo always preserved for re-edits',
+      'Modifications ciblées sans repartir de zéro',
+      'Conserve le reste du rendu à l\'identique',
+      'Idéal pour affiner un rendu avant de le présenter à un client',
     ],
   },
   {
-    id: 'plate',
-    icon: Shield,
-    title: 'Plate masking & logo watermark',
+    id: 'video',
+    icon: Film,
+    title: 'Vidéo avant / après',
     desc:
-      'License plates are personal data under GDPR. CarGlow detects them automatically and replaces each with your dealer plate frame, then overlays your dealership logo as a watermark. Both happen in the same step.',
+      "Transformez un rendu en courte vidéo animée montrant la transition entre l'état actuel et le projet imaginé — un format qui marque davantage qu'une simple image fixe lors d'un rendez-vous client.",
     details: [
-      'Automatic plate detection on every photo',
-      'Replace with your branded dealer plate frame, or blur',
-      'Logo watermark from your Brand Kit (position + opacity controls)',
-      'GDPR-compliant by default',
-      'Works on multi-country plates (EU, UK)',
+      'Animation fluide de l\'avant vers l\'après',
+      'Génération automatique, sans montage',
+      'Téléchargeable en HD',
+    ],
+  },
+  {
+    id: 'kit-marketing',
+    icon: Share2,
+    title: 'Kit marketing',
+    desc:
+      "Exportez vos rendus avant/après au format Reel, Story, paysage ou carré — prêts à publier sur Instagram, Facebook, LinkedIn ou TikTok pour attirer de nouveaux clients, sans compétence en montage vidéo.",
+    details: [
+      '4 formats adaptés à chaque réseau social',
+      'Texte de fin et appel à l\'action personnalisables',
+      'Prêt à publier en un clic',
     ],
   },
 ]
@@ -35,14 +52,14 @@ export default function FeaturesPage() {
   return (
     <div className="pt-32 pb-20">
       <div className="page-container text-center max-w-2xl mx-auto mb-20">
-        <p className="eyebrow mb-3">Features</p>
+        <p className="eyebrow mb-3">Fonctionnalités</p>
         <h1 className="text-[clamp(2.5rem,5vw,4rem)] font-display font-bold text-offwhite mb-5">
-          Two things, done right.<br />
-          <span className="text-gradient">Background and brand.</span>
+          Une photo. Un rendu.<br />
+          <span className="text-gradient">Un client convaincu.</span>
         </h1>
         <p className="text-lg text-offwhite/50">
-          CarGlow does two jobs: it swaps the background of your vehicle photo, and it masks the
-          license plate while overlaying your dealership logo. That&apos;s it. Nothing else gets in the way.
+          Verdia transforme une photo de jardin en rendu photoréaliste, affine le résultat par
+          instruction, puis le transforme en contenu prêt à publier — le tout sans quitter l&apos;outil.
         </p>
       </div>
 
@@ -75,7 +92,7 @@ export default function FeaturesPage() {
               <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-sage-500/[0.08] to-midnight-600/50 border border-white/[0.06] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4 text-offwhite/20">
                   <feat.icon className="w-12 h-12" />
-                  <span className="text-sm font-medium">{feat.title} demo</span>
+                  <span className="text-sm font-medium">{feat.title}</span>
                 </div>
               </div>
             </div>

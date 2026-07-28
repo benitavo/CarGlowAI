@@ -8,7 +8,7 @@ const FAQS = [
   { q: 'Comment fonctionne la génération de rendu ?', a: "Vous téléchargez une photo du jardin, choisissez un style parmi nos 6 options, et notre IA transforme la photo en rendu photoréaliste en environ 60 secondes. L'IA conserve la structure existante et transforme uniquement les zones végétales." },
   { q: 'Quelle qualité de photo est nécessaire ?', a: "Une photo prise avec un smartphone récent est largement suffisante. Photographiez en pleine lumière naturelle depuis un angle montrant l'ensemble du jardin." },
   { q: 'Puis-je utiliser les rendus dans mes devis ?', a: "Oui, absolument. Les rendus sont téléchargeables en haute résolution et librement utilisables dans vos documents commerciaux, présentations, réseaux sociaux ou site web." },
-  { q: 'Puis-je publier ces vidéos sur mes réseaux ?', a: 'TODO' },
+  { q: 'Puis-je publier ces vidéos sur mes réseaux ?', a: "Oui. Chaque rendu peut être transformé en courte vidéo avant/après au format Reel, Story, paysage ou carré — prête à publier sur Instagram, Facebook, LinkedIn ou TikTok, sans montage." },
   { q: 'Le rendu modifie-t-il les structures existantes ?', a: "Non. L'IA respecte strictement le bâti existant : murs, clôtures, terrasse, mobilier, bâtiments. Seules les zones de végétation et de sol sont transformées." },
   { q: 'Mon premier rendu est vraiment gratuit ?', a: "Oui, sans aucune condition. Créez votre compte, téléchargez votre photo, choisissez votre style et générez votre premier rendu — sans carte bancaire, sans engagement." },
 ]
