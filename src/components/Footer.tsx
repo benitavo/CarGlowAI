@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import RouteLink from 'next/link'
 import { useConsent } from '@/components/consent/ConsentProvider'
+import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics/client'
 
 export function Footer() {
   const t = useTranslations('footer')
@@ -29,6 +30,7 @@ export function Footer() {
               {t('ctaSecondary')}
             </Link>
             <RouteLink href="/signup"
+              onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'footer', label: t('ctaButton'), location: 'footer' })}
               className="px-5 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-sm font-semibold text-white shadow-sage-sm hover:shadow-sage-md transition-all">
               {t('ctaButton')} →
             </RouteLink>

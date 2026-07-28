@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
 import { useConsent } from '@/components/consent/ConsentProvider'
+import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics/client'
 
 export function StickyMobileCTA() {
   const [visible, setVisible] = useState(false)
@@ -38,6 +39,7 @@ export function StickyMobileCTA() {
           <p className="text-[11px] text-midnight/45 leading-tight">Sans carte bancaire · 60 secondes</p>
         </div>
         <Link href="/signup"
+          onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'sticky_mobile', label: 'Recevoir', location: 'sticky_mobile' })}
           className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-sm whitespace-nowrap transition-all shadow-sage-sm">
           Recevoir <ArrowRight className="w-4 h-4" />
         </Link>

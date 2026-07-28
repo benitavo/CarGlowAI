@@ -1,10 +1,11 @@
 import { Check } from 'lucide-react'
-import { Link } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
 import { getPricingConfig, activePromo } from '@/lib/pricing'
 import { PricingViewedTracker } from './PricingViewedTracker'
+import { TrackedLink } from './TrackedLink'
 
 interface MarketingPlan {
+  id: string
   name: string
   price: string
   originalPrice?: string
@@ -41,6 +42,7 @@ async function getPlans(): Promise<MarketingPlan[]> {
     const creditsLabel = `${p.credits.toLocaleString()} crédit${p.credits === 1 ? '' : 's'} / mois`
     const isPromo = promo && promo.plan === p.id
     return {
+      id: p.id,
       name: meta.name,
       price: isPromo ? `€${promo.discountedPrice}` : p.price > 0 ? `€${p.price}` : 'Gratuit',
       originalPrice: isPromo ? `€${promo.originalPrice}` : undefined,
@@ -100,10 +102,10 @@ export async function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <Link href={plan.href} className={cn(
+              <TrackedLink href={plan.href} ctaId={`pricing_homepage_${plan.id.toLowerCase()}`} label={plan.cta} location="pricing_homepage" className={cn(
                 'text-center py-3 rounded-2xl text-sm font-semibold transition-all',
                 plan.highlight ? 'bg-sage-500 hover:bg-sage-600 text-white shadow-sage-sm' : 'border border-midnight/[0.12] hover:border-sage-400 text-midnight/70 hover:text-sage-600',
-              )}>{plan.cta}</Link>
+              )}>{plan.cta}</TrackedLink>
             </div>
           ))}
         </div>

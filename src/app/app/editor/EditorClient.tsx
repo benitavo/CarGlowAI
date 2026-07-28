@@ -263,6 +263,9 @@ export default function EditorClient() {
           setCreditError({ available: data.available ?? 0, required: data.required ?? 0 })
           return
         }
+        if (data.error === 'email_not_verified') {
+          throw new Error(data.message ?? 'Vérifiez votre adresse e-mail pour continuer.')
+        }
         throw new Error(data.error ?? 'Erreur inconnue')
       }
       const url = data.enhancedUrl ?? data.videoUrl
@@ -312,6 +315,9 @@ export default function EditorClient() {
           setRetouchStatus('idle')
           setCreditError({ available: data.available ?? 0, required: data.required ?? 0 })
           return
+        }
+        if (data.error === 'email_not_verified') {
+          throw new Error(data.message ?? 'Vérifiez votre adresse e-mail pour continuer.')
         }
         throw new Error(data.error ?? 'Erreur inconnue')
       }

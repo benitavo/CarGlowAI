@@ -18,6 +18,7 @@ export interface WorkspaceSummary {
   renewalDate: Date | null
   isSuperuser: boolean
   role: string
+  emailVerified: boolean
 }
 
 // Shared by /api/me and the /app layout — having the layout fetch this server-side and
@@ -28,11 +29,14 @@ export async function getWorkspaceSummary(
   email?: string | null,
   name?: string | null,
 ): Promise<WorkspaceSummary | null> {
-  const member = await db.workspaceMember.findFirst({
-    where:   { userId },
-    include: { workspace: true },
-    orderBy: { joinedAt: 'asc' },
-  })
+  const [member, user] = await Promise.all([
+    db.workspaceMember.findFirst({
+      where:   { userId },
+      include: { workspace: true },
+      orderBy: { joinedAt: 'asc' },
+    }),
+    db.user.findUnique({ where: { id: userId }, select: { emailVerified: true } }),
+  ])
   if (!member) return null
 
   const { workspace } = member
@@ -54,5 +58,6 @@ export async function getWorkspaceSummary(
     renewalDate:        workspace.renewalDate,
     isSuperuser,
     role: member.role,
+    emailVerified: !!user?.emailVerified,
   }
 }

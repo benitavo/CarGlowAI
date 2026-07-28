@@ -6,6 +6,7 @@ import { uploadBase64WithFallback } from '@/lib/blob-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { isEmailVerified } from '@/lib/auth-guards'
 
 export const maxDuration = 120
 
@@ -61,6 +62,15 @@ export async function POST(req: NextRequest) {
   })
 
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+
+  // Retouching only ever applies to a photo from a prior generation, so an unverified
+  // account has already used its one free generate by the time it could reach this route.
+  if (!(await isEmailVerified(session.user.id))) {
+    return NextResponse.json(
+      { error: 'email_not_verified', message: 'Vérifiez votre adresse e-mail pour retoucher un rendu.' },
+      { status: 403 },
+    )
+  }
 
   const analyticsIdentity = { userId: session.user.id, email: session.user.email ?? null, plan: member.workspace.plan, workspaceId }
 

@@ -120,6 +120,19 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   await db.workspace.update({ where: { id: workspaceId }, data: { renewalDate, subscriptionStatus: subscription.status } })
   await resetMonthlyCredits(workspaceId, { renewalDate })
 
+  const userId = subscription.metadata?.userId
+  if (userId) {
+    const remainingCredits = (await getAvailableCredits(workspaceId)).total
+    trackServerEvent(ANALYTICS_EVENTS.SUBSCRIPTION_RENEWED, {
+      userId,
+      email: subscription.metadata?.email || null,
+      plan: planFromSubscription(subscription) ?? 'FREE',
+      remainingCredits,
+      workspaceId,
+      amount: invoice.amount_paid ?? undefined,
+    })
+  }
+
   // Email de facture d'abonnement
   const email = subscription.metadata?.email
   if (email) {

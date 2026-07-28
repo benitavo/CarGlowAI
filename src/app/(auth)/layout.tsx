@@ -2,6 +2,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Quote } from 'lucide-react'
 import { AuthVisualCarousel } from '@/components/AuthVisualCarousel'
+import { TestimonialAvatar } from '@/components/TestimonialAvatar'
+import { TESTIMONIALS } from '@/lib/testimonials'
+
+// Picks the testimonial that isn't the homepage's default first one (Thomas B.) — a
+// visitor who just scrolled the homepage and clicks through to sign up would otherwise
+// see the exact same quote again immediately.
+const authTestimonial = TESTIMONIALS[1]
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -72,21 +79,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="glass rounded-2xl border border-offwhite/[0.10] p-5 max-w-md">
             <Quote className="w-5 h-5 text-sage-400 mb-3" strokeWidth={1.5} />
             <p className="text-[15px] text-offwhite/85 leading-relaxed">
-              J&apos;ai montré le rendu à mes clients avant même de calculer le devis.
-              Ils ont dit oui sur le champ. C&apos;est devenu mon outil de vente numéro un.
+              {authTestimonial.quote}
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-full shrink-0 bg-sage-700 ring-1 ring-white/15"
-                style={{
-                  backgroundImage: 'url(/avatars/face-0-2.jpg)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              />
+              <TestimonialAvatar name={authTestimonial.name} className="w-9 h-9 shrink-0 ring-1 ring-white/15" />
               <div>
-                <div className="text-sm font-medium text-offwhite">Thomas B.</div>
-                <div className="text-xs text-offwhite/50">Paysagiste · Lyon, 69</div>
+                <div className="text-sm font-medium text-offwhite">{authTestimonial.name}</div>
+                <div className="text-xs text-offwhite/50">{authTestimonial.role} · {authTestimonial.location}</div>
               </div>
             </div>
           </div>

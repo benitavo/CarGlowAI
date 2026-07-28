@@ -6,6 +6,7 @@ import { buildStoryboardFromPhoto } from '@/lib/marketing-video/build-storyboard
 import { getVideoProvider } from '@/lib/marketing-video/provider'
 import type { MarketingVideoFormat } from '@/lib/marketing-video/types'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
+import { isEmailVerified } from '@/lib/auth-guards'
 
 export const maxDuration = 300
 
@@ -55,6 +56,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (!photo || photo.workspace.members.length === 0) {
     return NextResponse.json({ error: 'Rendu introuvable' }, { status: 404 })
+  }
+
+  if (!(await isEmailVerified(session.user.id))) {
+    return NextResponse.json(
+      { error: 'email_not_verified', message: 'Vérifiez votre adresse e-mail pour créer une vidéo marketing.' },
+      { status: 403 },
+    )
   }
 
   if (photo.status !== 'ENHANCED') {

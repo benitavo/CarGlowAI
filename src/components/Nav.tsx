@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Link } from '@/i18n/routing'
 import RouteLink from 'next/link'
 import { PromoBanner } from './PromoBanner'
+import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics/client'
 
 export function Nav() {
   const { data: session, status } = useSession()
@@ -116,6 +117,7 @@ export function Nav() {
                 Connexion
               </RouteLink>
               <RouteLink href="/signup"
+                onClick={() => trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'nav_desktop', label: 'Essai gratuit', location: 'nav' })}
                 className="px-4 py-2 text-sm font-semibold text-white bg-sage-500 hover:bg-sage-600 rounded-xl shadow-sage-sm transition-all">
                 Essai gratuit
               </RouteLink>
@@ -163,7 +165,8 @@ export function Nav() {
                     className="text-center py-3 rounded-xl border border-midnight/[0.12] text-sm font-medium text-midnight/70">
                     Connexion
                   </RouteLink>
-                  <RouteLink href="/signup" onClick={() => setMobileOpen(false)}
+                  <RouteLink href="/signup"
+                    onClick={() => { setMobileOpen(false); trackEvent(ANALYTICS_EVENTS.CTA_CLICKED, { ctaId: 'nav_mobile', label: 'Essai gratuit', location: 'nav' }) }}
                     className="text-center py-3 rounded-xl bg-sage-500 text-sm font-semibold text-white">
                     Essai gratuit
                   </RouteLink>

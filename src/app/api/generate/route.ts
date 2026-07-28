@@ -7,6 +7,7 @@ import { uploadBase64WithFallback } from '@/lib/blob-storage'
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { isEmailVerified } from '@/lib/auth-guards'
 
 export const maxDuration = 120
 
@@ -35,10 +36,13 @@ export async function POST(req: NextRequest) {
   const isSuperuser = !!session.user.email &&
     SUPERUSER_EMAILS.includes(session.user.email.toLowerCase())
 
-  const member = await db.workspaceMember.findUnique({
-    where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
-    include: { workspace: { select: { plan: true } } },
-  })
+  const [member, verified] = await Promise.all([
+    db.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+      include: { workspace: { select: { plan: true } } },
+    }),
+    isEmailVerified(session.user.id),
+  ])
 
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
@@ -49,6 +53,17 @@ export async function POST(req: NextRequest) {
   const priorImageCount = await db.creditTransaction.count({
     where: { workspaceId, featureKey: FEATURE_KEY, reason: 'ENHANCEMENT' },
   })
+
+  // An unverified account gets exactly one free generation — enough to see the product work
+  // before being asked to leave the app and verify — then every subsequent attempt needs a
+  // verified email. Bounds the abuse surface (disposable-email credit farming) to one
+  // 1-credit render per fake account instead of unlimited free use.
+  if (!verified && priorImageCount > 0) {
+    return NextResponse.json(
+      { error: 'email_not_verified', message: 'Vérifiez votre adresse e-mail pour générer un nouveau rendu.' },
+      { status: 403 },
+    )
+  }
 
   let deduction: Awaited<ReturnType<typeof deductCredits>> | null = null
   if (!isSuperuser) {

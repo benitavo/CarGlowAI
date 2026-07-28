@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    return NextResponse.json({ error: 'Requête invalide.' }, { status: 400 })
   }
 
   const email       = body.email?.trim().toLowerCase()
@@ -41,13 +41,13 @@ export async function POST(req: NextRequest) {
 
   // ── Validation ─────────────────────────────────────────────────────────
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
+    return NextResponse.json({ error: 'Veuillez saisir une adresse e-mail valide.' }, { status: 400 })
   }
   if (password.length < 8) {
-    return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
+    return NextResponse.json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' }, { status: 400 })
   }
   if (password.length > 200) {
-    return NextResponse.json({ error: 'Password is too long.' }, { status: 400 })
+    return NextResponse.json({ error: 'Le mot de passe est trop long.' }, { status: 400 })
   }
 
   try {
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       return NextResponse.json(
-        { error: 'An account with this email already exists. Please sign in instead.' },
+        { error: 'Un compte existe déjà avec cette adresse e-mail. Connectez-vous plutôt.' },
         { status: 409 },
       )
     }
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[auth/register] error:', err)
     return NextResponse.json(
-      { error: 'Account creation failed. Please try again.' },
+      { error: 'La création du compte a échoué. Veuillez réessayer.' },
       { status: 500 },
     )
   }

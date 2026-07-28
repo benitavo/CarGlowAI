@@ -7,6 +7,7 @@ import { uploadBase64WithFallback, uploadBufferWithFallback } from '@/lib/blob-s
 import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsError } from '@/lib/credits'
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { isEmailVerified } from '@/lib/auth-guards'
 
 export const maxDuration = 300
 
@@ -64,6 +65,16 @@ export async function POST(req: NextRequest) {
   })
 
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+
+  // Unlike /api/generate (image), video generation never has an unverified free pass —
+  // it's a heavier 15-credit action, not the one "wow moment" the verification gate is
+  // deliberately relaxed for.
+  if (!(await isEmailVerified(session.user.id))) {
+    return NextResponse.json(
+      { error: 'email_not_verified', message: 'Vérifiez votre adresse e-mail pour générer une vidéo.' },
+      { status: 403 },
+    )
+  }
 
   const analyticsIdentity = { userId: session.user.id, email: session.user.email ?? null, plan: member.workspace.plan, workspaceId }
 

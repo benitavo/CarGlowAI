@@ -29,6 +29,8 @@ export const ANALYTICS_EVENTS = {
   FIRST_VIDEO_GENERATED: 'First Video Generated',
   UPGRADE_SUBSCRIPTION: 'Upgrade Subscription',
   CANCEL_SUBSCRIPTION: 'Cancel Subscription',
+  SUBSCRIPTION_RENEWED: 'Subscription Renewed',
+  REACTIVATION_EMAIL_SENT: 'Reactivation Email Sent',
 } as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS]
@@ -68,6 +70,8 @@ export interface EventPropertiesMap {
   [ANALYTICS_EVENTS.FIRST_VIDEO_GENERATED]: Record<string, unknown>
   [ANALYTICS_EVENTS.UPGRADE_SUBSCRIPTION]: { fromPlan: string; toPlan: string }
   [ANALYTICS_EVENTS.CANCEL_SUBSCRIPTION]: { cancelledPlan: string }
+  [ANALYTICS_EVENTS.SUBSCRIPTION_RENEWED]: { plan: string; amount?: number }
+  [ANALYTICS_EVENTS.REACTIVATION_EMAIL_SENT]: { daysSinceLastRender: number }
 }
 
 export type ServerTrackPayload<E extends AnalyticsEventName> = BaseEventProperties & EventPropertiesMap[E]

@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Link } from '@/i18n/routing'
 import {
   ArrowRight, ChevronLeft, ChevronRight, PlayCircle, Star, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GridAvatar } from './GridAvatar'
 import { gardenImagePath } from '@/lib/showcase-data'
+import { TrackedLink } from './TrackedLink'
 
 interface ShowcaseItem { before: string; after: string; video?: string; style: string; desc: string }
 
@@ -240,7 +240,7 @@ export function GallerySection({ landscaperCount }: { landscaperCount: number })
           <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
             {showVideo && item.video ? (
               <div className="relative aspect-[4/3] w-full mb-3 rounded-3xl overflow-hidden border border-midnight/[0.08] shadow-card bg-midnight">
-                <video src={item.video} controls autoPlay className="absolute inset-0 w-full h-full object-cover" />
+                <video src={item.video} controls autoPlay preload="none" poster={item.after} className="absolute inset-0 w-full h-full object-cover" />
                 <button
                   onClick={() => setShowVideo(false)}
                   className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-midnight/60 backdrop-blur-sm text-xs font-semibold text-white border border-white/20 hover:bg-midnight/80 transition-colors"
@@ -313,11 +313,11 @@ export function GallerySection({ landscaperCount }: { landscaperCount: number })
               Toutes ces transformations ont été générées par Verdia à partir d&apos;une simple photo de jardin.
             </p>
 
-            <Link href="/signup"
+            <TrackedLink href="/signup" ctaId="gallery_cta" label="Essayer gratuitement" location="gallery"
               className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-sage-500 hover:bg-sage-600 text-white font-bold text-base shadow-sage-sm hover:shadow-sage-md transition-all mb-3">
               Essayer gratuitement
               <ArrowRight className="w-5 h-5" />
-            </Link>
+            </TrackedLink>
             <p className="text-xs text-midnight/35 mb-6">Sans carte bancaire · Résultat en 60 secondes</p>
 
             {!showVideo && (

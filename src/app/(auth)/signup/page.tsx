@@ -100,6 +100,24 @@ export default function SignUpPage() {
         </p>
       </div>
 
+      <button
+        type="button"
+        onClick={() => signIn('google', { callbackUrl: '/app' })}
+        className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-midnight/[0.14] hover:border-midnight/[0.28] hover:bg-midnight/[0.02] px-4 py-2.5 text-sm font-semibold text-midnight/85 transition-colors"
+      >
+        <GoogleIcon className="w-4 h-4" />
+        S&apos;inscrire avec Google
+      </button>
+      <p className="text-[11.5px] text-midnight/45 text-center mt-2">
+        Accès immédiat à votre espace — aucune vérification d&apos;e-mail nécessaire.
+      </p>
+
+      <div className="flex items-center gap-3 my-6">
+        <div className="h-px flex-1 bg-midnight/[0.08]" />
+        <span className="text-[11px] uppercase tracking-widest text-midnight/35">ou avec e-mail</span>
+        <div className="h-px flex-1 bg-midnight/[0.08]" />
+      </div>
+
       <form onSubmit={submit} className="space-y-4">
         <Field label="Nom complet" icon={User}>
           <input type="text" required autoComplete="name" value={name}
@@ -135,7 +153,7 @@ export default function SignUpPage() {
 
         <button type="submit" disabled={loading || !valid}
           className={cn(
-            'w-full rounded-xl bg-sage-500 hover:bg-sage-600 disabled:opacity-60 disabled:cursor-not-allowed text-white px-4 py-2.5 text-sm font-semibold shadow-sage-sm transition-colors flex items-center justify-center gap-1.5 mt-2',
+            'w-full rounded-xl border border-midnight/[0.14] hover:border-midnight/[0.28] hover:bg-midnight/[0.02] disabled:opacity-60 disabled:cursor-not-allowed text-midnight/85 px-4 py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 mt-2',
           )}>
           {loading
             ? <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
@@ -150,21 +168,6 @@ export default function SignUpPage() {
           <Link href="/privacy" className="text-midnight/60 underline-offset-2 hover:underline">Politique de confidentialité</Link>.
         </p>
       </form>
-
-      <div className="flex items-center gap-3 my-6">
-        <div className="h-px flex-1 bg-midnight/[0.08]" />
-        <span className="text-[11px] uppercase tracking-widest text-midnight/35">ou</span>
-        <div className="h-px flex-1 bg-midnight/[0.08]" />
-      </div>
-
-      <button
-        type="button"
-        onClick={() => signIn('google', { callbackUrl: '/app' })}
-        className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-midnight/[0.12] hover:border-midnight/[0.25] hover:bg-midnight/[0.02] px-4 py-2.5 text-sm font-medium text-midnight/75 transition-colors"
-      >
-        <GoogleIcon className="w-4 h-4" />
-        S&apos;inscrire avec Google
-      </button>
 
       <ul className="mt-8 pt-6 border-t border-midnight/[0.07] space-y-2">
         {benefits.map(b => (

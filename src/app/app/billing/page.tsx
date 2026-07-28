@@ -93,9 +93,17 @@ export default function BillingPage() {
   const pct = monthlyAllotment > 0 ? (monthlyCredits / monthlyAllotment) * 100 : 0
 
   useEffect(() => {
-    fetch('/api/me')
-      .then(r => r.json())
-      .then(d => setWorkspace({
+    Promise.all([
+      fetch('/api/me').then(r => r.json()),
+      fetch('/api/pricing').then(r => r.json()),
+    ]).then(([d, pricingData]) => {
+      // Billing is fully gated behind email verification — a user who used their one free
+      // unverified generation can browse the rest of the app, but not pay or see invoices.
+      if (!d.emailVerified) {
+        router.replace('/check-email')
+        return
+      }
+      setWorkspace({
         workspaceId:        d.workspaceId,
         workspaceName:      d.workspaceName,
         plan:               d.plan ?? 'FREE',
@@ -103,10 +111,10 @@ export default function BillingPage() {
         bonusCredits:       d.bonusCredits ?? 0,
         subscriptionStatus: d.subscriptionStatus ?? 'active',
         renewalDate:        d.renewalDate ?? null,
-      }))
-      .then(() => fetch('/api/pricing').then(r => r.json()).then(setPricing))
-      .catch(() => {})
-  }, [])
+      })
+      setPricing(pricingData)
+    }).catch(() => {})
+  }, [router])
 
   useEffect(() => {
     if (!workspace?.workspaceId) return

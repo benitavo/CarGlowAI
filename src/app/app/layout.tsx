@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { db } from '@/lib/db'
 import { getWorkspaceSummary } from '@/lib/workspace-summary'
 import AppLayoutClient from '@/components/AppLayoutClient'
 
@@ -8,17 +7,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await auth()
   if (!session?.user?.id) redirect('/signin')
 
-  // Independent queries, run in parallel — the emailVerified gate doesn't depend on
-  // workspace data. Fetching the workspace summary here (not just in /api/me) means
-  // AppLayoutClient's sidebar renders real numbers on first paint instead of "—"
-  // placeholders while waiting on a client-side round trip that used to block on this
-  // exact same data.
-  const [user, workspaceSummary] = await Promise.all([
-    db.user.findUnique({ where: { id: session.user.id }, select: { emailVerified: true } }),
-    getWorkspaceSummary(session.user.id, session.user.email, session.user.name),
-  ])
+  // Unverified accounts are deliberately allowed into the app shell (dashboard, editor,
+  // library, brand kit) so a brand-new signup can see its first render without leaving
+  // the app to click an email link first — that context-switch was the single biggest
+  // drop-off point in the signup funnel. Verification is still required for anything
+  // past that: a second generation (/api/generate blocks it directly), video/retouch/kit
+  // marketing, and billing (each of those routes/pages checks it on its own). This layout
+  // just needs a session, and passes verification status down so the shell can show a
+  // non-blocking reminder banner.
+  const workspaceSummary = await getWorkspaceSummary(session.user.id, session.user.email, session.user.name)
 
-  if (!user?.emailVerified) redirect('/check-email')
-
-  return <AppLayoutClient initialWorkspace={workspaceSummary}>{children}</AppLayoutClient>
+  return (
+    <AppLayoutClient initialWorkspace={workspaceSummary} emailVerified={!!workspaceSummary?.emailVerified}>
+      {children}
+    </AppLayoutClient>
+  )
 }

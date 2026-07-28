@@ -48,6 +48,21 @@ export default function SignInPage() {
         </p>
       </div>
 
+      <button
+        type="button"
+        onClick={() => signIn('google', { callbackUrl: '/app' })}
+        className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-midnight/[0.14] hover:border-midnight/[0.28] hover:bg-midnight/[0.02] px-4 py-2.5 text-sm font-semibold text-midnight/85 transition-colors"
+      >
+        <GoogleIcon className="w-4 h-4" />
+        Continuer avec Google
+      </button>
+
+      <div className="flex items-center gap-3 my-6">
+        <div className="h-px flex-1 bg-midnight/[0.08]" />
+        <span className="text-[11px] uppercase tracking-widest text-midnight/35">ou avec e-mail</span>
+        <div className="h-px flex-1 bg-midnight/[0.08]" />
+      </div>
+
       <form onSubmit={submit} className="space-y-4">
         {/* Email */}
         <div className="space-y-1.5">
@@ -108,21 +123,6 @@ export default function SignInPage() {
           }
         </button>
       </form>
-
-      <div className="flex items-center gap-3 my-6">
-        <div className="h-px flex-1 bg-midnight/[0.08]" />
-        <span className="text-[11px] uppercase tracking-widest text-midnight/35">ou</span>
-        <div className="h-px flex-1 bg-midnight/[0.08]" />
-      </div>
-
-      <button
-        type="button"
-        onClick={() => signIn('google', { callbackUrl: '/app' })}
-        className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-midnight/[0.12] hover:border-midnight/[0.25] hover:bg-midnight/[0.02] px-4 py-2.5 text-sm font-medium text-midnight/75 transition-colors"
-      >
-        <GoogleIcon className="w-4 h-4" />
-        Continuer avec Google
-      </button>
 
       <div className="mt-8 pt-6 border-t border-midnight/[0.07] flex items-center justify-center gap-4 text-[11px] text-midnight/35">
         <span className="flex items-center gap-1">

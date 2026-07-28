@@ -5,6 +5,7 @@ import { getStripe, priceIdForPlan, priceIdForPack, type SubscriptionPlan, type 
 import { getPricingConfig, activePromo } from '@/lib/pricing'
 import { trackServerEvent } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { isEmailVerified } from '@/lib/auth-guards'
 
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = ['ESSENTIAL', 'PRO', 'BUSINESS']
 const CREDIT_PACKS: CreditPackId[] = ['pack1', 'pack2', 'pack3']
@@ -13,6 +14,13 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!(await isEmailVerified(session.user.id))) {
+    return NextResponse.json(
+      { error: 'email_not_verified', message: 'Vérifiez votre adresse e-mail pour souscrire à un abonnement.' },
+      { status: 403 },
+    )
   }
 
   const { plan, pack, workspaceId } = await req.json() as {
@@ -87,7 +95,10 @@ export async function POST(req: NextRequest) {
         customer: customerId,
         line_items: [{ price: priceIdForPlan(plan as SubscriptionPlan), quantity: 1 }],
         ...(discounts ? { discounts } : { allow_promotion_codes: true }),
-        success_url: `${baseUrl}/app/billing?checkout=success`,
+        // session_id lets the billing page look up the actual amount paid (via
+        // /api/billing/checkout-session) to fire the Meta Purchase event with a real value —
+        // same reason the credit-pack success_url below already includes it.
+        success_url: `${baseUrl}/app/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/app/billing?checkout=cancelled`,
         metadata: { workspaceId, plan, userId: session.user.id, email: session.user.email ?? '' },
         subscription_data: { metadata: { workspaceId, plan, userId: session.user.id, email: session.user.email ?? '' } },

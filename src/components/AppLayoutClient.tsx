@@ -8,10 +8,75 @@ import Image from 'next/image'
 import {
   LayoutDashboard, Wand2, FolderOpen,
   CreditCard, LogOut, ShieldCheck, Palette, Users,
+  AlertCircle, Loader2, RefreshCw, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { identifyUser } from '@/lib/analytics/client'
+import { identifyUser, resetAnalyticsIdentity } from '@/lib/analytics/client'
 import { PromoBanner } from './PromoBanner'
+
+const VERIFY_DISMISS_KEY = 'verdia-verify-reminder-dismissed'
+
+// Non-blocking reminder for accounts that used their one free unverified generation
+// (see /api/generate) — everything past that (second render, video, retouch, kit
+// marketing, billing) needs a verified email, so this stays visible until they either
+// verify or dismiss it for the session.
+function VerifyReminderBanner() {
+  const [dismissed, setDismissed] = useState(true)
+  const [sending, setSending]     = useState(false)
+  const [sent, setSent]           = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+
+  useEffect(() => {
+    setDismissed(sessionStorage.getItem(VERIFY_DISMISS_KEY) === '1')
+  }, [])
+
+  if (dismissed) return null
+
+  const resend = async () => {
+    setSending(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/auth/resend-verification', { method: 'POST' })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error ?? 'Erreur inconnue')
+      } else {
+        setSent(true)
+      }
+    } catch {
+      setError('Erreur inconnue')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const dismiss = () => {
+    sessionStorage.setItem(VERIFY_DISMISS_KEY, '1')
+    setDismissed(true)
+  }
+
+  return (
+    <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 py-2.5 flex items-center gap-3 text-sm">
+      <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" strokeWidth={1.75} />
+      <span className="flex-1 min-w-0 text-amber-900">
+        {sent
+          ? 'E-mail de vérification envoyé — pensez à vérifier vos spams.'
+          : 'Vérifiez votre e-mail pour générer d\'autres rendus et accéder à la facturation.'}
+      </span>
+      {!sent && (
+        <button onClick={resend} disabled={sending}
+          className="inline-flex items-center gap-1.5 text-amber-700 hover:text-amber-900 font-semibold whitespace-nowrap disabled:opacity-60">
+          {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          Renvoyer l&apos;e-mail
+        </button>
+      )}
+      {error && <span className="text-rose-600 text-xs whitespace-nowrap">{error}</span>}
+      <button onClick={dismiss} aria-label="Masquer" className="text-amber-400 hover:text-amber-700 shrink-0">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  )
+}
 
 const NAV = [
   { label: 'Tableau de bord', href: '/app',           icon: LayoutDashboard },
@@ -44,10 +109,11 @@ interface InitialWorkspace {
 }
 
 export default function AppLayoutClient({
-  children, initialWorkspace,
+  children, initialWorkspace, emailVerified,
 }: {
   children: React.ReactNode
   initialWorkspace: InitialWorkspace | null
+  emailVerified: boolean
 }) {
   const pathname          = usePathname()
   const router            = useRouter()
@@ -88,6 +154,7 @@ export default function AppLayoutClient({
 
   const handleSignOut = async () => {
     await signOut({ redirect: false })
+    resetAnalyticsIdentity()
     router.push('/signin')
     router.refresh()
   }
@@ -166,7 +233,8 @@ export default function AppLayoutClient({
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* No fixed header to account for here (unlike the marketing Nav) — this layout is a
-            plain flex column, so the banner just pushes `main` down normally. */}
+            plain flex column, so the banners just push `main` down normally. */}
+        {!emailVerified && <VerifyReminderBanner />}
         <PromoBanner ctaHref="/app/billing" />
         <main className="flex-1 min-w-0 overflow-auto pb-16 lg:pb-0">{children}</main>
       </div>

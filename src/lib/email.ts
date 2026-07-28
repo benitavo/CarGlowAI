@@ -174,3 +174,51 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
     `),
   })
 }
+
+// ── 5. Email de renouvellement des crédits gratuits ──────────────────────────
+// Plan FREE uniquement : les renouvellements payants ont déjà leur propre e-mail
+// de facture (sendInvoiceEmail), qui mentionne déjà le renouvellement — en envoyer
+// un second ici pour les abonnés payants ferait doublon.
+
+export async function sendCreditsResetEmail(to: string, opts: { credits: number; name?: string }) {
+  const { credits, name } = opts
+  const displayName = name?.split(' ')[0] || null
+
+  await sendEmail({
+    to,
+    subject: `Vos ${credits} crédits du mois sont disponibles`,
+    text: `Bonjour${displayName ? ` ${displayName}` : ''},\n\nVos ${credits} crédits gratuits du mois viennent d'être renouvelés.\n\nGénérer un rendu → https://verdia-app.com/app/editor\n\nL'équipe Verdia`,
+    html: layout(`
+      ${h1(`${credits} crédits vous attendent`)}
+      ${p(`Bonjour${displayName ? ` ${displayName}` : ''}, vos crédits gratuits du mois viennent d'être renouvelés.`)}
+      ${p('Profitez-en pour générer un nouveau rendu ou essayer un style que vous n\'avez pas encore testé.')}
+      <div style="text-align:center;margin:28px 0">
+        ${btn('https://verdia-app.com/app/editor', 'Générer un rendu →')}
+      </div>
+      <p style="margin:24px 0 0;font-size:14px;color:#888">L'équipe Verdia</p>
+    `),
+  })
+}
+
+// ── 6. Email de réactivation ─────────────────────────────────────────────────
+// Envoyé une fois qu'un espace de travail n'a produit aucun rendu depuis 14 jours,
+// pour rappeler que des crédits gratuits sont peut-être encore disponibles.
+
+export async function sendReactivationEmail(to: string, opts: { name?: string }) {
+  const displayName = opts.name?.split(' ')[0] || null
+
+  await sendEmail({
+    to,
+    subject: 'Votre jardin de rêve vous attend toujours',
+    text: `Bonjour${displayName ? ` ${displayName}` : ''},\n\nÇa fait un moment que vous n'avez pas généré de rendu sur Verdia. Vos crédits du mois sont peut-être encore disponibles.\n\nGénérer un rendu → https://verdia-app.com/app/editor\n\nL'équipe Verdia`,
+    html: layout(`
+      ${h1('On ne vous a pas revu récemment')}
+      ${p(`Bonjour${displayName ? ` ${displayName}` : ''}, ça fait un moment que vous n'avez pas généré de rendu sur Verdia.`)}
+      ${p('Si vous avez un nouveau chantier ou un client à convaincre, vos crédits du mois sont peut-être encore disponibles.')}
+      <div style="text-align:center;margin:28px 0">
+        ${btn('https://verdia-app.com/app/editor', 'Générer un rendu →')}
+      </div>
+      <p style="margin:24px 0 0;font-size:14px;color:#888">L'équipe Verdia</p>
+    `),
+  })
+}

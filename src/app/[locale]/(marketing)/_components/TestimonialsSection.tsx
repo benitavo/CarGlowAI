@@ -3,13 +3,8 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { GridAvatar } from './GridAvatar'
-
-const TESTIMONIALS = [
-  { quote: "J'ai montré le rendu à mes clients avant même de calculer le devis. Ils ont dit oui sur le champ. C'est devenu mon outil de vente numéro un.", name: 'Thomas B.', role: 'Paysagiste', location: 'Lyon, 69', stars: 5, avatar: { col: 2, row: 0 } },
-  { quote: "En 2 minutes, j'avais 6 versions différentes du futur jardin. Le client a choisi le style méditerranéen. Le chantier commence la semaine prochaine.", name: 'Sophie L.', role: 'Architecte paysagiste', location: 'Aix-en-Provence, 13', stars: 5, avatar: { col: 1, row: 0 } },
-  { quote: "Mes clients n'arrivent plus à se projeter sur les plans papier. Avec Verdia, ils voient exactement ce que ça va donner. Le taux de signature a explosé.", name: 'Marc D.', role: 'Aménageur extérieur', location: 'Bordeaux, 33', stars: 5, avatar: { col: 4, row: 0 } },
-]
+import { TestimonialAvatar } from '@/components/TestimonialAvatar'
+import { TESTIMONIALS } from '@/lib/testimonials'
 
 export function TestimonialsSection() {
   const [current, setCurrent] = useState(0)
@@ -43,8 +38,7 @@ export function TestimonialsSection() {
           </div>
           <p className="text-lg md:text-xl text-midnight/70 leading-relaxed mb-8 max-w-xl mx-auto">&ldquo;{t.quote}&rdquo;</p>
           <div className="flex items-center justify-center gap-3">
-            <GridAvatar col={t.avatar.col} row={t.avatar.row}
-              className="w-10 h-10 rounded-full shrink-0 bg-sage-200" />
+            <TestimonialAvatar name={t.name} className="w-10 h-10 shrink-0" />
             <div className="text-left">
               <p className="text-sm font-semibold text-midnight">{t.name}</p>
               <p className="text-xs text-midnight/45">{t.role} · {t.location}</p>

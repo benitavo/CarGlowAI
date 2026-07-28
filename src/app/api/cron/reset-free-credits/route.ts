@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { resetMonthlyCredits } from '@/lib/credits'
+import { sendCreditsResetEmail } from '@/lib/email'
 
 // Scheduled daily via vercel.json (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`).
 //
@@ -26,8 +27,16 @@ export async function GET(req: NextRequest) {
   for (const ws of due) {
     const nextReset = new Date()
     nextReset.setMonth(nextReset.getMonth() + 1)
-    await resetMonthlyCredits(ws.id, { renewalDate: nextReset })
+    const balance = await resetMonthlyCredits(ws.id, { renewalDate: nextReset })
     resetCount++
+
+    const owner = await db.workspaceMember.findFirst({
+      where: { workspaceId: ws.id, role: 'OWNER' },
+      select: { user: { select: { email: true, name: true } } },
+    })
+    if (owner?.user.email) {
+      sendCreditsResetEmail(owner.user.email, { credits: balance.monthly, name: owner.user.name ?? undefined }).catch(() => {})
+    }
   }
 
   return NextResponse.json({ reset: resetCount })

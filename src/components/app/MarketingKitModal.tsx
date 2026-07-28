@@ -95,6 +95,9 @@ export function MarketingKitModal({ photoId, onClose, hasVideoAfter = false }: P
           setInsufficientCredits({ available: data.available ?? 0, required: data.required ?? 0 })
           return
         }
+        if (data.error === 'email_not_verified') {
+          throw new Error(data.message ?? 'Vérifiez votre adresse e-mail pour continuer.')
+        }
         throw new Error(data.error ?? 'Erreur inconnue')
       }
       setVideoUrl(data.videoUrl)
