@@ -126,6 +126,7 @@ model User {
   workspaceMembers  WorkspaceMember[]
   photosCreated     Photo[]
   auditLogs         AuditLog[]
+  reviews           Review[]
 }
 
 model Workspace {
@@ -148,6 +149,15 @@ model Workspace {
   stripeSubscriptionId String? @unique
   ssoEnabled          Boolean  @default(false)
   ssoDomain           String?
+  reviewRequestedAt   DateTime? // set once a review-request email has been sent, so it's only ever sent once
+  // Lifecycle email flags — each one gated on "sent at most once" to avoid re-notifying on
+  // every cron pass. The two credits-exhausted flags are cleared whenever fresh credits are
+  // granted (see grantCredits/resetMonthlyCredits in src/lib/credits.ts), so a workspace that
+  // hits the wall again in a future cycle gets notified again.
+  neverActivatedNudgeSentAt      DateTime?
+  neverActivatedFinalNudgeSentAt DateTime?
+  creditsExhaustedEmailSentAt    DateTime?
+  creditsExhaustedFollowupSentAt DateTime?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -163,6 +173,7 @@ model Workspace {
   webhooks       Webhook[]
   auditLogs      AuditLog[]
   creditTxs      CreditTransaction[]
+  reviews        Review[]
 
   @@index([stripeCustomerId])
 }
@@ -196,6 +207,25 @@ model Invite {
 
   @@index([workspaceId])
   @@index([email])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  quote       String   @db.Text
+  stars       Int      @default(5)
+  displayName String
+  role        String?
+  location    String?
+  approved    Boolean  @default(false) // shown publicly only once an admin approves it
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([approved])
 }
 
 // ── VEHICLES & MEDIA ─────────────────────────────────────────────────────────

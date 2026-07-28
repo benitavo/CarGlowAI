@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { db } from '@/lib/db'
-import { sendWelcomeEmail } from '@/lib/email'
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
@@ -24,8 +23,9 @@ export async function GET(req: NextRequest) {
     where: { identifier_token: { identifier: `verify:${email}`, token } },
   }).catch(() => {})
 
-  // Email de bienvenue maintenant que l'adresse est confirmée
-  sendWelcomeEmail(email, user.name ?? email.split('@')[0])
+  // L'e-mail de bienvenue part maintenant sur le premier rendu réussi (voir
+  // /api/generate), pas ici — beaucoup d'utilisateurs ont déjà généré un rendu
+  // avant même de vérifier, grâce au rendu gratuit non vérifié.
 
   return NextResponse.redirect(new URL('/app', req.url))
 }

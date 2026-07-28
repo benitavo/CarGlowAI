@@ -4,19 +4,20 @@ import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TestimonialAvatar } from '@/components/TestimonialAvatar'
-import { TESTIMONIALS } from '@/lib/testimonials'
+import type { PublicTestimonial } from '@/lib/reviews'
 
-export function TestimonialsSection() {
+export function TestimonialsSection({ testimonials }: { testimonials: PublicTestimonial[] }) {
   const [current, setCurrent] = useState(0)
   const [paused, setPaused]   = useState(false)
 
   useEffect(() => {
     if (paused) return
-    const t = setInterval(() => setCurrent(c => (c + 1) % TESTIMONIALS.length), 5000)
+    const t = setInterval(() => setCurrent(c => (c + 1) % testimonials.length), 5000)
     return () => clearInterval(t)
-  }, [current, paused])
+  }, [current, paused, testimonials.length])
 
-  const t = TESTIMONIALS[current]
+  if (testimonials.length === 0) return null
+  const t = testimonials[current]
 
   return (
     <section className="section-pad bg-white">
@@ -41,23 +42,25 @@ export function TestimonialsSection() {
             <TestimonialAvatar name={t.name} className="w-10 h-10 shrink-0" />
             <div className="text-left">
               <p className="text-sm font-semibold text-midnight">{t.name}</p>
-              <p className="text-xs text-midnight/45">{t.role} · {t.location}</p>
+              {(t.role || t.location) && (
+                <p className="text-xs text-midnight/45">{[t.role, t.location].filter(Boolean).join(' · ')}</p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-center gap-3 mt-6">
-          <button onClick={() => setCurrent(c => (c - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)}
+          <button onClick={() => setCurrent(c => (c - 1 + testimonials.length) % testimonials.length)}
             className="w-8 h-8 rounded-full border border-midnight/[0.10] flex items-center justify-center text-midnight/35 hover:text-midnight transition-all">
             <ChevronLeft className="w-4 h-4" />
           </button>
           <div className="flex gap-1.5">
-            {TESTIMONIALS.map((_, i) => (
+            {testimonials.map((_, i) => (
               <button key={i} onClick={() => setCurrent(i)}
                 className={cn('h-1.5 rounded-full transition-all', i === current ? 'bg-sage-500 w-5' : 'bg-midnight/15 w-1.5')} />
             ))}
           </div>
-          <button onClick={() => setCurrent(c => (c + 1) % TESTIMONIALS.length)}
+          <button onClick={() => setCurrent(c => (c + 1) % testimonials.length)}
             className="w-8 h-8 rounded-full border border-midnight/[0.10] flex items-center justify-center text-midnight/35 hover:text-midnight transition-all">
             <ChevronRight className="w-4 h-4" />
           </button>

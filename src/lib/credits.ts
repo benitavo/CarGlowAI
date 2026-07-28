@@ -8,6 +8,7 @@
 // workspace's balance negative — either the whole deduction succeeds or nothing is touched.
 import { db } from './db'
 import { getAiFeature, getPricingConfig, monthlyCreditsForPlan } from './pricing'
+import { sendCreditsExhaustedEmail } from './email'
 import type { CreditReason } from '@/generated/prisma/client'
 
 export type FeatureKey = 'imageGeneration' | 'imageRetouch' | 'videoGeneration' | (string & {})
@@ -28,6 +29,34 @@ export interface CreditBalance {
   monthly: number
   bonus: number
   total: number
+}
+
+// Fire-and-forget: notifies the workspace owner the first time a deduction fails for a
+// workspace that has real usage behind it (at least one ENHANCED photo) — a brand-new
+// workspace that never had credits to begin with isn't "exhausted", it's just empty.
+// Guarded by an atomic updateMany so concurrent requests can't both "win" and double-send,
+// and by only firing once per cycle (cleared again in grantCredits/resetMonthlyCredits below).
+async function notifyCreditsExhausted(workspaceId: string): Promise<void> {
+  try {
+    const hasUsage = await db.photo.findFirst({ where: { workspaceId, status: 'ENHANCED' }, select: { id: true } })
+    if (!hasUsage) return
+
+    const claimed = await db.workspace.updateMany({
+      where: { id: workspaceId, creditsExhaustedEmailSentAt: null },
+      data: { creditsExhaustedEmailSentAt: new Date() },
+    })
+    if (claimed.count === 0) return
+
+    const owner = await db.workspaceMember.findFirst({
+      where: { workspaceId, role: 'OWNER' },
+      select: { user: { select: { email: true, name: true } } },
+    })
+    if (owner?.user.email) {
+      await sendCreditsExhaustedEmail(owner.user.email, { name: owner.user.name ?? undefined })
+    }
+  } catch (err) {
+    console.error('[credits] notifyCreditsExhausted failed:', err)
+  }
 }
 
 export async function getCreditCost(featureKey: FeatureKey): Promise<number> {
@@ -90,6 +119,7 @@ export async function deductCredits(
 
   const row = rows[0]
   if (row.new_monthly === null || row.new_bonus === null) {
+    notifyCreditsExhausted(workspaceId).catch(() => {})
     throw new InsufficientCreditsError(row.old_monthly + row.old_bonus, cost)
   }
 
@@ -232,6 +262,13 @@ export async function grantCredits(
     },
   })
 
+  // Fresh credits mean a fresh chance to hit the wall again — clear both flags so the
+  // exhausted-credits emails can fire again in a future cycle instead of staying silent forever.
+  await db.workspace.updateMany({
+    where: { id: workspaceId },
+    data: { creditsExhaustedEmailSentAt: null, creditsExhaustedFollowupSentAt: null },
+  })
+
   return remaining
 }
 
@@ -254,6 +291,9 @@ export async function resetMonthlyCredits(
     data: {
       monthlyCredits: freshMonthly,
       lastCreditReset: new Date(),
+      // A fresh cycle is a fresh chance to hit the wall again.
+      creditsExhaustedEmailSentAt: null,
+      creditsExhaustedFollowupSentAt: null,
       ...(opts.renewalDate ? { renewalDate: opts.renewalDate } : {}),
     },
     select: { monthlyCredits: true, bonusCredits: true },

@@ -6,6 +6,7 @@ import {
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
 import { getAiFeature } from '@/lib/pricing'
+import { getPublicTestimonials } from '@/lib/reviews'
 import { GridAvatar } from './_components/GridAvatar'
 import { TrackedLink } from './_components/TrackedLink'
 import { LandingViewedTracker } from './_components/LandingViewedTracker'
@@ -511,9 +512,10 @@ export default async function HomePage() {
   // Real counts, not invented ones — each section decides for itself whether the number
   // is high enough to be reassuring rather than thin (see MIN_RENDER_COUNT_TO_SHOW and
   // GallerySection's own threshold).
-  const [renderCount, landscaperCount] = await Promise.all([
+  const [renderCount, landscaperCount, testimonials] = await Promise.all([
     db.photo.count({ where: { status: { in: ['ENHANCED', 'EXPIRED'] } } }),
     db.workspace.count(),
+    getPublicTestimonials(),
   ])
 
   return (
@@ -531,7 +533,7 @@ export default async function HomePage() {
       <AutomationSection />
       <ArgumentsSection />
       <MidPageCTASection />
-      <TestimonialsSection />
+      <TestimonialsSection testimonials={testimonials} />
       <PricingSection />
       <FAQSection />
       <CalendlySection />

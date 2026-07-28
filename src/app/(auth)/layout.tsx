@@ -3,14 +3,15 @@ import Image from 'next/image'
 import { Quote } from 'lucide-react'
 import { AuthVisualCarousel } from '@/components/AuthVisualCarousel'
 import { TestimonialAvatar } from '@/components/TestimonialAvatar'
-import { TESTIMONIALS } from '@/lib/testimonials'
+import { getPublicTestimonials } from '@/lib/reviews'
 
-// Picks the testimonial that isn't the homepage's default first one (Thomas B.) — a
-// visitor who just scrolled the homepage and clicks through to sign up would otherwise
-// see the exact same quote again immediately.
-const authTestimonial = TESTIMONIALS[1]
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const testimonials = await getPublicTestimonials()
+  // Picks the testimonial that isn't the homepage's default first one — a visitor who just
+  // scrolled the homepage and clicks through to sign up would otherwise see the exact same
+  // quote again immediately.
+  const authTestimonial = testimonials[1] ?? testimonials[0]
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-cream-50 text-midnight flex">
       {/* ── Form column ─────────────────────────────────────────────── */}
@@ -85,7 +86,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <TestimonialAvatar name={authTestimonial.name} className="w-9 h-9 shrink-0 ring-1 ring-white/15" />
               <div>
                 <div className="text-sm font-medium text-offwhite">{authTestimonial.name}</div>
-                <div className="text-xs text-offwhite/50">{authTestimonial.role} · {authTestimonial.location}</div>
+                {(authTestimonial.role || authTestimonial.location) && (
+                  <div className="text-xs text-offwhite/50">{[authTestimonial.role, authTestimonial.location].filter(Boolean).join(' · ')}</div>
+                )}
               </div>
             </div>
           </div>

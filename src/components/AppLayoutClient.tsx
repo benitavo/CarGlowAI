@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import {
   LayoutDashboard, Wand2, FolderOpen,
-  CreditCard, LogOut, ShieldCheck, Palette, Users,
+  CreditCard, LogOut, ShieldCheck, Palette, Users, MessageSquare,
   AlertCircle, Loader2, RefreshCw, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -149,6 +149,7 @@ export default function AppLayoutClient({
         ...NAV,
         { label: 'Admin utilisateurs', href: '/app/admin/users',   icon: Users },
         { label: 'Admin tarifs',       href: '/app/admin/pricing', icon: ShieldCheck },
+        { label: 'Admin avis',         href: '/app/admin/reviews', icon: MessageSquare },
       ]
     : NAV
 

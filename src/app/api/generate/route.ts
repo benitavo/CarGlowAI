@@ -8,6 +8,7 @@ import { deductCredits, refundCredits, getAvailableCredits, InsufficientCreditsE
 import { trackServerEvent, captureServerException } from '@/lib/analytics/server'
 import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 import { isEmailVerified } from '@/lib/auth-guards'
+import { sendReviewRequestEmail, sendWelcomeEmail, sendFeatureDiscoveryEmail } from '@/lib/email'
 
 export const maxDuration = 120
 
@@ -140,6 +141,32 @@ export async function POST(req: NextRequest) {
     }
     if (priorImageCount === 0) {
       trackServerEvent(ANALYTICS_EVENTS.FIRST_IMAGE_GENERATED, { ...analyticsIdentity, remainingCredits })
+      // The "moment magique" email — fires on the render itself, not on signup/verification,
+      // so it lands while the emotion is highest (and covers Google sign-ups too, who never
+      // got a welcome email before since they skip the verification-email code path entirely).
+      if (session.user.email) {
+        sendWelcomeEmail(session.user.email, session.user.name ?? session.user.email.split('@')[0], enhancedUrl).catch(() => {})
+      }
+    }
+
+    // Habit-building nudge on the 2nd render, before the credit ceiling hits — pointed at a
+    // feature they haven't tried yet (video / kit marketing), not a repeat of the first email.
+    if (priorImageCount === 1 && session.user.email) {
+      sendFeatureDiscoveryEmail(session.user.email, { name: session.user.name ?? undefined }).catch(() => {})
+    }
+
+    // Ask for a review once a workspace has real usage behind it (their 3rd render) — not
+    // on the very first one, when they've barely had time to form an opinion. The atomic
+    // updateMany (only claims if reviewRequestedAt is still null) means concurrent requests
+    // can't both "win" and send the email twice.
+    if (priorImageCount === 2 && session.user.email) {
+      const claimed = await db.workspace.updateMany({
+        where: { id: workspaceId, reviewRequestedAt: null },
+        data: { reviewRequestedAt: new Date() },
+      })
+      if (claimed.count > 0) {
+        sendReviewRequestEmail(session.user.email, { name: session.user.name ?? undefined }).catch(() => {})
+      }
     }
 
     return NextResponse.json({ photoId: photo.id, originalUrl, enhancedUrl, processingMs, credits })
