@@ -62,6 +62,7 @@ enum CreditReason {
   ADJUSTMENT
   MONTHLY_RESET
   PACK_PURCHASE
+  FEEDBACK_BONUS
 }
 
 // ── AUTH (NextAuth.js) ───────────────────────────────────────────────────────
@@ -127,6 +128,7 @@ model User {
   photosCreated     Photo[]
   auditLogs         AuditLog[]
   reviews           Review[]
+  creditFeedback    CreditFeedback[]
 }
 
 model Workspace {
@@ -150,6 +152,7 @@ model Workspace {
   ssoEnabled          Boolean  @default(false)
   ssoDomain           String?
   reviewRequestedAt   DateTime? // set once a review-request email has been sent, so it's only ever sent once
+  feedbackCreditGrantedAt DateTime? // set once the "1 free credit for honest feedback" bonus has been granted — once ever per workspace, not per cycle
   // Lifecycle email flags — each one gated on "sent at most once" to avoid re-notifying on
   // every cron pass. The two credits-exhausted flags are cleared whenever fresh credits are
   // granted (see grantCredits/resetMonthlyCredits in src/lib/credits.ts), so a workspace that
@@ -174,6 +177,7 @@ model Workspace {
   auditLogs      AuditLog[]
   creditTxs      CreditTransaction[]
   reviews        Review[]
+  creditFeedback CreditFeedback[]
 
   @@index([stripeCustomerId])
 }
@@ -226,6 +230,22 @@ model Review {
 
   @@index([workspaceId])
   @@index([approved])
+}
+
+// One-time "1 free credit for honest feedback" submission, offered when a workspace hits 0
+// credits (see InsufficientCreditsModal). Internal only — never shown publicly, unlike Review.
+model CreditFeedback {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  message     String   @db.Text
+  rating      Int?     // optional 1-5 quick sentiment
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
 }
 
 // ── VEHICLES & MEDIA ─────────────────────────────────────────────────────────

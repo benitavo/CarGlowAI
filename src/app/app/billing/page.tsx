@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Check, ExternalLink, Plus, Lock, Zap, X, ArrowUpRight, Clock, ShieldCheck, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -124,12 +124,23 @@ export default function BillingPage() {
       .catch(() => {})
   }, [workspace?.workspaceId])
 
-  // Landing here from the "out of credits" redirect (editor, retouch, kit marketing) should
-  // open straight into the purchase flow, not just the general billing overview one more click
-  // away from it.
+  // Landing here from a mid-cycle "recharge" link (the credits card's own "+ Recharger"
+  // button, or an old already-sent email) opens straight into the one-time credit-pack
+  // purchase flow.
   useEffect(() => {
     if (searchParams.get('topup') === '1') setShowTopUp(true)
   }, [searchParams])
+
+  // Landing here from an "out of credits" moment (editor, retouch, kit marketing) instead
+  // scrolls to the subscription plans — a FREE user with 0 credits gets more value from
+  // subscribing to Essentiel than from a one-time top-up.
+  const plansRef = useRef<HTMLDivElement>(null)
+  const cameFromUpgrade = searchParams.get('upgrade') === '1'
+  useEffect(() => {
+    if (cameFromUpgrade && pricing) {
+      plansRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [cameFromUpgrade, pricing])
 
   // Fires once, right after a credit-pack purchase actually succeeds on Stripe's side
   // (real amount pulled from the completed Checkout session, not a hardcoded price) —
@@ -342,7 +353,15 @@ export default function BillingPage() {
 
         {/* Plans grid */}
         {pricing && (
-          <div>
+          <div ref={plansRef}>
+            {cameFromUpgrade && (
+              <div className="rounded-2xl border border-sage-200 bg-sage-50 px-5 py-4 mb-4 flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-sage-600 shrink-0 mt-0.5" strokeWidth={1.75} />
+                <p className="text-sm text-sage-800">
+                  Vous avez utilisé tous vos crédits ce mois-ci — abonnez-vous pour continuer à générer des rendus.
+                </p>
+              </div>
+            )}
             <h2 className="font-display font-bold text-lg text-midnight mb-3">Changer de plan</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
               {pricing.plans.map((p) => {

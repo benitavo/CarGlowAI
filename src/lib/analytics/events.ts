@@ -31,6 +31,7 @@ export const ANALYTICS_EVENTS = {
   CANCEL_SUBSCRIPTION: 'Cancel Subscription',
   SUBSCRIPTION_RENEWED: 'Subscription Renewed',
   REACTIVATION_EMAIL_SENT: 'Reactivation Email Sent',
+  CREDIT_FEEDBACK_SUBMITTED: 'Credit Feedback Submitted',
 } as const
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS]
@@ -72,6 +73,7 @@ export interface EventPropertiesMap {
   [ANALYTICS_EVENTS.CANCEL_SUBSCRIPTION]: { cancelledPlan: string }
   [ANALYTICS_EVENTS.SUBSCRIPTION_RENEWED]: { plan: string; amount?: number }
   [ANALYTICS_EVENTS.REACTIVATION_EMAIL_SENT]: { daysSinceLastRender: number }
+  [ANALYTICS_EVENTS.CREDIT_FEEDBACK_SUBMITTED]: { rating: number | null }
 }
 
 export type ServerTrackPayload<E extends AnalyticsEventName> = BaseEventProperties & EventPropertiesMap[E]

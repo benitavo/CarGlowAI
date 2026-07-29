@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import {
   LayoutDashboard, Wand2, FolderOpen,
-  CreditCard, LogOut, ShieldCheck, Palette, Users, MessageSquare,
+  CreditCard, LogOut, ShieldCheck, Palette, Users, MessageSquare, Gift,
   AlertCircle, Loader2, RefreshCw, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -150,6 +150,7 @@ export default function AppLayoutClient({
         { label: 'Admin utilisateurs', href: '/app/admin/users',   icon: Users },
         { label: 'Admin tarifs',       href: '/app/admin/pricing', icon: ShieldCheck },
         { label: 'Admin avis',         href: '/app/admin/reviews', icon: MessageSquare },
+        { label: 'Admin feedback',     href: '/app/admin/feedback', icon: Gift },
       ]
     : NAV
 
@@ -197,7 +198,7 @@ export default function AppLayoutClient({
           {/* Present on every /app page (this is the persistent sidebar) — the single most
               reliable place to catch a user at 0 credits regardless of which page they're on. */}
           <Link
-            href={ws?.creditsRemaining === 0 ? '/app/billing?topup=1' : '/app/billing'}
+            href={ws?.creditsRemaining === 0 ? '/app/billing?upgrade=1' : '/app/billing'}
             className={cn(
               'flex items-center justify-between px-3 py-2 rounded-xl border transition-colors',
               ws?.creditsRemaining === 0
@@ -206,7 +207,7 @@ export default function AppLayoutClient({
             )}
           >
             <span className={cn('text-xs', ws?.creditsRemaining === 0 ? 'text-rose-600' : 'text-midnight/50')}>
-              {ws?.creditsRemaining === 0 ? 'Recharger' : 'Crédits'}
+              {ws?.creditsRemaining === 0 ? "S'abonner" : 'Crédits'}
             </span>
             <span className={cn('text-sm font-semibold tabular-nums', ws?.creditsRemaining === 0 ? 'text-rose-700' : 'text-sage-700')}>
               {ws ? ws.creditsRemaining.toLocaleString() : '—'}

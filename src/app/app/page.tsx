@@ -45,14 +45,14 @@ export default async function DashboardPage() {
           <div className="flex-1">
             <p className="text-sm font-semibold text-rose-700">Plus de crédits disponibles</p>
             <p className="text-xs text-rose-600/70 mt-0.5">
-              Vous avez utilisé tous vos crédits. Rechargez pour continuer.
+              Vous avez utilisé tous vos crédits. Abonnez-vous pour continuer.
             </p>
           </div>
           <Link
-            href="/app/billing?topup=1"
+            href="/app/billing?upgrade=1"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold transition-colors shrink-0"
           >
-            <CreditCard className="w-3.5 h-3.5" /> Recharger
+            <CreditCard className="w-3.5 h-3.5" /> S&apos;abonner
           </Link>
         </div>
       )}

@@ -19,6 +19,7 @@ export interface WorkspaceSummary {
   isSuperuser: boolean
   role: string
   emailVerified: boolean
+  feedbackCreditGranted: boolean
 }
 
 // Shared by /api/me and the /app layout — having the layout fetch this server-side and
@@ -59,5 +60,6 @@ export async function getWorkspaceSummary(
     isSuperuser,
     role: member.role,
     emailVerified: !!user?.emailVerified,
+    feedbackCreditGranted: !!workspace.feedbackCreditGrantedAt,
   }
 }

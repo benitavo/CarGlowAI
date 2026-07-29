@@ -8,7 +8,7 @@ import Image from 'next/image'
 import {
   Upload, Loader2, Download, ArrowLeft, Sparkles,
   RotateCcw, Video, Image as ImageIcon, PenLine,
-  Wand2, RefreshCw, Palette, Send, AlertTriangle, X, Clapperboard, Check,
+  Wand2, RefreshCw, Palette, Send, AlertTriangle, X, Clapperboard, Check, Star,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GARDEN_STYLES } from '@/lib/gardenStyles'
@@ -152,6 +152,7 @@ export default function EditorClient() {
   const retouchInputRef    = useRef<HTMLInputElement>(null)
 
   const [credits, setCredits]         = useState<number | null>(null)
+  const [feedbackCreditGranted, setFeedbackCreditGranted] = useState(false)
   const [featureCosts, setFeatureCosts] = useState<Record<string, number>>({})
 
   useEffect(() => {
@@ -168,7 +169,10 @@ export default function EditorClient() {
   const refreshCredits = useCallback(() => {
     fetch('/api/me')
       .then(r => r.json())
-      .then(d => setCredits((d.monthlyCredits ?? 0) + (d.bonusCredits ?? 0)))
+      .then(d => {
+        setCredits((d.monthlyCredits ?? 0) + (d.bonusCredits ?? 0))
+        setFeedbackCreditGranted(!!d.feedbackCreditGranted)
+      })
       .catch(() => {})
   }, [])
 
@@ -367,7 +371,7 @@ export default function EditorClient() {
             this is a permanent, always-visible reminder regardless of where the zero-credit
             moment was actually triggered (generate, video, retouch, kit marketing). */}
         <Link
-          href={credits === 0 ? '/app/billing?topup=1' : '/app/billing'}
+          href={credits === 0 ? '/app/billing?upgrade=1' : '/app/billing'}
           className={cn(
             'shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs sm:text-sm font-semibold transition-colors',
             credits === 0
@@ -375,7 +379,7 @@ export default function EditorClient() {
               : 'bg-sage-50 border-sage-200 text-sage-700 hover:bg-sage-100',
           )}
         >
-          {credits === null ? '…' : credits === 0 ? 'Recharger des crédits' : `${credits.toLocaleString()} crédit${credits === 1 ? '' : 's'}`}
+          {credits === null ? '…' : credits === 0 ? "S'abonner" : `${credits.toLocaleString()} crédit${credits === 1 ? '' : 's'}`}
         </Link>
       </header>
 
@@ -880,7 +884,10 @@ export default function EditorClient() {
         <InsufficientCreditsModal
           available={creditError.available}
           required={creditError.required}
+          workspaceId={session?.user?.workspaceId}
+          feedbackCreditGranted={feedbackCreditGranted}
           onClose={() => setCreditError(null)}
+          onCreditGranted={refreshCredits}
         />
       )}
 
@@ -918,27 +925,78 @@ function GeneratingModal({ mode }: { mode: Mode }) {
   )
 }
 
-// Auto-redirects to the recharge flow after a few seconds instead of waiting for the user to
-// notice and click a link — the credit-pack modal is pre-opened there (?topup=1) so arriving
-// there is already the purchase flow, not one more click away from it. Still cancelable
-// ("Rester ici") rather than forced, and the countdown is visible rather than a surprise jump.
+// Auto-redirects to the subscription plans after a few seconds instead of waiting for the user
+// to notice and click a link — a FREE user at 0 credits gets more value from subscribing to
+// Essentiel than from a one-time credit-pack top-up, so ?upgrade=1 scrolls straight to the
+// plans grid rather than opening the top-up modal. Still cancelable ("Rester ici") rather than
+// forced, and the countdown is visible rather than a surprise jump.
 const CREDIT_MODAL_REDIRECT_SECONDS = 5
 
-function InsufficientCreditsModal({ available, required, onClose }: { available: number; required: number; onClose: () => void }) {
+const MIN_FEEDBACK_LENGTH = 15
+
+function InsufficientCreditsModal({
+  available, required, workspaceId, feedbackCreditGranted, onClose, onCreditGranted,
+}: {
+  available: number
+  required: number
+  workspaceId?: string
+  feedbackCreditGranted: boolean
+  onClose: () => void
+  onCreditGranted: () => void
+}) {
   const router = useRouter()
   const [secondsLeft, setSecondsLeft] = useState(CREDIT_MODAL_REDIRECT_SECONDS)
   const [autoRedirect, setAutoRedirect] = useState(true)
   const isFullyOut = available === 0
 
+  // Lets a workspace that's fully out earn 1 non-expiring credit for a short, honest piece
+  // of feedback — a cheap way to both soften the wall and hear from the users likeliest to
+  // churn silently instead of subscribing. One-time only (server-enforced via
+  // feedbackCreditGrantedAt), so this can't be farmed by resubmitting each cycle.
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [rating, setRating] = useState<number | null>(null)
+  const [message, setMessage] = useState('')
+  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
+
   useEffect(() => {
     if (!autoRedirect) return
     if (secondsLeft <= 0) {
-      router.push('/app/billing?topup=1')
+      router.push('/app/billing?upgrade=1')
       return
     }
     const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
     return () => clearTimeout(t)
   }, [autoRedirect, secondsLeft, router])
+
+  const openFeedback = () => {
+    setAutoRedirect(false) // don't let the countdown yank them away mid-typing
+    setFeedbackOpen(true)
+  }
+
+  const submitFeedback = async () => {
+    if (!workspaceId || message.trim().length < MIN_FEEDBACK_LENGTH) return
+    setFeedbackStatus('sending')
+    setFeedbackError(null)
+    try {
+      const res = await fetch('/api/feedback/credit-bonus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspaceId, message: message.trim(), rating: rating ?? undefined }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setFeedbackError(data.message ?? 'Erreur inconnue')
+        setFeedbackStatus('error')
+        return
+      }
+      setFeedbackStatus('done')
+      onCreditGranted()
+    } catch {
+      setFeedbackError('Erreur inconnue')
+      setFeedbackStatus('error')
+    }
+  }
 
   return (
     <>
@@ -952,34 +1010,103 @@ function InsufficientCreditsModal({ available, required, onClose }: { available:
           >
             <X className="w-4 h-4" strokeWidth={1.75} />
           </button>
-          <div className="w-12 h-12 mx-auto rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mb-4">
-            <AlertTriangle className="w-6 h-6 text-rose-500" strokeWidth={1.75} />
-          </div>
-          <h3 className="font-display font-semibold text-lg text-midnight mb-2">
-            {isFullyOut ? 'Vous avez utilisé tous vos crédits' : 'Crédits insuffisants pour cette action'}
-          </h3>
-          <p className="text-sm text-midnight/50 mb-6">
-            {isFullyOut
-              ? 'Rechargez en quelques secondes pour continuer à générer des rendus et convaincre vos prochains clients.'
-              : <>Il vous faut {required} crédit{required === 1 ? '' : 's'} pour cette action, il vous en reste {available}.</>}
-          </p>
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/app/billing?topup=1"
-              className="rounded-xl bg-sage-500 hover:bg-sage-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors"
-            >
-              Recharger mes crédits
-            </Link>
-            {autoRedirect ? (
-              <button onClick={() => setAutoRedirect(false)} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
-                Rester ici <span className="tabular-nums">· redirection dans {secondsLeft}s</span>
+
+          {feedbackStatus === 'done' ? (
+            <>
+              <div className="w-12 h-12 mx-auto rounded-full bg-sage-50 border border-sage-200 flex items-center justify-center mb-4">
+                <Check className="w-6 h-6 text-sage-600" strokeWidth={2} />
+              </div>
+              <h3 className="font-display font-semibold text-lg text-midnight mb-2">Merci pour votre avis !</h3>
+              <p className="text-sm text-midnight/50 mb-6">1 crédit gratuit vient d&apos;être ajouté à votre compte.</p>
+              <button
+                onClick={onClose}
+                className="w-full rounded-xl bg-sage-500 hover:bg-sage-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors"
+              >
+                Continuer
               </button>
-            ) : (
-              <button onClick={onClose} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
-                Fermer
-              </button>
-            )}
-          </div>
+            </>
+          ) : (
+            <>
+              <div className="w-12 h-12 mx-auto rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mb-4">
+                <AlertTriangle className="w-6 h-6 text-rose-500" strokeWidth={1.75} />
+              </div>
+              <h3 className="font-display font-semibold text-lg text-midnight mb-2">
+                {isFullyOut ? 'Vous avez utilisé tous vos crédits' : 'Crédits insuffisants pour cette action'}
+              </h3>
+              <p className="text-sm text-midnight/50 mb-6">
+                {isFullyOut
+                  ? 'Abonnez-vous pour continuer à générer des rendus et convaincre vos prochains clients.'
+                  : <>Il vous faut {required} crédit{required === 1 ? '' : 's'} pour cette action, il vous en reste {available}.</>}
+              </p>
+
+              {!feedbackOpen ? (
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href="/app/billing?upgrade=1"
+                    className="rounded-xl bg-sage-500 hover:bg-sage-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors"
+                  >
+                    Passer à l&apos;abonnement Essentiel
+                  </Link>
+                  {isFullyOut && workspaceId && !feedbackCreditGranted && (
+                    <button
+                      onClick={openFeedback}
+                      className="text-sm text-sage-600 hover:text-sage-700 font-medium py-1"
+                    >
+                      Ou laissez un avis honnête pour 1 crédit gratuit
+                    </button>
+                  )}
+                  {autoRedirect ? (
+                    <button onClick={() => setAutoRedirect(false)} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
+                      Rester ici <span className="tabular-nums">· redirection dans {secondsLeft}s</span>
+                    </button>
+                  ) : (
+                    <button onClick={onClose} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
+                      Fermer
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 text-left">
+                  <div className="flex items-center justify-center gap-1">
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setRating(n)}
+                        aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
+                        className="p-0.5"
+                      >
+                        <Star
+                          className={cn('w-6 h-6 transition-colors', rating != null && n <= rating ? 'fill-amber-400 text-amber-400' : 'text-midnight/20')}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={message}
+                    onChange={e => setMessage(e.target.value)}
+                    rows={3}
+                    placeholder="Qu'est-ce qui vous plaît, ou vous freine, avec Verdia ?"
+                    className="w-full rounded-lg border border-sage-200 px-3 py-2 text-sm focus:outline-none focus:border-sage-400 resize-none"
+                  />
+                  <p className="text-[11px] text-midnight/35">
+                    {message.trim().length}/{MIN_FEEDBACK_LENGTH} caractères minimum
+                  </p>
+                  {feedbackError && <p className="text-xs text-rose-500">{feedbackError}</p>}
+                  <button
+                    onClick={submitFeedback}
+                    disabled={feedbackStatus === 'sending' || message.trim().length < MIN_FEEDBACK_LENGTH}
+                    className="rounded-xl bg-sage-500 hover:bg-sage-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 text-sm font-semibold transition-colors"
+                  >
+                    {feedbackStatus === 'sending' ? 'Envoi…' : 'Envoyer et recevoir mon crédit'}
+                  </button>
+                  <button onClick={() => setFeedbackOpen(false)} className="text-sm text-midnight/40 hover:text-midnight/60 py-1">
+                    Annuler
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </>

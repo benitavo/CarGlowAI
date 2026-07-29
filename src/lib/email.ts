@@ -283,13 +283,13 @@ export async function sendCreditsExhaustedEmail(to: string, opts: { name?: strin
   await sendEmail({
     to,
     subject: 'Vous avez utilisé tous vos crédits',
-    text: `Bonjour${displayName ? ` ${displayName}` : ''},\n\nVous avez utilisé tous vos crédits gratuits ce mois-ci — signe que Verdia vous est utile. Un rendu coûte environ 1,50€ avec un abonnement, contre 500 à 2000€ pour une maquette 3D classique.\n\nDébloquer plus de crédits → https://verdia-app.com/app/billing?topup=1\n\nL'équipe Verdia`,
+    text: `Bonjour${displayName ? ` ${displayName}` : ''},\n\nVous avez utilisé tous vos crédits gratuits ce mois-ci — signe que Verdia vous est utile. Un rendu coûte environ 1,50€ avec un abonnement, contre 500 à 2000€ pour une maquette 3D classique.\n\nVoir l'abonnement Essentiel → https://verdia-app.com/app/billing?upgrade=1\n\nL'équipe Verdia`,
     html: layout(`
       ${h1('Vous avez utilisé tous vos crédits')}
       ${p(`Bonjour${displayName ? ` ${displayName}` : ''}, vous avez épuisé vos crédits gratuits de ce mois — c'est plutôt bon signe, ça veut dire que Verdia vous sert vraiment.`)}
       ${p('Avec un abonnement, chaque rendu revient à environ 1,50€ — contre 500 à 2 000€ pour une maquette 3D classique.')}
       <div style="text-align:center;margin:28px 0">
-        ${btn('https://verdia-app.com/app/billing?topup=1', 'Débloquer plus de crédits →')}
+        ${btn('https://verdia-app.com/app/billing?upgrade=1', "Voir l'abonnement Essentiel →")}
       </div>
       <p style="margin:24px 0 0;font-size:14px;color:#888">L'équipe Verdia</p>
     `),
