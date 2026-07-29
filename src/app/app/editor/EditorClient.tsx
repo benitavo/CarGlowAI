@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { GARDEN_STYLES } from '@/lib/gardenStyles'
 import { downloadUrlAsFile } from '@/lib/download-file'
 import { MarketingKitModal } from '@/components/app/MarketingKitModal'
+import { VerifyEmailModal } from '@/components/app/VerifyEmailModal'
 
 type Mode = 'image' | 'video'
 
@@ -140,6 +141,7 @@ export default function EditorClient() {
   const [retouchStatus, setRetouchStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [retouchError, setRetouchError]   = useState<string | undefined>()
   const [creditError, setCreditError]     = useState<CreditError | null>(null)
+  const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [showMarketingKit, setShowMarketingKit] = useState(false)
   // Starts true (badge hidden) to avoid a server/client mismatch flash — localStorage doesn't
   // exist during SSR, so we can only know the real answer after mount.
@@ -264,7 +266,9 @@ export default function EditorClient() {
           return
         }
         if (data.error === 'email_not_verified') {
-          throw new Error(data.message ?? 'Vérifiez votre adresse e-mail pour continuer.')
+          setGen({ status: 'idle' })
+          setShowVerifyModal(true)
+          return
         }
         throw new Error(data.error ?? 'Erreur inconnue')
       }
@@ -317,7 +321,9 @@ export default function EditorClient() {
           return
         }
         if (data.error === 'email_not_verified') {
-          throw new Error(data.message ?? 'Vérifiez votre adresse e-mail pour continuer.')
+          setRetouchStatus('idle')
+          setShowVerifyModal(true)
+          return
         }
         throw new Error(data.error ?? 'Erreur inconnue')
       }
@@ -877,6 +883,8 @@ export default function EditorClient() {
           onClose={() => setCreditError(null)}
         />
       )}
+
+      {showVerifyModal && <VerifyEmailModal onClose={() => setShowVerifyModal(false)} />}
 
       {showMarketingKit && selected && (
         <MarketingKitModal photoId={selected.id} onClose={() => setShowMarketingKit(false)} hasVideoAfter={selected.mode === 'video'} />

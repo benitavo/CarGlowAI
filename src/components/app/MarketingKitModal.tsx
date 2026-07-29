@@ -6,6 +6,7 @@ import { X, Clapperboard, Loader2, Download, Music, PenLine, Copy, Check } from 
 import { cn } from '@/lib/utils'
 import { downloadUrlAsFile } from '@/lib/download-file'
 import { MUSIC_PRESETS } from '@/lib/marketing-video/music-presets'
+import { VerifyEmailModal } from '@/components/app/VerifyEmailModal'
 
 type Format = 'reel' | 'story' | 'landscape' | 'square'
 
@@ -47,6 +48,7 @@ export function MarketingKitModal({ photoId, onClose, hasVideoAfter = false }: P
   const [error, setError]       = useState<string | null>(null)
   const [insufficientCredits, setInsufficientCredits] = useState<{ available: number; required: number } | null>(null)
   const [creditCost, setCreditCost] = useState<number | null>(null)
+  const [showVerifyModal, setShowVerifyModal] = useState(false)
 
   const [captionStatus, setCaptionStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [caption, setCaption]   = useState<string | null>(null)
@@ -96,7 +98,9 @@ export function MarketingKitModal({ photoId, onClose, hasVideoAfter = false }: P
           return
         }
         if (data.error === 'email_not_verified') {
-          throw new Error(data.message ?? 'Vérifiez votre adresse e-mail pour continuer.')
+          setStatus('idle')
+          setShowVerifyModal(true)
+          return
         }
         throw new Error(data.error ?? 'Erreur inconnue')
       }
@@ -351,6 +355,7 @@ export function MarketingKitModal({ photoId, onClose, hasVideoAfter = false }: P
           </div>
         </div>
       </div>
+      {showVerifyModal && <VerifyEmailModal onClose={() => setShowVerifyModal(false)} />}
     </>
   )
 }
